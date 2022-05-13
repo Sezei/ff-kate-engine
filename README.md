@@ -1,8 +1,12 @@
-# Funky Friday Kate Engine
-Funky Friday's 'essential' mods; Absolutely nothing that gives you advantages over your opponents, all absolutely client-sided.
+# Funky Friday | Kate Engine
+Funky Friday's modding framework; which by itself is a mod lol; Absolutely nothing that gives you advantages over your opponents, all absolutely client-sided.
 decided on the name 'kate engine' both because of Kade and because my name's katherine (or kate for short lol)
 
 i mean, it technically does mod ff to add new features just like kade did for fnf so dont point fingers at me
+
+# Requirements
+- A script executor
+- Make sure the script executor can use loadstring otherwise its a bad executor lmfao
 
 # Features (so far)
 The 'mods' so far are the following;
@@ -22,3 +26,9 @@ The following features are currently in planning stages, and won't be in the 'en
 - an actual menu to toggle the mods - thinking about either making one just for this
 - better score display?
 - background for solo plays? (already tested, thinking about how to implement into the script)
+
+# How to load (correctly)
+Simply put the following into the script executor. It will do the rest ***and*** will auto-update whenever an update comes.
+```lua
+local engine = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/loader.lua",true))()
+```
