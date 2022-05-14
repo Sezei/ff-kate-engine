@@ -3,6 +3,7 @@
 local tweenservice = game:GetService("TweenService")
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI")
 local origintime = 0;
+local version = "v0.1.1"
 
 local funny = Instance.new("TextLabel")
 funny.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -34,8 +35,8 @@ local watermark = Instance.new("TextLabel");
 watermark.Parent = gameUi;
 watermark.BackgroundTransparency = 1;
 watermark.Font = Enum.Font.PermanentMarker;
-watermark.Text = "Kate Engine v0.1\nCreated by Sezei\n\nFunky Friday by Lyte Entertainment"
-watermark.TextSize = 30
+watermark.Text = "Kate Engine | "..version.."\nCreated by Sezei"
+watermark.TextSize = 26
 watermark.TextXAlignment = Enum.TextXAlignment.Left;
 watermark.TextYAlignment = Enum.TextYAlignment.Top;
 watermark.TextColor3 = Color3.new(1,1,1);
@@ -51,33 +52,41 @@ local function CalcRating(one,two)
     if one == 100 then
         return "P"
     elseif one == 99 then
-        if two > 95 then
+        if two >= 95 then
             return "S+"
-        elseif two > 90 then
+        elseif two >= 90 then
             return "S"
-        elseif two > 85 then
+        elseif two >= 85 then
             return "AAA"
-        elseif two > 70 then
+        elseif two >= 70 then
             return "AA+"
-        elseif two > 60 then
+        elseif two >= 60 then
             return "AA:"
-        elseif two > 50 then
+        elseif two >= 50 then
             return "AA."
-        elseif two > 40 then
+        elseif two >= 40 then
             return "AA"
-        elseif two > 30 then
+        elseif two >= 30 then
             return "A+"
-        elseif two > 20 then
+        elseif two >= 20 then
             return "A:"
-        elseif two > 10 then
+        elseif two >= 10 then
             return "A."
         end
         return "A"
+    elseif one >= 97 then
+        return "A-"
     elseif one >= 95 then
-        return "B"
+        return "B+"
     elseif one >= 90 then
-        return "C"
+        return "B"
+    elseif one >= 85 then
+        return "C+"
     elseif one >= 80 then
+        return "C"
+    elseif one >= 75 then
+        return "D+"
+    elseif one >= 70 then
         return "D"
     else
         return "F"
