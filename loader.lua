@@ -16,17 +16,32 @@ funny.TextSize = 50
 funny.Text = 0
 funny.Font = Enum.Font.Arcade
 funny.Visible = false
+funny.Name = "KE_funny"
 local tween = funny:Clone()
 tween.Visible = true
 tween.Parent = funny
 tween.TextStrokeTransparency = 1
 tween.TextTransparency = 1
+tween.Name = "KE_tween"
 local secondary = funny:Clone();
 secondary.Visible = true
 secondary.Parent = funny
 secondary.Text = ""
 secondary.Position = UDim2.new(0.5,0,0,40)
 secondary.TextSize = 30
+secondary.Name = "KE_secondary"
+local watermark = Instance.new("TextLabel");
+watermark.Parent = gameUi;
+watermark.BackgroundTransparency = 1;
+watermark.Font = Enum.Font.PermanentMarker;
+watermark.Text = "Kate Engine v0.1"
+watermark.TextSize = 20
+watermark.TextXAlignment = Enum.TextXAlignment.Left;
+watermark.TextYAlignment = Enum.TextYAlignment.Top;
+watermark.TextColor3 = Color3.new(1,1,1);
+watermark.TextStrokeTransparency = 0.5;
+watermark.Position = UDim2.new(0,10,0,0);
+watermark.Name = "KE_watermark"
 
 local prevcombo = 0
 local event = game.ReplicatedStorage.RE;
@@ -226,6 +241,7 @@ gameUi.Arrows:GetPropertyChangedSignal("Visible"):Connect(
 local topb = gameUi.TopbarLabel:Clone();
 topb.Parent = gameUi;
 topb.Visible = true;
+topb.Name = "KE_topbar"
 
 gameUi.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
     local newtxt = gameUi.TopbarLabel.Text;
@@ -259,7 +275,7 @@ end)
 
 local c = gameUi.SongSelector.Frame.Body.Settings.Solo:Clone();
 c.Parent = gameUi.SongSelector.Frame.Body.Settings
-c.Name = "NoMiss"
+c.Name = "KE_NoMiss"
 c.SoloPlay.Text = "No-Miss";
 c.SoloPlay.BackgroundColor3 = Color3.new(0.4,1,0.4);
 c.SoloInfoLabel.Text = "Solo: 1 MISS = DEATH!";
@@ -276,4 +292,4 @@ gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay:GetPropertyChangedSignal("
     c.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
 end)
 
-return {gameUi}
+return gameUi
