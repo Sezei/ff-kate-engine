@@ -4,7 +4,7 @@
 local tweenservice = game:GetService("TweenService")
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI")
 local origintime = 0;
-local version = "v0.2"
+local version = "v0.2.1"
 local prevcombo = 0
 local event = game.ReplicatedStorage.RE;
 local inNoMiss = false;
@@ -293,10 +293,11 @@ gameUi.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
         
         local function handler()
             local m = math.floor((seconds/origintime)*75)
-            local s = ""
+            local s = string.split(txttable[1],">")[1]..'>'
             for i=1,math.abs(m-75) do 
-                s = s..string.split(txttable[1],">")[1]..'>|</font>'
+                s ..= '|'
             end
+            s ..= '</font>'
             for i=1,m do 
                 s = s..'|'
             end
@@ -310,7 +311,14 @@ gameUi.TopbarLabel:GetPropertyChangedSignal("Visible"):Connect(function()
      gameUi.TopbarLabel.Visible = false;  
 end)
 
+gameUi.SongSelector.Frame.Body.Settings.MultiStage.Visible = false;
 gameUi.SongSelector.Frame.Body.Settings.Solo.SoloInfoLabel.Visible = false;
+gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.Size = UDim2.new(1,0,1,0)
+gameUi.SongSelector.Frame.Body.Settings.Solo.Size = UDim2.new(0,220,1,0)
+local ULL = Instance.new("UIListLayout");
+ULL.Padding = UDim.new(0,10);
+ULL.FillDirection = Enum.FillDirection.Horizontal;
+ULL.Parent = gameUi.SongSelector.Frame.Body.Settings;
 
 local NoMiss = gameUi.SongSelector.Frame.Body.Settings.Solo:Clone(); -- NoMiss
 NoMiss.Parent = gameUi.SongSelector.Frame.Body.Settings
@@ -322,7 +330,6 @@ NoMiss.SoloPlay.MouseButton1Click:Connect(function()
         SendPlay("nomiss")
     end
 end)
-NoMiss.Position = UDim2.new(0,230,0,0)
 
 local SicksOnlyB = gameUi.SongSelector.Frame.Body.Settings.Solo:Clone(); -- SicksOnly
 SicksOnlyB.Parent = gameUi.SongSelector.Frame.Body.Settings
@@ -334,7 +341,6 @@ SicksOnlyB.SoloPlay.MouseButton1Click:Connect(function()
         SendPlay("sicksonly")
     end
 end)
-SicksOnlyB.Position = UDim2.new(0,460,0,0)
 
 gameUi.SongSelector.Frame.Body.Settings.Solo:GetPropertyChangedSignal("Visible"):Connect(function() -- Don't let the people press the no-miss if it's not solo
     NoMiss.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
