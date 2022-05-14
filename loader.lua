@@ -1,10 +1,16 @@
--- idek
+--local engine = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/loader.lua",true))();
 
+-- Services and Variables
 local tweenservice = game:GetService("TweenService")
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI")
 local origintime = 0;
-local version = "v0.1.1"
+local version = "v0.2"
+local prevcombo = 0
+local event = game.ReplicatedStorage.RE;
+local inNoMiss = false;
+local SicksOnly = false;
 
+-- UI time
 local funny = Instance.new("TextLabel")
 funny.AnchorPoint = Vector2.new(0.5, 0.5)
 funny.Position = UDim2.fromScale(0.5, 0.5)
@@ -43,10 +49,10 @@ watermark.TextColor3 = Color3.new(1,1,1);
 watermark.TextStrokeTransparency = 0.5;
 watermark.Position = UDim2.new(0,10,0,0);
 watermark.Name = "KE_watermark"
-
-local prevcombo = 0
-local event = game.ReplicatedStorage.RE;
-local inNoMiss = false;
+local topb = gameUi.TopbarLabel:Clone();
+topb.Parent = gameUi;
+topb.Visible = true;
+topb.Name = "KE_topbar"
 
 local function CalcRating(one,two)
     if one == 100 then
@@ -94,6 +100,8 @@ local function CalcRating(one,two)
 end
 
 local function updateCombo(combo,acc,miss)
+    if not miss then miss = 0 end -- bandaid for some reason
+    
     local result1 = string.split(game.Players.LocalPlayer.PlayerGui.GameUI.Arrows.Stats.Text,"\n")
     local res = {};
     for k,f in pairs(result1) do
@@ -101,7 +109,7 @@ local function updateCombo(combo,acc,miss)
     end
     
     if res[2] == 0 and res[3] == 0 and res[4] == 0 and miss== 0 then
-        secondary.Text = "PFC"
+        secondary.Text = (SicksOnly and "PERFECT" or "PFC")
     elseif res[2] == 1 and res[3] == 0 and res[4] == 0 and miss== 0 then -- good
         secondary.Text = "G-FLAG"
     elseif res[2] == 0 and res[3] == 1 and res[4] == 0 and miss == 0 then -- OK
@@ -207,8 +215,12 @@ local function updateCombo(combo,acc,miss)
     end
 end
 
-local function SendPlay()
-    inNoMiss = true;
+local function SendPlay(var)
+    if var == "nomiss" then
+        inNoMiss = true;
+    elseif var == "sicksonly" then
+        SicksOnly = true;
+    end
     event:FireServer({"Server","StageManager","PlaySolo"},{});
 end
 
@@ -216,12 +228,13 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(
     function()
         local t = gameUi.Arrows.InfoBar.Text
         local tt = string.split(t, " ")
+        local num;
 
         if tt[10] then
-            local num = string.gsub(tt[10], "%D", "")
+            num = string.gsub(tt[10], "%D", "")
             updateCombo(tonumber(num),tt[2],tonumber(tt[5]))
         elseif tt[8] then
-            local num = string.gsub(tt[8], "%D", "")
+            num = string.gsub(tt[8], "%D", "")
             updateCombo(tonumber(num),tt[2],tonumber(tt[5]))
         end
         
@@ -229,9 +242,28 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(
             if tonumber(tt[5]) and tonumber(tt[5]) >= 1 then
                 game.Players.LocalPlayer.Character.Humanoid.Health = -100;
                 inNoMiss = false;
+                task.wait(0.5)
+                topb.Text = '<font color="#ff5555">No-Miss failed at a combo of '..tostring(prevcombo)..'!</font>'
+                task.wait(5)
+                if topb.Text == '<font color="#ff5555">No-Miss failed at a combo of '..tostring(prevcombo)..'!</font>' then -- in case a different message appeared
+                    topb.Text = ''
+                end
             end
             if tt[10] then
                 gameUi.Arrows.InfoBar.Text = tt[1].." "..tt[2].." | NO-MISS MODE "..(tt[10])
+            end
+        elseif SicksOnly then
+            if tt[2] ~= "ONLY" and tt[2] ~= "100.00%" then
+                game.Players.LocalPlayer.Character.Humanoid.Health = -100;
+                SicksOnly = false;
+                task.wait(0.5)
+                topb.Text = '<font color="#ff5555">Sicks-Only failed at a combo of '..tostring(prevcombo)..'!</font>'
+                task.wait(5)
+                if topb.Text == '<font color="#ff5555">Sicks-Only failed at a combo of '..tostring(prevcombo)..'!</font>' then -- in case a different message appeared
+                    topb.Text = ''
+                end
+            else
+                gameUi.Arrows.InfoBar.Text = "SICKS ONLY MODE "..(tt[10])
             end
         end
     end
@@ -242,15 +274,11 @@ gameUi.Arrows:GetPropertyChangedSignal("Visible"):Connect(
         if gameUi.Arrows.Visible == false then
             funny.Visible = false
             inNoMiss = false;
+            SicksOnly = false;
             origintime = 0;
         end
     end
 )
-
-local topb = gameUi.TopbarLabel:Clone();
-topb.Parent = gameUi;
-topb.Visible = true;
-topb.Name = "KE_topbar"
 
 gameUi.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
     local newtxt = gameUi.TopbarLabel.Text;
@@ -279,26 +307,42 @@ gameUi.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 gameUi.TopbarLabel:GetPropertyChangedSignal("Visible"):Connect(function()
-     gameUi.TopbarLabel.Visible = false;   
+     gameUi.TopbarLabel.Visible = false;  
 end)
 
-local c = gameUi.SongSelector.Frame.Body.Settings.Solo:Clone();
-c.Parent = gameUi.SongSelector.Frame.Body.Settings
-c.Name = "KE_NoMiss"
-c.SoloPlay.Text = "No-Miss";
-c.SoloPlay.BackgroundColor3 = Color3.new(0.4,1,0.4);
-c.SoloInfoLabel.Text = "Solo: 1 MISS = DEATH!";
-c.SoloPlay.MouseButton1Click:Connect(function()
-    if c.Visible and gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G then
-        SendPlay()
+gameUi.SongSelector.Frame.Body.Settings.Solo.SoloInfoLabel.Visible = false;
+
+local NoMiss = gameUi.SongSelector.Frame.Body.Settings.Solo:Clone(); -- NoMiss
+NoMiss.Parent = gameUi.SongSelector.Frame.Body.Settings
+NoMiss.Name = "KE_NoMiss"
+NoMiss.SoloPlay.Text = "No Misses";
+NoMiss.SoloPlay.BackgroundColor3 = Color3.new(0.4,1,0.4);
+NoMiss.SoloPlay.MouseButton1Click:Connect(function()
+    if NoMiss.Visible and gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G then
+        SendPlay("nomiss")
     end
 end)
-c.Position = UDim2.new(0,500,0,0)
+NoMiss.Position = UDim2.new(0,230,0,0)
+
+local SicksOnlyB = gameUi.SongSelector.Frame.Body.Settings.Solo:Clone(); -- SicksOnly
+SicksOnlyB.Parent = gameUi.SongSelector.Frame.Body.Settings
+SicksOnlyB.Name = "KE_SicksOnly"
+SicksOnlyB.SoloPlay.Text = "Sicks Only";
+SicksOnlyB.SoloPlay.BackgroundColor3 = Color3.new(0.4,0.4,1);
+SicksOnlyB.SoloPlay.MouseButton1Click:Connect(function()
+    if SicksOnlyB.Visible and gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G then
+        SendPlay("sicksonly")
+    end
+end)
+SicksOnlyB.Position = UDim2.new(0,460,0,0)
+
 gameUi.SongSelector.Frame.Body.Settings.Solo:GetPropertyChangedSignal("Visible"):Connect(function() -- Don't let the people press the no-miss if it's not solo
-    c.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
+    NoMiss.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
+    SicksOnlyB.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
 end)
 gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay:GetPropertyChangedSignal("BackgroundColor3"):Connect(function() -- Don't let the people press the no-miss if it's not solo
-    c.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
+    NoMiss.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
+    SicksOnlyB.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
 end)
 
 return gameUi
