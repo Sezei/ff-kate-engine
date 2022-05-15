@@ -5,7 +5,7 @@ local httpservice = game:GetService("HttpService")
 local tweenservice = game:GetService("TweenService")
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI")
 local origintime = 0;
-local version = "v0.3"
+local version = "v0.3.1"
 local prevcombo = 0
 local event = game.ReplicatedStorage.RE;
 local inNoMiss = false;
@@ -70,6 +70,7 @@ local uidata = { -- Saving Purposes. Also easier to access ig.
 	Mania_200Combo = Color3.new(1,1,0.5);
 	Mania_300Combo = Color3.new(1,1,0.25);
 	Mania_400Combo = Color3.new(1,1,0);
+	Mania_Milestone = 50;
 	Modes_NoMiss = true;
 	Modes_SicksOnly = true;
 }
@@ -214,6 +215,13 @@ local maniatab = material.New({Title = "Mania"}) do
 		end;
 		Default = Color3.new(1,1,0);
 	});
+	Mania_Milestone = maniatab.Dropdown({
+		Text = "Combo Milestones";
+		Callback = function(option)
+			uidata.Mania_Milestone = tonumber(option)
+		end;
+		Options = {"20","25","50","100"};
+	});
 end;
 
 local modestab = material.New({Title = "Game Modes"}) do
@@ -223,14 +231,14 @@ local modestab = material.New({Title = "Game Modes"}) do
 	Modes_NoMiss = modestab.Toggle({
 		Text = "No-Miss Mode Button";
 		Callback = function(bool)
-			print("Modes_NoMiss: "..tostring(bool))
+			uidata.Modes_NoMiss = bool
 		end;
 		Enabled = true;
 	});
 	Modes_SicksOnly = modestab.Toggle({
 		Text = "Sicks-Only Mode Button";
 		Callback = function(bool)
-			print("Modes_SicksOnly: "..tostring(bool))
+			uidata.Modes_SicksOnly = bool
 		end;
 		Enabled = true;
 	});
@@ -434,7 +442,7 @@ local function updateCombo(combo,acc,miss)
 		}
 	):Play()
 
-	if combo % 50 == 0 then
+	if combo % tonumber(uidata.Mania_Milestone) == 0 then
 		tween.TextTransparency = 0
 		tween.TextSize = 70
 		tween.Text = combo
