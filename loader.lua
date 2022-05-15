@@ -56,7 +56,7 @@ topb.Parent = gameUi;
 topb.Visible = true;
 topb.Name = "KE_topbar"
 
-material.Banner({Text = "Kate Engine v0.3 - At last, added the mod menu. You can now create your own mods and add them to the menu by adding a 'ui' variable to the loadstring, so it'll look like this:\n\nlocal engine, ui = ..."});
+material.Banner({Text = "Kate Engine v0.3.1\n\n+ Added Mania milestones."});
 
 local uidata = { -- Saving Purposes. Also easier to access ig.
 	DataVersion = version;
