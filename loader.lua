@@ -236,6 +236,12 @@ local modestab = material.New({Title = "Game Modes"}) do
 	});
 end;
 
+local crtab = material.New({Title = "Credits"}) do
+	crtab.Label({
+		Text = "-- CREDITS --\n\n<font color=\"#ff00a6\">Sezei</font> - Script\nKinlei(?) - UI Library";
+	});
+end;
+
 local UIS = game:GetService("UserInputService")
 UIS.InputBegan:Connect(function(info)
 	if info.UserInputType == Enum.UserInputType.Keyboard then
