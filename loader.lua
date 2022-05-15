@@ -238,7 +238,13 @@ end;
 
 local crtab = material.New({Title = "Credits"}) do
 	crtab.Label({
-		Text = "-- CREDITS --\n\n<font color=\"#ff00a6\">Sezei</font> - Script\nKinlei(?) - UI Library";
+		Text = "-- CREDITS --";
+	});
+	crtab.Label({
+		Text = "<font color=\"#ff00a6\">Sezei</font> - Script";
+	});
+	crtab.Label({
+		Text = "Kinlei(?) - UI Library";
 	});
 end;
 
