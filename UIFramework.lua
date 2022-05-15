@@ -2234,12 +2234,13 @@ function Material.Load(Config)
 
 			local LabelContent = Objects.new("Label")
 			LabelContent.TextColor3 = Theme.ChipSet
-			LabelContent.Text = LabelText:upper()
+			LabelContent.Text = LabelText
 			LabelContent.TextSize = 12
 			LabelContent.Font = Enum.Font.GothamSemibold
 			LabelContent.Size = UDim2.fromScale(1,1) + UDim2.fromOffset(-5,0)
 			LabelContent.Position = UDim2.fromOffset(5,0)
 			LabelContent.Parent = LabelContainer
+			LabelContent.RichText = true
 
 			local LabelOptions = {}
 
@@ -2413,9 +2414,9 @@ function Material.Load(Config)
 
 		return OptionLibrary
 	end
-	
+
 	TabLibrary.Self = NewInstance;
-	
+
 	return TabLibrary
 end
 
