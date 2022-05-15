@@ -242,6 +242,13 @@ local modestab = material.New({Title = "Game Modes"}) do
 		end;
 		Enabled = true;
 	});
+	modestab.Toggle({
+		Text = "Disable Watermark";
+		Callback = function(bool)
+			watermark.Visible = not bool; -- we doin' some trolling :troll:
+		end;
+		Enabled = false;
+	});
 end;
 
 local crtab = material.New({Title = "Credits"}) do
