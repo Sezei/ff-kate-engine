@@ -171,7 +171,11 @@ local function updateCombo(combo,acc,miss)
             end
         )
     end
-    prevcombo = combo
+    task.spawn(function()
+        task.wait(0.2)
+        prevcombo = combo
+    end)
+    
     
     if combo < 20 then
         return
@@ -242,7 +246,7 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(
             if tonumber(tt[5]) and tonumber(tt[5]) >= 1 then
                 game.Players.LocalPlayer.Character.Humanoid.Health = -100;
                 inNoMiss = false;
-                task.wait(0.5)
+                task.wait(0.1)
                 topb.Text = '<font color="#ff5555">No-Miss failed at a combo of '..tostring(prevcombo)..'!</font>'
                 task.wait(5)
                 if topb.Text == '<font color="#ff5555">No-Miss failed at a combo of '..tostring(prevcombo)..'!</font>' then -- in case a different message appeared
@@ -256,7 +260,7 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(
             if tt[2] ~= "ONLY" and tt[2] ~= "100.00%" then
                 game.Players.LocalPlayer.Character.Humanoid.Health = -100;
                 SicksOnly = false;
-                task.wait(0.5)
+                task.wait(0.1)
                 topb.Text = '<font color="#ff5555">Sicks-Only failed at a combo of '..tostring(prevcombo)..'!</font>'
                 task.wait(5)
                 if topb.Text == '<font color="#ff5555">Sicks-Only failed at a combo of '..tostring(prevcombo)..'!</font>' then -- in case a different message appeared
