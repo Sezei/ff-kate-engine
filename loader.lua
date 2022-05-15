@@ -172,7 +172,9 @@ local function updateCombo(combo,acc,miss)
         )
     end
     task.spawn(function()
-        task.wait(0.2)
+        if combo == 0 then
+            task.wait(0.2)
+        end
         prevcombo = combo
     end)
     
@@ -233,6 +235,7 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(
         local t = gameUi.Arrows.InfoBar.Text
         local tt = string.split(t, " ")
         local num;
+        local prevcombo = prevcombo -- :)
 
         if tt[10] then
             num = string.gsub(tt[10], "%D", "")
