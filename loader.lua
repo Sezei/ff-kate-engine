@@ -345,10 +345,12 @@ end)
 gameUi.SongSelector.Frame.Body.Settings.Solo:GetPropertyChangedSignal("Visible"):Connect(function() -- Don't let the people press the no-miss if it's not solo
     NoMiss.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
     SicksOnlyB.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
+    gameUi.SongSelector.Frame.Body.Settings.MultiStage.Visible = not gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
 end)
 gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay:GetPropertyChangedSignal("BackgroundColor3"):Connect(function() -- Oopsie!
     NoMiss.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R > gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
     SicksOnlyB.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R > gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
+    gameUi.SongSelector.Frame.Body.Settings.MultiStage.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R == gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
 end)
 
 return gameUi
