@@ -4,7 +4,7 @@
 local tweenservice = game:GetService("TweenService")
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI")
 local origintime = 0;
-local version = "v0.2.1"
+local version = "v0.2.2"
 local prevcombo = 0
 local event = game.ReplicatedStorage.RE;
 local inNoMiss = false;
@@ -346,9 +346,9 @@ gameUi.SongSelector.Frame.Body.Settings.Solo:GetPropertyChangedSignal("Visible")
     NoMiss.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
     SicksOnlyB.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
 end)
-gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay:GetPropertyChangedSignal("BackgroundColor3"):Connect(function() -- Don't let the people press the no-miss if it's not solo
-    NoMiss.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
-    SicksOnlyB.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
+gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay:GetPropertyChangedSignal("BackgroundColor3"):Connect(function() -- Oopsie!
+    NoMiss.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R == gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
+    SicksOnlyB.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R == gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
 end)
 
 return gameUi
