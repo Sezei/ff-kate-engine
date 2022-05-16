@@ -56,7 +56,7 @@ topb.Parent = gameUi;
 topb.Visible = true;
 topb.Name = "KE_topbar"
 
-material.Banner({Text = "Kate Engine v0.3.1\n\n+ Added Mania milestones."});
+material.Banner({Text = "Kate Engine v0.3.1\n + Added Mania milestones."});
 
 local uidata = { -- Saving Purposes. Also easier to access ig.
 	DataVersion = version;
