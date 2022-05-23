@@ -19,6 +19,10 @@ The 'mods' so far are the following;
 - (cheaply made) Song Progress Bar
 
 ![image](https://user-images.githubusercontent.com/49373598/168381001-f61f281e-ca80-4aa8-9c62-0ff8b456bce8.png)
+- Solo Healthbar
+
+![image](https://user-images.githubusercontent.com/49373598/169907335-2f8e8313-231c-4419-8a52-ad20eceb9e5b.png)
+
 - Multi-Stage toggle now visible only if you're up against someone
 
 # How to load (correctly)
