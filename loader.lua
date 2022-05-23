@@ -5,11 +5,13 @@ local httpservice = game:GetService("HttpService")
 local tweenservice = game:GetService("TweenService")
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI")
 local origintime = 0;
-local version = "v0.3.1"
+local version = "v0.4"
 local prevcombo = 0
 local event = game.ReplicatedStorage.RE;
+local inSolo = false;
 local inNoMiss = false;
 local SicksOnly = false;
+local localhealth = 40;
 local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..version;Theme = "Dark";})
 material.Self.Enabled = false;
 -- UI time
@@ -43,7 +45,7 @@ local watermark = Instance.new("TextLabel");
 watermark.Parent = gameUi;
 watermark.BackgroundTransparency = 1;
 watermark.Font = Enum.Font.PermanentMarker;
-watermark.Text = "Kate Engine | "..version.."\nCreated by Sezei\n\nSemicolon to Open\nthe Mod Menu"
+watermark.Text = "Kate Engine | "..version.."\nCreated by Sezei\n\nOptions: [  ;  ]"
 watermark.TextSize = 26
 watermark.TextXAlignment = Enum.TextXAlignment.Left;
 watermark.TextYAlignment = Enum.TextYAlignment.Top;
@@ -55,14 +57,40 @@ local topb = gameUi.TopbarLabel:Clone();
 topb.Parent = gameUi;
 topb.Visible = true;
 topb.Name = "KE_topbar"
+local hpback = Instance.new("Frame");
+hpback.Visible = true;
+hpback.Parent = gameUi.Arrows;
+hpback.AnchorPoint = Vector2.new(0.5,1);
+hpback.Position = UDim2.new(0.5,0,1,-50);
+hpback.Size = UDim2.new(0.4,0,0,20);
+hpback.BackgroundColor3 = Color3.fromRGB(27,27,27);
+hpback.BorderSizePixel = 0;
+hpback.Name = "KE_Healthbar";
+local hplower = hpback:Clone();
+hplower.Visible = true;
+hplower.Parent = hpback;
+hplower.AnchorPoint = Vector2.new(0.5,0.5);
+hplower.Size = UDim2.new(0.99,0,0,16);
+hplower.Position = UDim2.new(0.5,0,0.5,0);
+hplower.BackgroundColor3 = Color3.new(1,0,0);
+hplower.Name = "Back";
+local hpupper = hplower:Clone();
+hpupper.Visible = true;
+hpupper.Parent = hplower;
+hpupper.AnchorPoint = Vector2.new(1,0.5);
+hpupper.Size = UDim2.new(0.4,0,1,0);
+hpupper.Position = UDim2.new(1,0,0.5,0);
+hpupper.BackgroundColor3 = Color3.new(0,1,0);
+hpupper.Name = "Front";
 
-material.Banner({Text = "Kate Engine v0.3.1\n + Added Mania milestones."});
+material.Banner({Text = "Kate Engine v0.4\n + Added a healthbar. :)"});
 
 local uidata = { -- Saving Purposes. Also easier to access ig.
 	DataVersion = version;
 	ManiaCounter = true;
 	SongProgress = true;
 	SoloGamemodes = true;
+	Health = true;
 	Mania_FCIndicator = true;
 	Mania_SimpleRatings = false;
 	Mania_0Combo = Color3.new(1,1,1);
@@ -154,6 +182,19 @@ local maintab = material.New({Title = "Main"}) do
 		Text = "Solo Gamemodes";
 		Callback = function(bool)
 			uidata.SoloGamemodes = bool
+		end;
+		Enabled = true;
+	});
+	Health = maintab.Toggle({
+		Text = "Solo Healthbar";
+		Callback = function(bool)
+			uidata.Health = bool;
+			if inSolo then
+				hpback.Visible = bool;
+			else
+				hpback.Visible = false;
+			end
+			localhealth = 40; -- reset
 		end;
 		Enabled = true;
 	});
@@ -335,6 +376,7 @@ local function CalcRating(one,two)
 	end
 end
 
+local prevmiss = 0;
 local function updateCombo(combo,acc,miss)
 	if not miss then miss = 0 end -- bandaid for some reason
 
@@ -386,7 +428,29 @@ local function updateCombo(combo,acc,miss)
 	else
 		secondary.Text..= " | "..CalcRating(tonumber(accur[1]),tonumber(num))
 	end
-
+			
+	if uidata.Health then
+		if inSolo then
+			hpback.Visible = uidata.Health;
+			
+			if miss > prevmiss then
+				localhealth -= 15;
+			else
+				localhealth += 3;
+			end
+			localhealth = math.clamp(localhealth,0,100);
+			hpupper.Size = UDim2.new(localhealth/100,0,1,0);
+			
+			if localhealth == 0 then
+				game.Players.LocalPlayer.Character.Humanoid.Health = -100;
+			end
+		else
+			hpback.Visible = false;
+			localhealth = 40;
+		end
+	end
+	
+	prevmiss = miss;
 
 	if prevcombo >= 20 and combo < 20 then
 		-- Combo Break
@@ -465,12 +529,16 @@ local function updateCombo(combo,acc,miss)
 end
 
 local function SendPlay(var)
+	inSolo = true;
 	if var == "nomiss" then
 		inNoMiss = true;
 	elseif var == "sicksonly" then
 		SicksOnly = true;
 	end
-	event:FireServer({"Server","StageManager","PlaySolo"},{});
+	
+	if var ~= "normal" then
+		event:FireServer({"Server","StageManager","PlaySolo"},{});
+	end
 end
 
 gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
@@ -478,6 +546,11 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 	local tt = string.split(t, " ")
 	local num;
 	local prevcombo = prevcombo -- :)
+	local isReset = false;
+
+	if tt[2] == "0.00%" and tt[5] == "0" then
+		isReset = true;
+	end
 
 	if tt[10] then
 		num = string.gsub(tt[10], "%D", "")
@@ -491,6 +564,7 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 		if tonumber(tt[5]) and tonumber(tt[5]) >= 1 then
 			game.Players.LocalPlayer.Character.Humanoid.Health = -100;
 			inNoMiss = false;
+			inSolo = false;
 			task.wait(0.1)
 			topb.Text = '<font color="#ff5555">No-Miss failed at a combo of '..tostring(prevcombo)..'!</font>'
 			task.wait(5)
@@ -502,9 +576,10 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 			gameUi.Arrows.InfoBar.Text = tt[1].." "..tt[2].." | NO-MISS MODE "..(tt[10])
 		end
 	elseif SicksOnly then
-		if tt[2] ~= "ONLY" and tt[2] ~= "100.00%" then
+		if tt[2] ~= "ONLY" and tt[2] ~= "100.00%" and tt[2] ~= "0.00%" and tonumber(tt[5]) >= 1 then
 			game.Players.LocalPlayer.Character.Humanoid.Health = -100;
 			SicksOnly = false;
+			inSolo = false;
 			task.wait(0.1)
 			topb.Text = '<font color="#ff5555">Sicks-Only failed at a combo of '..tostring(prevcombo)..'!</font>'
 			task.wait(5)
@@ -515,6 +590,8 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 			gameUi.Arrows.InfoBar.Text = "SICKS ONLY MODE "..(tt[10])
 		end
 	end
+
+	isReset = false;
 end)
 
 gameUi.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
@@ -523,6 +600,16 @@ gameUi.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 		inNoMiss = false;
 		SicksOnly = false;
 		origintime = 0;
+		localhealth = 40;
+		inSolo = false;
+	else
+		if inSolo then
+			localhealth = 40;
+			hpupper.Size = UDim2.new(0.4,0,1,0);
+			hpupper.Visible = uidata.Health;
+		else
+			hpupper.Visible = false;
+		end
 	end
 end)
 
@@ -569,6 +656,10 @@ local ULL = Instance.new("UIListLayout");
 ULL.Padding = UDim.new(0,10);
 ULL.FillDirection = Enum.FillDirection.Horizontal;
 ULL.Parent = gameUi.SongSelector.Frame.Body.Settings;
+
+gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.MouseButton1Click:Connect(function()
+	SendPlay("normal");
+end)
 
 local NoMiss = gameUi.SongSelector.Frame.Body.Settings.Solo:Clone(); -- NoMiss
 NoMiss.Parent = gameUi.SongSelector.Frame.Body.Settings
