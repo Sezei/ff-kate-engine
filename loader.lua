@@ -5,14 +5,14 @@ local httpservice = game:GetService("HttpService")
 local tweenservice = game:GetService("TweenService")
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI")
 local origintime = 0;
-local version = "v0.4"
+local version = "v0.4.1"
 local prevcombo = 0
 local event = game.ReplicatedStorage.RE;
 local inSolo = false;
 local inNoMiss = false;
 local SicksOnly = false;
 local localhealth = 40;
-local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..version;Theme = "Dark";})
+local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..version;Theme = "Dark";SizeX = 500;})
 material.Self.Enabled = false;
 -- UI time
 local funny = Instance.new("TextLabel")
@@ -83,7 +83,7 @@ hpupper.Position = UDim2.new(1,0,0.5,0);
 hpupper.BackgroundColor3 = Color3.new(0,1,0);
 hpupper.Name = "Front";
 
-material.Banner({Text = "Kate Engine v0.4\n + Added a healthbar. :)"});
+material.Banner({Text = "Kate Engine v0.4.1\n + Added healthbar options."});
 
 local uidata = { -- Saving Purposes. Also easier to access ig.
 	DataVersion = version;
@@ -101,6 +101,10 @@ local uidata = { -- Saving Purposes. Also easier to access ig.
 	Mania_Milestone = 50;
 	Modes_NoMiss = true;
 	Modes_SicksOnly = true;
+    Health_MissingColor = Color3.new(1,0,0);
+    Health_RemainingColor = Color3.new(0,1,0);
+    Health_HitGain = 3;
+    Health_MissLoss = 15;
 }
 
 local maintab = material.New({Title = "Main"}) do
@@ -139,6 +143,7 @@ local maintab = material.New({Title = "Main"}) do
 						env[k]:SetState(v);
 					elseif type(v) == "userdata" then
 						env[k]:SetColor(v);
+					-- Number doesn't even have a SetState?
 					end
 				end
 			end
@@ -283,12 +288,45 @@ local modestab = material.New({Title = "Game Modes"}) do
 		end;
 		Enabled = true;
 	});
-	modestab.Toggle({
-		Text = "Disable Watermark";
-		Callback = function(bool)
-			watermark.Visible = not bool; -- we doin' some trolling :troll:
+end;
+
+local healthtab = material.New({Title = "Health"}) do
+	healthtab.Label({
+		Text = "-- HEALTHBAR SETTINGS --";
+	});
+	Health_MissingColor = healthtab.ColorPicker({
+		Text = "Missing Health Color";
+		Callback = function(color)
+			uidata.Health_MissingColor = color
+            hplower.BackgroundColor3 = color
 		end;
-		Enabled = false;
+		Default = Color3.new(1,0,0);
+	});
+	Health_RemainingColor = healthtab.ColorPicker({
+		Text = "Remaining Health Color";
+		Callback = function(color)
+			uidata.Health_RemainingColor = color
+            hpupper.BackgroundColor3 = color
+		end;
+		Default = Color3.new(0,1,0);
+	});
+    Health_HitGain = healthtab.Slider({
+		Text = "Note Hit Gain";
+		Callback = function(num)
+			uidata.Health_HitGain = num
+		end;
+		Min = 1;
+        Max = 50;
+		Def = 3;
+	});
+    Health_MissLoss = healthtab.Slider({
+		Text = "Note Miss Loss";
+		Callback = function(color)
+			uidata.Health_MissLoss = color
+		end;
+		Min = 1;
+        Max = 50;
+		Def = 15;
 	});
 end;
 
@@ -301,6 +339,13 @@ local crtab = material.New({Title = "Credits"}) do
 	});
 	crtab.Label({
 		Text = "Kinlei(?) - UI Library";
+	});
+    crtab.Toggle({
+		Text = "Disable Watermark";
+		Callback = function(bool)
+			watermark.Visible = not bool; -- we doin' some trolling :troll:
+		end;
+		Enabled = false;
 	});
 end;
 
@@ -434,9 +479,9 @@ local function updateCombo(combo,acc,miss)
 			hpback.Visible = uidata.Health;
 			
 			if miss > prevmiss then
-				localhealth -= 15;
+				localhealth -= uidata.Health_MissLoss;
 			else
-				localhealth += 3;
+				localhealth += uidata.Health_HitGain;
 			end
 			localhealth = math.clamp(localhealth,0,100);
 			hpupper.Size = UDim2.new(localhealth/100,0,1,0);
