@@ -1,3 +1,7 @@
+```diff
+! WARNING: If you indeed use this, MAKE SURE YOU DON'T POST SCREENSHOTS OF IT IN THE COMMUNITY SERVER! It WILL get you banned, despite the go-ahead given from numerous moderators. !
+```
+
 # Funky Friday | Kate Engine
 Funky Friday's modding framework; which by itself is a mod lol; Absolutely nothing that gives you advantages over your opponents, all absolutely client-sided.
 decided on the name 'kate engine' both because of Kade and because my name's katherine (or kate for short lol)
