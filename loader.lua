@@ -115,7 +115,7 @@ local maintab = material.New({Title = "Main"}) do
 		ConfigLoad = maintab.Button({
 			Text = "Load KE Settings"; 
 			Callback = function()
-				if not isfile('KE_Config.json') then
+				if not isfile('KE_Config.mp5') then
 					material.Banner({Text = "Attempt to load UI config has failed: Unable to read the file.\n\nInfo:\nFile 'KE_Config.json' does not exist!"});
 					return
 				end
@@ -157,7 +157,7 @@ local maintab = material.New({Title = "Main"}) do
 					return
 				end
 				local success, f = pcall(function()
-					writefile('KE_Config.json', encoded)
+					writefile('KE_Config.mp5', encoded)
 				end)
 				if not success then
 					material.Banner({Text = "Attempt to save UI config has failed: Unable to write to file.\n\nInfo:\n"..encoded});
