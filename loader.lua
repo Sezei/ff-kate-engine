@@ -5,7 +5,7 @@ local httpservice = game:GetService("HttpService")
 local tweenservice = game:GetService("TweenService")
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI")
 local origintime = 0;
-local version = "v0.4.2"
+local version = "v0.4.2A"
 local prevcombo = 0
 local event = game.ReplicatedStorage.RE;
 local inSolo = false;
@@ -83,7 +83,7 @@ hpupper.Position = UDim2.new(1,0,0.5,0);
 hpupper.BackgroundColor3 = Color3.new(0,1,0);
 hpupper.Name = "Front";
 
-material.Banner({Text = "Kate Engine v0.4.1\n + Added healthbar options."});
+material.Banner({Text = "Kate Engine v0.4.2(A)\n + Pushed an experimental feature to the Mania mod. [Disabled by default]"});
 
 local uidata = { -- Saving Purposes. Also easier to access ig.
 	DataVersion = version;
@@ -230,7 +230,7 @@ local maniatab = material.New({Title = "Mania"}) do
 	Mania_DynamicIncrements = maniatab.Toggle({
 		Text = "Dynamic Font Increments (Experimental)";
 		Callback = function(bool)
-			uidata.Mania_SimpleRatings = bool
+			uidata.Mania_DynamicIncrements = bool
 		end;
 		Enabled = false;
 	})
