@@ -1,5 +1,16 @@
+# Warning: Do not post anything regarding Kate Engine in the FF community server!
 ```diff
-! WARNING: If you indeed use this, MAKE SURE YOU DON'T POST SCREENSHOTS OF IT IN THE COMMUNITY SERVER! It WILL get you banned, despite the go-ahead given from numerous moderators. !
+! WARNING: If you indeed use this, MAKE SURE YOU DON'T POST SCREENSHOTS OF IT IN THE COMMUNITY SERVER ! 
+! It may get you banned, despite the go-ahead given from numerous moderators. !
+
+If you get banned anyways due to this, send the link to the github explaining the script is HARMLESS,
+because it goddamn IS. There are moderators that agreed that the script is FINE TO SHOW, but the
+communication between the moderators is of unknown level, sadly, which resulted in myself and 3 more
+innocent people getting banned. (2 of which got banned simply for asking if the screenshots were
+real in the first place.)
+
+
+Despite the ban, the script will keep being updated, so feel free to keep using it.
 ```
 
 # Funky Friday | Kate Engine
@@ -9,7 +20,7 @@ decided on the name 'kate engine' both because of Kade and because my name's kat
 i mean, it technically does mod ff to add new features just like kade did for fnf so dont point fingers at me
 
 # Requirements
-- A script executor
+- A script executor (literally any would work)
 - Make sure the script executor can use loadstring otherwise its a bad executor lmfao
 
 # Features (so far)
@@ -34,3 +45,11 @@ Simply put the following into the script executor. It will do the rest ***and***
 ```lua
 local engine = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/loader.lua",true))()
 ```
+
+# Reporting bugs
+If you encounter a bug, please either report it in Issues (https://github.com/Sezei/ff-kate-engine/issues) or if you feel courageous enough to fix it yourself, you can open a pull request by forking the script and sending it in the appropriate place. (https://github.com/Sezei/ff-kate-engine/pulls)
+
+While there isn't a specific template you should follow, it's required that you add the following details, otherwise I won't be able to help;
+- The exploit you're using
+- What the error is (Screenshot the F9 menu, as well as the Internal Console if exists)
+- What config are you using (the settings); You can send the .mp5 file that is generated when you save the config.
