@@ -5,7 +5,7 @@ local httpservice = game:GetService("HttpService")
 local tweenservice = game:GetService("TweenService")
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI")
 local origintime = 0;
-local version = "v0.4.1"
+local version = "v0.4.2"
 local prevcombo = 0
 local event = game.ReplicatedStorage.RE;
 local inSolo = false;
@@ -93,18 +93,19 @@ local uidata = { -- Saving Purposes. Also easier to access ig.
 	Health = true;
 	Mania_FCIndicator = true;
 	Mania_SimpleRatings = false;
+	Mania_DynamicIncrements = false;
+	Mania_Milestone = 50;
 	Mania_0Combo = Color3.new(1,1,1);
 	Mania_100Combo = Color3.new(1,1,0.75);
 	Mania_200Combo = Color3.new(1,1,0.5);
 	Mania_300Combo = Color3.new(1,1,0.25);
 	Mania_400Combo = Color3.new(1,1,0);
-	Mania_Milestone = 50;
 	Modes_NoMiss = true;
 	Modes_SicksOnly = true;
-    Health_MissingColor = Color3.new(1,0,0);
-    Health_RemainingColor = Color3.new(0,1,0);
-    Health_HitGain = 3;
-    Health_MissLoss = 15;
+	Health_MissingColor = Color3.new(1,0,0);
+	Health_RemainingColor = Color3.new(0,1,0);
+	Health_HitGain = 3;
+	Health_MissLoss = 15;
 }
 
 local maintab = material.New({Title = "Main"}) do
@@ -143,7 +144,7 @@ local maintab = material.New({Title = "Main"}) do
 						env[k]:SetState(v);
 					elseif type(v) == "userdata" then
 						env[k]:SetColor(v);
-					-- Number doesn't even have a SetState?
+						-- Number doesn't even have a SetState?
 					end
 				end
 			end
@@ -224,6 +225,23 @@ local maniatab = material.New({Title = "Mania"}) do
 		Enabled = false;
 	});
 	maniatab.Label({
+		Text = "-- OTHER --";
+	});
+	Mania_DynamicIncrements = maniatab.Toggle({
+		Text = "Dynamic Font Increments (Experimental)";
+		Callback = function(bool)
+			uidata.Mania_SimpleRatings = bool
+		end;
+		Enabled = false;
+	})
+	Mania_Milestone = maniatab.Dropdown({
+		Text = "Combo Milestones";
+		Callback = function(option)
+			uidata.Mania_Milestone = tonumber(option)
+		end;
+		Options = {"20","25","50","100"};
+	});
+	maniatab.Label({
 		Text = "-- COLORS --";
 	});
 	Mania_0Combo = maniatab.ColorPicker({
@@ -261,13 +279,6 @@ local maniatab = material.New({Title = "Mania"}) do
 		end;
 		Default = Color3.new(1,1,0);
 	});
-	Mania_Milestone = maniatab.Dropdown({
-		Text = "Combo Milestones";
-		Callback = function(option)
-			uidata.Mania_Milestone = tonumber(option)
-		end;
-		Options = {"20","25","50","100"};
-	});
 end;
 
 local modestab = material.New({Title = "Game Modes"}) do
@@ -298,7 +309,7 @@ local healthtab = material.New({Title = "Health"}) do
 		Text = "Missing Health Color";
 		Callback = function(color)
 			uidata.Health_MissingColor = color
-            hplower.BackgroundColor3 = color
+			hplower.BackgroundColor3 = color
 		end;
 		Default = Color3.new(1,0,0);
 	});
@@ -306,26 +317,26 @@ local healthtab = material.New({Title = "Health"}) do
 		Text = "Remaining Health Color";
 		Callback = function(color)
 			uidata.Health_RemainingColor = color
-            hpupper.BackgroundColor3 = color
+			hpupper.BackgroundColor3 = color
 		end;
 		Default = Color3.new(0,1,0);
 	});
-    Health_HitGain = healthtab.Slider({
+	Health_HitGain = healthtab.Slider({
 		Text = "Note Hit Gain";
 		Callback = function(num)
 			uidata.Health_HitGain = num
 		end;
 		Min = 1;
-        Max = 50;
+		Max = 50;
 		Def = 3;
 	});
-    Health_MissLoss = healthtab.Slider({
+	Health_MissLoss = healthtab.Slider({
 		Text = "Note Miss Loss";
 		Callback = function(color)
 			uidata.Health_MissLoss = color
 		end;
 		Min = 1;
-        Max = 50;
+		Max = 50;
 		Def = 15;
 	});
 end;
@@ -340,7 +351,7 @@ local crtab = material.New({Title = "Credits"}) do
 	crtab.Label({
 		Text = "Kinlei(?) - UI Library";
 	});
-    crtab.Toggle({
+	crtab.Toggle({
 		Text = "Disable Watermark";
 		Callback = function(bool)
 			watermark.Visible = not bool; -- we doin' some trolling :troll:
@@ -473,11 +484,11 @@ local function updateCombo(combo,acc,miss)
 	else
 		secondary.Text..= " | "..CalcRating(tonumber(accur[1]),tonumber(num))
 	end
-			
+
 	if uidata.Health then
 		if inSolo then
 			hpback.Visible = uidata.Health;
-			
+
 			if miss > prevmiss then
 				localhealth -= uidata.Health_MissLoss;
 			else
@@ -485,7 +496,7 @@ local function updateCombo(combo,acc,miss)
 			end
 			localhealth = math.clamp(localhealth,0,100);
 			hpupper.Size = UDim2.new(localhealth/100,0,1,0);
-			
+
 			if localhealth == 0 then
 				game.Players.LocalPlayer.Character.Humanoid.Health = -100;
 			end
@@ -494,7 +505,7 @@ local function updateCombo(combo,acc,miss)
 			localhealth = 40;
 		end
 	end
-	
+
 	prevmiss = miss;
 
 	if prevcombo >= 20 and combo < 20 then
@@ -549,7 +560,11 @@ local function updateCombo(combo,acc,miss)
 		funny.TextColor3 = uidata.Mania_0Combo
 	end
 	funny.Text = combo
-	funny.TextSize = (combo >= 200 and 75 or combo >= 100 and 65 or 55)
+	if uidata.Mania_DynamicIncrements then
+		funny.TextSize += 5
+	else
+		funny.TextSize = (combo >= 200 and 75 or combo >= 100 and 65 or 55)
+	end
 	tweenservice:Create(
 		funny,
 		TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -580,7 +595,7 @@ local function SendPlay(var)
 	elseif var == "sicksonly" then
 		SicksOnly = true;
 	end
-	
+
 	if var ~= "normal" then
 		event:FireServer({"Server","StageManager","PlaySolo"},{});
 	end
