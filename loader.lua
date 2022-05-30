@@ -432,6 +432,17 @@ local function CalcRating(one,two)
 	end
 end
 
+local dynFont = 50;
+local function DynamicFont()
+	dynFont+= 5;
+	return dynFont;
+end
+task.spawn(function()
+	while task.wait(0.075) do
+		dynFont = math.clamp(dynFont-1,50,80);
+	end
+end)
+
 local prevmiss = 0;
 local function updateCombo(combo,acc,miss)
 	if not miss then miss = 0 end -- bandaid for some reason
@@ -561,9 +572,9 @@ local function updateCombo(combo,acc,miss)
 	end
 	funny.Text = combo
 	if uidata.Mania_DynamicIncrements then
-		funny.TextSize += 5
+		funny.TextSize = DynamicFont();
 	else
-		funny.TextSize = (combo >= 200 and 75 or combo >= 100 and 65 or 55)
+		funny.TextSize = (combo >= 200 and 75 or combo >= 100 and 65 or 55);
 	end
 	tweenservice:Create(
 		funny,
