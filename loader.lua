@@ -434,7 +434,7 @@ end
 
 local dynFont = 50;
 local function DynamicFont()
-	dynFont+= 5;
+	dynFont+= 3;
 	return dynFont;
 end
 task.spawn(function()
