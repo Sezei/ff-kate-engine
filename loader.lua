@@ -5,7 +5,7 @@ local httpservice = game:GetService("HttpService")
 local tweenservice = game:GetService("TweenService")
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI")
 local origintime = 0;
-local version = "v0.4.2A"
+local version = "v0.4.2B"
 local prevcombo = 0
 local event = game.ReplicatedStorage.RE;
 local inSolo = false;
@@ -83,7 +83,7 @@ hpupper.Position = UDim2.new(1,0,0.5,0);
 hpupper.BackgroundColor3 = Color3.new(0,1,0);
 hpupper.Name = "Front";
 
-material.Banner({Text = "Kate Engine v0.4.2(A)\n + Pushed an experimental feature to the Mania mod. [Disabled by default]"});
+material.Banner({Text = "Kate Engine v0.4.2B\n + Updated the experimental Dynamic Font to 'expire' a bit faster."});
 
 local uidata = { -- Saving Purposes. Also easier to access ig.
 	DataVersion = version;
@@ -439,7 +439,7 @@ local function DynamicFont()
 end
 task.spawn(function()
 	while task.wait(0.075) do
-		dynFont = math.clamp(dynFont-1,50,80);
+		dynFont = math.clamp(dynFont/1.05,50,80);
 	end
 end)
 
