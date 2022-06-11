@@ -1,20 +1,26 @@
 --local engine, ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/loader.lua",true))();
 
 -- Services and Variables
-local httpservice = game:GetService("HttpService")
-local tweenservice = game:GetService("TweenService")
-local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI")
+local httpservice = game:GetService("HttpService");
+local tweenservice = game:GetService("TweenService");
+local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
+local UIS = game:GetService("UserInputService");
 local origintime = 0;
-local version = "v0.4.2B"
-local prevcombo = 0
+local version = "v0.5A";
+local prevcombo = 0;
+local counter = 0;
 local event = game.ReplicatedStorage.RE;
 local inSolo = false;
 local inNoMiss = false;
 local SicksOnly = false;
+local autoplayActive = false;
 local localhealth = 40;
+local shared = {};
 local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..version;Theme = "Dark";SizeX = 500;})
 material.Self.Enabled = false;
--- UI time
+
+local framework, scrollHandler, network; -- nil values
+-- UI setup
 local funny = Instance.new("TextLabel")
 funny.AnchorPoint = Vector2.new(0.5, 0.5)
 funny.Position = UDim2.fromScale(0.5, 0.5)
@@ -83,7 +89,7 @@ hpupper.Position = UDim2.new(1,0,0.5,0);
 hpupper.BackgroundColor3 = Color3.new(0,1,0);
 hpupper.Name = "Front";
 
-material.Banner({Text = "Kate Engine v0.4.2B\n + Updated the experimental Dynamic Font to 'expire' a bit faster."});
+material.Banner({Text = "Kate Engine v0.5\n + Added autoplay; Works only in solo-plays."});
 
 local uidata = { -- Saving Purposes. Also easier to access ig.
 	DataVersion = version;
@@ -100,6 +106,9 @@ local uidata = { -- Saving Purposes. Also easier to access ig.
 	Mania_200Combo = Color3.new(1,1,0.5);
 	Mania_300Combo = Color3.new(1,1,0.25);
 	Mania_400Combo = Color3.new(1,1,0);
+	Auto_Accuracy = 98;
+	Auto_HoldNotes = true;
+	Auto_HoldFix = false;
 	Modes_NoMiss = true;
 	Modes_SicksOnly = true;
 	Health_MissingColor = Color3.new(1,0,0);
@@ -121,7 +130,7 @@ local maintab = material.New({Title = "Main"}) do
 					return
 				end
 				local success, data = pcall(function()
-					return readfile('KE_Config.json')
+					return readfile('KE_Config.mp5')
 				end)
 				if not success then
 					material.Banner({Text = "Attempt to load UI config has failed: Unable to read the file.\n\nInfo:\n"..data});
@@ -233,7 +242,7 @@ local maniatab = material.New({Title = "Mania"}) do
 			uidata.Mania_DynamicIncrements = bool
 		end;
 		Enabled = false;
-	})
+	});
 	Mania_Milestone = maniatab.Dropdown({
 		Text = "Combo Milestones";
 		Callback = function(option)
@@ -301,6 +310,38 @@ local modestab = material.New({Title = "Game Modes"}) do
 	});
 end;
 
+local autotab = material.New({Title = "Autoplay"}) do
+	autotab.Label({
+		Text = "-- AUTOPLAY SETTINGS --";
+	});
+	autotab.Label({
+		Text = "Only adjust them if it doesn't work correctly!";
+	});
+	Auto_Accuracy = autotab.Slider({
+		Text = "Accuracy Adjuster";
+		Callback = function(num)
+			uidata.Auto_Accuracy = num
+		end;
+		Min = 95;
+		Max = 98;
+		Def = 98;
+	});
+	Auto_HoldNotes = autotab.Toggle({
+		Text = "Hold the Long Notes";
+		Callback = function(bool)
+			uidata.Auto_HoldNotes = bool
+		end;
+		Enabled = true;
+	});
+	Auto_HoldFix = autotab.Toggle({
+		Text = "Fix Hold Notes Overlap (Experimental)";
+		Callback = function(bool)
+			uidata.Auto_HoldFix = bool
+		end;
+		Enabled = false;
+	});
+end;
+
 local healthtab = material.New({Title = "Health"}) do
 	healthtab.Label({
 		Text = "-- HEALTHBAR SETTINGS --";
@@ -349,6 +390,9 @@ local crtab = material.New({Title = "Credits"}) do
 		Text = "<font color=\"#ff00a6\">Sezei</font> - Script";
 	});
 	crtab.Label({
+		Text = "<font color=\"#00ff00\">Wally</font> - Autoplayer (edited, but same thing)";
+	});
+	crtab.Label({
 		Text = "Kinlei(?) - UI Library";
 	});
 	crtab.Toggle({
@@ -360,7 +404,127 @@ local crtab = material.New({Title = "Credits"}) do
 	});
 end;
 
-local UIS = game:GetService("UserInputService")
+function fireSignal(target, signal, ...)
+	-- getconnections with InputBegan / InputEnded does not work without setting Synapse to the game's context level
+	syn.set_thread_identity(2)
+	local didFire = false
+	for _, signal in next, getconnections(signal) do
+		if type(signal.Function) == 'function' and islclosure(signal.Function) then
+			local scr = rawget(getfenv(signal.Function), 'script')
+			if scr == target then
+				didFire = true
+				pcall(signal.Function, ...)
+			end
+		end
+	end
+	-- if not didFire then fail"couldnt fire input signal" end
+	syn.set_thread_identity(7)
+end
+
+-- Here we go
+
+task.spawn(function()
+	while true do
+		for _, obj in next, getgc(true) do
+			if type(obj) == 'table' then 
+				if rawget(obj, 'GameUI') then
+					framework = obj;
+				elseif type(rawget(obj, 'Server')) == 'table' then
+					network = obj;     
+				end
+			end
+	
+			if network and framework then break end
+		end
+	
+		for _, module in next, getloadedmodules() do
+			if module.Name == 'ScrollHandler' then
+				scrollHandler = module;
+				break;
+			end
+		end 
+	
+		if (type(framework) == 'table' and typeof(scrollHandler) == 'Instance' and type(network) == 'table') then
+			break
+		end
+	
+		counter = counter + 1
+		if counter > 6 then
+			error(string.format('Failed to load game dependencies. Details: %s, %s, %s', type(framework), typeof(scrollHandler), type(network)))
+		end
+		task.wait(1)
+	end
+end)
+
+local keyCodeMap = {}
+for _, enum in next, Enum.KeyCode:GetEnumItems() do
+	keyCodeMap[enum.Value] = enum
+end
+
+shared.threads = {}
+shared.callbacks = {}
+
+shared._id = httpservice:GenerateGUID(false)
+
+game:GetService("RunService"):BindToRenderStep(shared._id, 1, function()
+	if (not inSolo) or (not autoplayActive) then 
+		return 
+	end
+	local currentlyPlaying = framework.SongPlayer.CurrentlyPlaying
+	if typeof(currentlyPlaying) ~= 'Instance' or not currentlyPlaying:IsA('Sound') then 
+		return
+	end
+	local arrows = framework.UI:GetNotes()
+	local count = framework.SongPlayer:GetKeyCount()
+	local mode = count .. 'Key'
+	local arrowData = framework.ArrowData[mode].Arrows
+	for _, arrow in pairs(arrows) do
+		local ignoredNoteTypes = { Death = true, Mechanic = true, Poison = true }
+		if type(arrow.NoteDataConfigs) == 'table' then 
+			if ignoredNoteTypes[arrow.NoteDataConfigs.Type] then 
+				continue
+			end
+		end
+		if (arrow.Side == framework.UI.CurrentSide) and (not arrow.Marked) and currentlyPlaying.TimePosition > 0 then
+			local position = (arrow.Data.Position % count) .. '' 
+			local hitboxOffset = 0 do
+				local settings = framework.Settings;
+				local offset = type(settings) == 'table' and settings.HitboxOffset;
+				local value = type(offset) == 'table' and offset.Value;
+				if type(value) == 'number' then
+					hitboxOffset = value;
+				end
+				hitboxOffset = hitboxOffset / 1000
+			end
+			local songTime = framework.SongPlayer.CurrentTime do
+				local configs = framework.SongPlayer.CurrentSongConfigs
+				local playbackSpeed = type(configs) == 'table' and configs.PlaybackSpeed
+				if type(playbackSpeed) ~= 'number' then
+					playbackSpeed = 1
+				end
+				songTime = songTime /  playbackSpeed
+			end
+			local noteTime = math.clamp((1 - math.abs(arrow.Data.Time - (songTime + hitboxOffset))) * 100, 0, 100)
+			if noteTime >= uidata.Auto_Accuracy then
+				task.spawn(function()
+					arrow.Marked = true;
+					local keyCode = keyCodeMap[arrowData[position].Keybinds.Keyboard[1]]
+					fireSignal(scrollHandler, UIS.InputBegan, { KeyCode = keyCode, UserInputType = Enum.UserInputType.Keyboard }, false)
+					if (arrow.Data.Length or 0) > 0 and uidata.Auto_HoldNotes then
+						if uidata.Auto_HoldFix then
+							task.wait(arrow.Data.Length-0.04);
+						else
+							task.wait(arrow.Data.Length -0.01);
+						end
+					end
+					fireSignal(scrollHandler, UIS.InputEnded, { KeyCode = keyCode, UserInputType = Enum.UserInputType.Keyboard }, false)
+					arrow.Marked = nil;
+				end)
+			end
+		end
+	end
+end)
+
 UIS.InputBegan:Connect(function(info)
 	if info.UserInputType == Enum.UserInputType.Keyboard then
 		if info.KeyCode == Enum.KeyCode.Semicolon then
@@ -434,12 +598,12 @@ end
 
 local dynFont = 50;
 local function DynamicFont()
-	dynFont+= 3;
+	dynFont+= 5;
 	return dynFont;
 end
 task.spawn(function()
 	while task.wait(0.075) do
-		dynFont = math.clamp(dynFont/1.05,50,80);
+		dynFont = math.clamp(dynFont/1.03,50,80);
 	end
 end)
 
@@ -494,6 +658,10 @@ local function updateCombo(combo,acc,miss)
 		secondary.Text = CalcRating(tonumber(accur[1]),tonumber(num))
 	else
 		secondary.Text..= " | "..CalcRating(tonumber(accur[1]),tonumber(num))
+	end
+
+	if autoplayActive then
+		secondary.Text = "AUTOPLAY"
 	end
 
 	if uidata.Health then
@@ -605,6 +773,8 @@ local function SendPlay(var)
 		inNoMiss = true;
 	elseif var == "sicksonly" then
 		SicksOnly = true;
+	elseif var == "autoplay" then
+		autoplayActive = true;
 	end
 
 	if var ~= "normal" then
@@ -670,6 +840,7 @@ gameUi.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 		funny.Visible = false
 		inNoMiss = false;
 		SicksOnly = false;
+		autoplayActive = false;
 		origintime = 0;
 		localhealth = 40;
 		inSolo = false;
@@ -754,14 +925,27 @@ SicksOnlyB.SoloPlay.MouseButton1Click:Connect(function()
 	end
 end)
 
+local AutoplayB = gameUi.SongSelector.Frame.Body.Settings.Solo:Clone(); -- SicksOnly
+AutoplayB.Parent = gameUi.SongSelector.Frame.Body.Settings
+AutoplayB.Name = "KE_AutoPlay"
+AutoplayB.SoloPlay.Text = "Autoplay";
+AutoplayB.SoloPlay.BackgroundColor3 = Color3.new(1,1,1);
+AutoplayB.SoloPlay.MouseButton1Click:Connect(function()
+	if AutoplayB.Visible and gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G then
+		SendPlay("autoplay")
+	end
+end)
+
 gameUi.SongSelector.Frame.Body.Settings.Solo:GetPropertyChangedSignal("Visible"):Connect(function() -- Don't let the people press the no-miss if it's not solo
 	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
 	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
+	AutoplayB.Visible = uidata.SoloGamemodes and gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
 	gameUi.SongSelector.Frame.Body.Settings.MultiStage.Visible = not gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
 end)
 gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay:GetPropertyChangedSignal("BackgroundColor3"):Connect(function() -- Oopsie!
 	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and (gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R > gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G);
 	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and (gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R > gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G);
+	AutoplayB.Visible = uidata.SoloGamemodes and gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
 	gameUi.SongSelector.Frame.Body.Settings.MultiStage.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R == gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
 end)
 
