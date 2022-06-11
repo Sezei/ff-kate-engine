@@ -1,16 +1,9 @@
 # Warning: Do not post anything regarding Kate Engine in the FF community server!
 ```diff
 ! WARNING: If you indeed use this, MAKE SURE YOU DON'T POST SCREENSHOTS OF IT IN THE COMMUNITY SERVER ! 
-! It may get you banned, despite the go-ahead given from numerous moderators. !
+! It WILL get you banned, and the appeal will be declined. (or stuck on pending) !
 
-If you get banned anyways due to this, send the link to the github explaining the script is HARMLESS,
-because it goddamn IS. There are moderators that agreed that the script is FINE TO SHOW, but the
-communication between the moderators is of unknown level, sadly, which resulted in myself and 3 more
-innocent people getting banned. (2 of which got banned simply for asking if the screenshots were
-real in the first place.)
-
-
-Despite the ban, the script will keep being updated, so feel free to keep using it.
+- 0.5 ADDED AUTOPLAY, DO NOT EVEN POST THE URL IN THE APPEALS! -
 ```
 
 # Funky Friday | Kate Engine
@@ -37,6 +30,9 @@ The 'mods' so far are the following;
 - Solo Healthbar
 
 ![image](https://user-images.githubusercontent.com/49373598/169907335-2f8e8313-231c-4419-8a52-ad20eceb9e5b.png)
+
+- An autoplayer than can (somewhat) FC some hard songs.
+
 
 - Multi-Stage toggle now visible only if you're up against someone
 
