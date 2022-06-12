@@ -13,8 +13,7 @@ decided on the name 'kate engine' both because of Kade and because my name's kat
 i mean, it technically does mod ff to add new features just like kade did for fnf so dont point fingers at me
 
 # Requirements
-- A script executor (literally any would work)
-- Make sure the script executor can use loadstring otherwise its a bad executor lmfao
+- Synapse X lol
 
 # Features (so far)
 The 'mods' so far are the following;
