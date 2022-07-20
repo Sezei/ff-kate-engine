@@ -6,7 +6,7 @@ local tweenservice = game:GetService("TweenService");
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local UIS = game:GetService("UserInputService");
 local origintime = 0;
-local version = "v0.5A";
+local version = "v0.5B";
 local prevcombo = 0;
 local counter = 0;
 local event = game.ReplicatedStorage.RE;
@@ -461,6 +461,8 @@ for _, enum in next, Enum.KeyCode:GetEnumItems() do
 	keyCodeMap[enum.Value] = enum
 end
 
+local heldkeys = {};
+
 shared.threads = {}
 shared.callbacks = {}
 
@@ -509,14 +511,19 @@ game:GetService("RunService"):BindToRenderStep(shared._id, 1, function()
 				task.spawn(function()
 					arrow.Marked = true;
 					local keyCode = keyCodeMap[arrowData[position].Keybinds.Keyboard[1]]
+					if table.find(heldkeys,keyCode) then
+						keyCode = keyCodeMap[arrowData[position].Keybinds.Keyboard[2]]
+					end
+					table.insert(heldkeys,keyCode);
 					fireSignal(scrollHandler, UIS.InputBegan, { KeyCode = keyCode, UserInputType = Enum.UserInputType.Keyboard }, false)
 					if (arrow.Data.Length or 0) > 0 and uidata.Auto_HoldNotes then
 						if uidata.Auto_HoldFix then
-							task.wait(arrow.Data.Length-0.04);
+							task.wait(arrow.Data.Length -0.04);
 						else
 							task.wait(arrow.Data.Length -0.01);
 						end
 					end
+					table.remove(heldkeys,table.find(heldkeys,keyCode))
 					fireSignal(scrollHandler, UIS.InputEnded, { KeyCode = keyCode, UserInputType = Enum.UserInputType.Keyboard }, false)
 					arrow.Marked = nil;
 				end)
@@ -538,6 +545,8 @@ local function CalcRating(one,two)
 		if one == 100 then
 			return "P"
 		elseif one == 99 then
+			if two >= 98 then
+				return "S++"
 			if two >= 95 then
 				return "S+"
 			elseif two >= 90 then
@@ -602,7 +611,7 @@ local function DynamicFont()
 	return dynFont;
 end
 task.spawn(function()
-	while task.wait(0.075) do
+	while task.wait(0.065) do
 		dynFont = math.clamp(dynFont/1.03,50,80);
 	end
 end)
