@@ -547,7 +547,7 @@ local function CalcRating(one,two)
 		elseif one == 99 then
 			if two >= 98 then
 				return "S++"
-			if two >= 95 then
+			elseif two >= 95 then
 				return "S+"
 			elseif two >= 90 then
 				return "S"
