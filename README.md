@@ -2,8 +2,6 @@
 ```diff
 ! WARNING: If you indeed use this, MAKE SURE YOU DON'T POST SCREENSHOTS OF IT IN THE COMMUNITY SERVER ! 
 ! It WILL get you banned, and the appeal will be declined. (or stuck on pending) !
-
-- 0.5 ADDED AUTOPLAY, DO NOT EVEN POST THE URL IN THE APPEALS! -
 ```
 
 # Funky Friday | Kate Engine
@@ -30,8 +28,11 @@ The 'mods' so far are the following;
 
 ![image](https://user-images.githubusercontent.com/49373598/169907335-2f8e8313-231c-4419-8a52-ad20eceb9e5b.png)
 
-- An autoplayer than can (somewhat) FC some hard songs.
+- Count total notes.
 
+- See how many ghost notes you missed.
+
+- Dynamic bot difficulty (yes this means you can make the bot suck worse than you already are lmao)
 
 - Multi-Stage toggle now visible only if you're up against someone
 
