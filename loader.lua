@@ -1,4 +1,21 @@
+--trolling--
 --local engine, ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/loader.lua",true))();
+
+-- function to deep-print a table key-value pairs
+function printTable(t, indent)
+    if indent == nil then indent = 0 end
+    for k, v in pairs(t) do
+        formatting = string.rep("  ", indent) .. k .. ": "
+        if type(v) == "table" then
+            print(formatting)
+            printTable(v, indent+1)
+        elseif type(v) == 'boolean' then
+            print(formatting .. tostring(v))
+        else
+            print(formatting .. v)
+        end
+    end
+end
 
 -- Services and Variables
 local httpservice = game:GetService("HttpService");
@@ -6,7 +23,7 @@ local tweenservice = game:GetService("TweenService");
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local UIS = game:GetService("UserInputService");
 local origintime = 0;
-local version = "v0.5B";
+local version = "v0.7";
 local prevcombo = 0;
 local counter = 0;
 local event = game.ReplicatedStorage.RE;
@@ -89,7 +106,12 @@ hpupper.Position = UDim2.new(1,0,0.5,0);
 hpupper.BackgroundColor3 = Color3.new(0,1,0);
 hpupper.Name = "Front";
 
-material.Banner({Text = "Kate Engine v0.5\n + Added autoplay; Works only in solo-plays."});
+material.Banner({Text = "Kate Engine <b>v0.7</b>\n <font color='#4D934D'>+ Added Bot difficulty.</font>\n <font color='#4D934D'>+ Added Total Notes / Shadow Notes on display.</font>\n <font color='#FF5500'>! Fixed the engine to work with the new UI update.</font>\n <font color='#AA0000'>- Removed Autoplay (2lazy2fix).</font>\n [[Note: Solo Buttons are broken; too lazy to fix so im putting trust into u to not use them lol]]"});
+
+local globaldata = { -- Data that will be used across the entire script.
+	totalnotes = 0;
+	combo = 0;
+};
 
 local uidata = { -- Saving Purposes. Also easier to access ig.
 	DataVersion = version;
@@ -106,9 +128,7 @@ local uidata = { -- Saving Purposes. Also easier to access ig.
 	Mania_200Combo = Color3.new(1,1,0.5);
 	Mania_300Combo = Color3.new(1,1,0.25);
 	Mania_400Combo = Color3.new(1,1,0);
-	Auto_Accuracy = 98;
-	Auto_HoldNotes = true;
-	Auto_HoldFix = false;
+    Bot_AILevel = "Insane";
 	Modes_NoMiss = true;
 	Modes_SicksOnly = true;
 	Health_MissingColor = Color3.new(1,0,0);
@@ -126,7 +146,7 @@ local maintab = material.New({Title = "Main"}) do
 			Text = "Load KE Settings"; 
 			Callback = function()
 				if not isfile('KE_Config.mp5') then
-					material.Banner({Text = "Attempt to load UI config has failed: Unable to read the file.\n\nInfo:\nFile 'KE_Config.json' does not exist!"});
+					material.Banner({Text = "Attempt to load UI config has failed: Unable to read the file.\n\nInfo:\nFile 'KE_Config.mp5' does not exist!"});
 					return
 				end
 				local success, data = pcall(function()
@@ -136,13 +156,13 @@ local maintab = material.New({Title = "Main"}) do
 					material.Banner({Text = "Attempt to load UI config has failed: Unable to read the file.\n\nInfo:\n"..data});
 					return
 				end
-				local success, decoded = pcall(httpservice.JSONDecode, httpservice, readfile('KE_Config.json'))
+				local success, decoded = pcall(httpservice.JSONDecode, httpservice, readfile('KE_Config.mp5'))
 				if not success then
 					material.Banner({Text = "Attempt to load UI config has failed: Unable to decode UI data.\n\nInfo:\n"..decoded});
 					return
 				end
 				if decoded.DataVersion ~= version then
-					material.Banner({Text = "UI config has loaded correctly, but is outdated - Watch out for any corrupted data."});
+					material.Banner({Text = "UI config has loaded correctly, but is outdated - Watch out for any corrupted data!"});
 				end
 				for k,v in pairs(decoded) do
 					if k ~= "DataVersion" then
@@ -156,6 +176,7 @@ local maintab = material.New({Title = "Main"}) do
 						-- Number doesn't even have a SetState?
 					end
 				end
+				return material.Banner({Text = "UI config has loaded from file successfully!"});
 			end
 		});
 		ConfigSave = maintab.Button({
@@ -310,38 +331,6 @@ local modestab = material.New({Title = "Game Modes"}) do
 	});
 end;
 
-local autotab = material.New({Title = "Autoplay"}) do
-	autotab.Label({
-		Text = "-- AUTOPLAY SETTINGS --";
-	});
-	autotab.Label({
-		Text = "Only adjust them if it doesn't work correctly!";
-	});
-	Auto_Accuracy = autotab.Slider({
-		Text = "Accuracy Adjuster";
-		Callback = function(num)
-			uidata.Auto_Accuracy = num
-		end;
-		Min = 95;
-		Max = 98;
-		Def = 98;
-	});
-	Auto_HoldNotes = autotab.Toggle({
-		Text = "Hold the Long Notes";
-		Callback = function(bool)
-			uidata.Auto_HoldNotes = bool
-		end;
-		Enabled = true;
-	});
-	Auto_HoldFix = autotab.Toggle({
-		Text = "Fix Hold Notes Overlap (Experimental)";
-		Callback = function(bool)
-			uidata.Auto_HoldFix = bool
-		end;
-		Enabled = false;
-	});
-end;
-
 local healthtab = material.New({Title = "Health"}) do
 	healthtab.Label({
 		Text = "-- HEALTHBAR SETTINGS --";
@@ -404,24 +393,18 @@ local crtab = material.New({Title = "Credits"}) do
 	});
 end;
 
-function fireSignal(target, signal, ...)
-	-- getconnections with InputBegan / InputEnded does not work without setting Synapse to the game's context level
-	syn.set_thread_identity(2)
-	local didFire = false
-	for _, signal in next, getconnections(signal) do
-		if type(signal.Function) == 'function' and islclosure(signal.Function) then
-			local scr = rawget(getfenv(signal.Function), 'script')
-			if scr == target then
-				didFire = true
-				pcall(signal.Function, ...)
-			end
-		end
-	end
-	-- if not didFire then fail"couldnt fire input signal" end
-	syn.set_thread_identity(7)
+local botplaytab = material.New({Title = "Bot Opponent"}) do
+    botplaytab.Label({
+        Text = "-- BOT OPPONENT SETTINGS --";
+    });
+    botplaytab.Dropdown({
+        Text = "Bot Opponent";
+        Callback = function(option)
+            uidata.Bot_AILevel = option
+        end;
+        Options = {"Noob_At_3AM","Easy","Normal","Hard","Insane","Impossible"};
+    });
 end
-
--- Here we go
 
 task.spawn(function()
 	while true do
@@ -468,71 +451,62 @@ shared.callbacks = {}
 
 shared._id = httpservice:GenerateGUID(false)
 
+local chances = {
+    Noob_At_3AM = {Sick = 0.1, Good = 0.2, Ok = 0.3, Bad = 0.4},
+    Easy = {Sick = 0.6, Good = 0.3, Ok = 0.09, Bad = 0.01},
+    Normal = {Sick = 0.8, Good = 0.15, Ok = 0.05, Bad = 0},
+    Hard = {Sick = 0.9, Good = 0.1, Ok = 0, Bad = 0},
+    Insane = {Sick = 0.97, Good = 0.03, Ok = 0, Bad = 0},
+    Impossible = {Sick = 1, Good = 0, Ok = 0, Bad = 0}
+}
+local accuracystuff = {
+    Sick = 100,
+    Good = 93,
+    Ok = 87,
+    Bad = 77,
+}
+
 game:GetService("RunService"):BindToRenderStep(shared._id, 1, function()
-	if (not inSolo) or (not autoplayActive) then 
-		return 
-	end
-	local currentlyPlaying = framework.SongPlayer.CurrentlyPlaying
-	if typeof(currentlyPlaying) ~= 'Instance' or not currentlyPlaying:IsA('Sound') then 
-		return
-	end
-	local arrows = framework.UI:GetNotes()
-	local count = framework.SongPlayer:GetKeyCount()
-	local mode = count .. 'Key'
-	local arrowData = framework.ArrowData[mode].Arrows
-	for _, arrow in pairs(arrows) do
-		local ignoredNoteTypes = { Death = true, Mechanic = true, Poison = true }
-		if type(arrow.NoteDataConfigs) == 'table' then 
-			if ignoredNoteTypes[arrow.NoteDataConfigs.Type] then 
-				continue
-			end
-		end
-		if (arrow.Side == framework.UI.CurrentSide) and (not arrow.Marked) and currentlyPlaying.TimePosition > 0 then
-			local position = (arrow.Data.Position % count) .. '' 
-			local hitboxOffset = 0 do
-				local settings = framework.Settings;
-				local offset = type(settings) == 'table' and settings.HitboxOffset;
-				local value = type(offset) == 'table' and offset.Value;
-				if type(value) == 'number' then
-					hitboxOffset = value;
-				end
-				hitboxOffset = hitboxOffset / 1000
-			end
-			local songTime = framework.SongPlayer.CurrentTime do
-				local configs = framework.SongPlayer.CurrentSongConfigs
-				local playbackSpeed = type(configs) == 'table' and configs.PlaybackSpeed
-				if type(playbackSpeed) ~= 'number' then
-					playbackSpeed = 1
-				end
-				songTime = songTime /  playbackSpeed
-			end
-			local noteTime = math.clamp((1 - math.abs(arrow.Data.Time - (songTime + hitboxOffset))) * 100, 0, 100)
-			if noteTime >= uidata.Auto_Accuracy then
-				task.spawn(function()
-					arrow.Marked = true;
-					local keyCode = keyCodeMap[arrowData[position].Keybinds.Keyboard[1]]
-					if table.find(heldkeys,keyCode) then
-						keyCode = keyCodeMap[arrowData[position].Keybinds.Keyboard[2]]
-					end
-					table.insert(heldkeys,keyCode);
-					fireSignal(scrollHandler, UIS.InputBegan, { KeyCode = keyCode, UserInputType = Enum.UserInputType.Keyboard }, false)
-					if (arrow.Data.Length or 0) > 0 and uidata.Auto_HoldNotes then
-						if uidata.Auto_HoldFix then
-							task.wait(arrow.Data.Length -0.04);
-						else
-							task.wait(arrow.Data.Length -0.01);
-						end
-					end
-					table.remove(heldkeys,table.find(heldkeys,keyCode))
-					fireSignal(scrollHandler, UIS.InputEnded, { KeyCode = keyCode, UserInputType = Enum.UserInputType.Keyboard }, false)
-					arrow.Marked = nil;
-				end)
-			end
-		end
-	end
+    task.wait(uidata.Bot_Delay)
+    local chances = chances[uidata.Bot_AILevel];
+        
+    -- Make a random number that will be used to compare with the chances
+    local arandom = math.random(1, 100) / 100;
+
+    -- Store the current checked value
+    local checked = 0;
+    local hit = "Bad";
+
+    -- If the number is less than the chance, then it's a hit
+    if arandom <= chances.Sick then
+        hit = "Sick";
+    else
+        checked += chances.Sick;
+    end
+
+    if arandom <= chances.Good + checked then
+        hit = "Good";
+    else
+        checked += chances.Good;
+    end
+
+    if arandom <= chances.Ok + checked then
+        hit = "Ok";
+    end
+
+    if hit == "Bad" then
+        hit = "Bad";
+    end
+
+    -- Get the accuracy
+    local newaccuracy = accuracystuff[hit];
+
+    -- Send the event to change the accuracy
+    framework.Settings.BotPlayAccuracy.Value = newaccuracy;
 end)
 
 UIS.InputBegan:Connect(function(info)
+	if UIS:GetFocusedTextBox() then return end -- Ignore if textbox is focused
 	if info.UserInputType == Enum.UserInputType.Keyboard then
 		if info.KeyCode == Enum.KeyCode.Semicolon then
 			material.Self.Enabled = not material.Self.Enabled
@@ -619,6 +593,9 @@ end)
 local prevmiss = 0;
 local function updateCombo(combo,acc,miss)
 	if not miss then miss = 0 end -- bandaid for some reason
+
+	globaldata.combo = combo;
+	globaldata.totalnotes = globaldata.totalnotes + 1;
 
 	local result1 = string.split(game.Players.LocalPlayer.PlayerGui.GameUI.Arrows.Stats.Text,"\n")
 	local res = {};
@@ -783,7 +760,7 @@ local function SendPlay(var)
 	elseif var == "sicksonly" then
 		SicksOnly = true;
 	elseif var == "autoplay" then
-		autoplayActive = true;
+		--autoplayActive = true;
 	end
 
 	if var ~= "normal" then
@@ -853,6 +830,8 @@ gameUi.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 		origintime = 0;
 		localhealth = 40;
 		inSolo = false;
+		globaldata.combo = 0;
+		globaldata.totalnotes = 0;
 	else
 		if inSolo then
 			localhealth = 40;
@@ -894,68 +873,130 @@ gameUi.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
 	end
 end)
 
+gameUi.TopbarLabel:GetPropertyChangedSignal("TextColor3"):Connect(function()
+    topb.TextColor3 = gameUi.TopbarLabel.TextColor3
+end)
+
 gameUi.TopbarLabel:GetPropertyChangedSignal("Visible"):Connect(function()
 	gameUi.TopbarLabel.Visible = false;  
 end)
 
-gameUi.SongSelector.Frame.Body.Settings.MultiStage.Visible = false;
-gameUi.SongSelector.Frame.Body.Settings.Solo.SoloInfoLabel.Visible = false;
-gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.Size = UDim2.new(1,0,1,0)
-gameUi.SongSelector.Frame.Body.Settings.Solo.Size = UDim2.new(0,220,1,0)
+-- Old location; kept for compatibility just in-case
+--gameUi.SongSelector.Frame.Body.Settings.MultiStage.Visible = false;
+--gameUi.SongSelector.Frame.Body.Settings.Solo.SoloInfoLabel.Visible = false;
+--gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.Size = UDim2.new(1,0,1,0)
+--gameUi.SongSelector.Frame.Body.Settings.Solo.Size = UDim2.new(0,220,1,0)
+local newloc = gameUi.SongSelector.Frame.Start
+newloc.Toggle.Visible = false;
+newloc = newloc.Start
+local buttontemplate = newloc.StartButton;
 
-local ULL = Instance.new("UIListLayout");
-ULL.Padding = UDim.new(0,10);
-ULL.FillDirection = Enum.FillDirection.Horizontal;
-ULL.Parent = gameUi.SongSelector.Frame.Body.Settings;
+--local ULL = Instance.new("UIListLayout");
+--ULL.Padding = UDim.new(0,10);
+--ULL.FillDirection = Enum.FillDirection.Horizontal;
+--ULL.Parent = gameUi.SongSelector.Frame.Body.Settings;
 
-gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.MouseButton1Click:Connect(function()
+buttontemplate.MouseButton1Click:Connect(function()
 	SendPlay("normal");
 end)
 
-local NoMiss = gameUi.SongSelector.Frame.Body.Settings.Solo:Clone(); -- NoMiss
-NoMiss.Parent = gameUi.SongSelector.Frame.Body.Settings
-NoMiss.Name = "KE_NoMiss"
-NoMiss.SoloPlay.Text = "No Misses";
-NoMiss.SoloPlay.BackgroundColor3 = Color3.new(0.4,1,0.4);
-NoMiss.SoloPlay.MouseButton1Click:Connect(function()
-	if NoMiss.Visible and gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G then
+local NoMiss = buttontemplate:Clone(); -- NoMiss
+NoMiss.Parent = newloc
+NoMiss.Name = "StartNoMiss"
+NoMiss.Label.Text = "No Misses";
+NoMiss.Label.BackgroundColor3 = Color3.new(0.4,1,0.4);
+NoMiss.MouseButton1Click:Connect(function()
+	if NoMiss.Visible and buttontemplate.BackgroundColor3.R >= buttontemplate.BackgroundColor3.G then
 		SendPlay("nomiss")
 	end
 end)
 
-local SicksOnlyB = gameUi.SongSelector.Frame.Body.Settings.Solo:Clone(); -- SicksOnly
-SicksOnlyB.Parent = gameUi.SongSelector.Frame.Body.Settings
-SicksOnlyB.Name = "KE_SicksOnly"
-SicksOnlyB.SoloPlay.Text = "Sicks Only";
-SicksOnlyB.SoloPlay.BackgroundColor3 = Color3.new(0.4,0.4,1);
-SicksOnlyB.SoloPlay.MouseButton1Click:Connect(function()
-	if SicksOnlyB.Visible and gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G then
+local SicksOnlyB = buttontemplate:Clone(); -- SicksOnly
+SicksOnlyB.Parent = newloc
+SicksOnlyB.Name = "StartSicksOnly"
+SicksOnlyB.Label.Text = "Sicks Only";
+SicksOnlyB.Label.BackgroundColor3 = Color3.new(0.4,0.4,1);
+SicksOnlyB.MouseButton1Click:Connect(function()
+	if SicksOnlyB.Visible and buttontemplate.BackgroundColor3.R >= buttontemplate.BackgroundColor3.G then
 		SendPlay("sicksonly")
 	end
 end)
 
-local AutoplayB = gameUi.SongSelector.Frame.Body.Settings.Solo:Clone(); -- SicksOnly
-AutoplayB.Parent = gameUi.SongSelector.Frame.Body.Settings
-AutoplayB.Name = "KE_AutoPlay"
-AutoplayB.SoloPlay.Text = "Autoplay";
-AutoplayB.SoloPlay.BackgroundColor3 = Color3.new(1,1,1);
-AutoplayB.SoloPlay.MouseButton1Click:Connect(function()
-	if AutoplayB.Visible and gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R >= gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G then
+--[[ -- piss
+local AutoplayB = buttontemplate:Clone(); -- Autoplay
+AutoplayB.Parent = newloc
+AutoplayB.Name = "StartAutoPlay"
+AutoplayB.Label.Text = "Autoplay";
+AutoplayB.Label.BackgroundColor3 = Color3.new(1,1,1);
+AutoplayB.MouseButton1Click:Connect(function()
+	if AutoplayB.Visible and buttontemplate.BackgroundColor3.R >= buttontemplate.BackgroundColor3.G then
 		SendPlay("autoplay")
 	end
 end)
+--]]
 
-gameUi.SongSelector.Frame.Body.Settings.Solo:GetPropertyChangedSignal("Visible"):Connect(function() -- Don't let the people press the no-miss if it's not solo
-	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
-	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
-	AutoplayB.Visible = uidata.SoloGamemodes and gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
-	gameUi.SongSelector.Frame.Body.Settings.MultiStage.Visible = not gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
+buttontemplate:GetPropertyChangedSignal("Visible"):Connect(function() -- Don't let the people press the no-miss if it's not solo
+	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and buttontemplate.Visible;
+	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and buttontemplate.Visible;
+	AutoplayB.Visible = uidata.SoloGamemodes and buttontemplate.Visible;
 end)
-gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay:GetPropertyChangedSignal("BackgroundColor3"):Connect(function() -- Oopsie!
-	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and (gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R > gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G);
-	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and (gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R > gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G);
-	AutoplayB.Visible = uidata.SoloGamemodes and gameUi.SongSelector.Frame.Body.Settings.Solo.Visible;
-	gameUi.SongSelector.Frame.Body.Settings.MultiStage.Visible = gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.R == gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.BackgroundColor3.G;
+buttontemplate:GetPropertyChangedSignal("BackgroundColor3"):Connect(function() -- Oopsie!
+	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and (buttontemplate.BackgroundColor3.R > buttontemplate.BackgroundColor3.G);
+	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and (buttontemplate.BackgroundColor3.R > buttontemplate.BackgroundColor3.G);
+	AutoplayB.Visible = uidata.SoloGamemodes and buttontemplate.Visible;
+end)
+
+-- Stats UI clone
+local statgui = gameUi.Arrows.Stats:Clone()
+statgui.RichText = true; -- Force rich text on the stats
+statgui.Parent = gameUi.Arrows
+
+gameUi.Arrows.Stats:GetPropertyChangedSignal("Visible"):Connect(function()
+	if gameUi.Arrows.Stats.Visible then
+		gameUi.Arrows.Stats.Visible = false;
+	end
+end)
+
+gameUi.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This function should show any 'shadow' stats
+	gameUi.Arrows.Stats.Visible = false;
+	local result1 = string.split(game.Players.LocalPlayer.PlayerGui.GameUI.Arrows.Stats.Text,"\n")
+	local res = 0;
+	local stats = {};
+
+	for i,v in ipairs(result1) do
+		local result2 = string.split(v,":")
+		if result2[2] then
+			local stat = string.gsub(result2[1]," ","")
+			local value = string.gsub(result2[2]," ","")
+			res = res + value; -- Add up the total notes hit so it won't count them as shadow notes
+			stats[string.lower(stat)] = value
+		end
+	end
+
+	local showtotalnotes = true;
+
+	if inNoMiss then
+		statgui.Text = "Sick: "..stats.sick.."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad
+	elseif SicksOnly then
+		statgui.Text = "Hits: "..stats.sick
+		showtotalnotes = false;
+	else
+		statgui.Text = "Sick: "..stats.sick.."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad.."\nMissed: "..stats.missed
+	end
+
+	if res ~= globaldata.totalnotes then
+		statgui.Text = statgui.Text.."\n<font color='#AAAAAA'>Shadow Notes: "..globaldata.totalnotes - res.."</font>"
+		showtotalnotes = true;
+	end
+	if showtotalnotes then
+		statgui.Text = statgui.Text.."\n<font color='#FFFF77'>Total Notes: "..globaldata.totalnotes.."</font>"
+	end
+
+	if SicksOnly then
+		if stats.sick ~= globaldata.totalnotes then
+			game.Players.LocalPlayer.Character.Humanoid.Health = -100;
+		end
+	end
 end)
 
 return gameUi, material
