@@ -925,6 +925,7 @@ function Material.Load(Config)
 		BannerLabel.Text = BannerText
 		BannerLabel.TextColor3 = Theme.BannerAccent
 		BannerLabel.TextSize = 12
+		BannerLabel.RichText = true; -- Allow RichText on the banners
 		BannerLabel.Font = Enum.Font.Gotham
 		BannerLabel.Size = UDim2.fromScale(1,0) + UDim2.fromOffset(-5,(Lines*20)+5)
 		BannerLabel.TextWrapped = true
