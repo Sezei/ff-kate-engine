@@ -1,6 +1,11 @@
 --trolling--
 --local engine, ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/loader.lua",true))();
 
+-- why did i even need to include this 💀
+if game.PlaceId ~= 6447798030 and game.PlaceId ~= 6996694685 then
+	return error("No!")
+end
+
 -- function to deep-print a table key-value pairs
 function printTable(t, indent)
     if indent == nil then indent = 0 end
