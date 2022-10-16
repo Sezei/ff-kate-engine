@@ -28,9 +28,10 @@ local tweenservice = game:GetService("TweenService");
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local UIS = game:GetService("UserInputService");
 local origintime = 0;
-local version = "v0.7";
+local version = "v0.7A";
 local prevcombo = 0;
 local counter = 0;
+local songdifficulty = 0;
 local event = game.ReplicatedStorage.RE;
 local inSolo = false;
 local inNoMiss = false;
@@ -111,7 +112,7 @@ hpupper.Position = UDim2.new(1,0,0.5,0);
 hpupper.BackgroundColor3 = Color3.new(0,1,0);
 hpupper.Name = "Front";
 
-material.Banner({Text = "Kate Engine <b>v0.7</b>\n <font color='#4D934D'>+ Added Bot difficulty.</font>\n <font color='#4D934D'>+ Added Total Notes / Shadow Notes on display.</font>\n <font color='#FF5500'>! Fixed the engine to work with the new UI update.</font>\n <font color='#AA0000'>- Removed Autoplay (2lazy2fix).</font>\n [[Note: Solo Buttons are broken; too lazy to fix so im putting trust into u to not use them lol]]"});
+material.Banner({Text = "Kate Engine <b>v0.7A</b>\n + Added (automatic) difficulty ratings."});
 
 local globaldata = { -- Data that will be used across the entire script.
 	totalnotes = 0;
@@ -384,7 +385,7 @@ local crtab = material.New({Title = "Credits"}) do
 		Text = "<font color=\"#ff00a6\">Sezei</font> - Script";
 	});
 	crtab.Label({
-		Text = "<font color=\"#00ff00\">Wally</font> - Autoplayer (edited, but same thing)";
+		Text = "<font color=\"#00ff00\">Wally</font> - Framework Detection (Autoplay stuff)";
 	});
 	crtab.Label({
 		Text = "Kinlei(?) - UI Library";
@@ -518,6 +519,22 @@ UIS.InputBegan:Connect(function(info)
 		end
 	end
 end)
+
+local function CalcDifficultyRating(lenght)
+    local diff = 0;
+    repeat task.wait() until (framework.SongPlayer.CurrentSongData and #framework.SongPlayer.CurrentSongData > 0);
+    local notes = #framework.SongPlayer.CurrentSongData;
+    local avgnps = notes / lenght; -- Average notes per second
+
+    diff += lenght/60;
+    diff += notes/300;
+    diff += avgnps*5;
+
+    -- Make the difficulty a float number with 2 decimals
+    diff = math.floor(diff * 100) / 100;
+
+    return diff;
+end
 
 local function CalcRating(one,two)
 	if not uidata.Mania_SimpleRatings then
@@ -834,6 +851,7 @@ gameUi.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 		autoplayActive = false;
 		origintime = 0;
 		localhealth = 40;
+        songdifficulty = 0;
 		inSolo = false;
 		globaldata.combo = 0;
 		globaldata.totalnotes = 0;
@@ -848,6 +866,7 @@ gameUi.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 	end
 end)
 
+
 gameUi.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
 	local newtxt = gameUi.TopbarLabel.Text;
 	topb.Text = newtxt
@@ -857,7 +876,10 @@ gameUi.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
 		local seconds = tonumber(tim[1])*60 + tonumber(tim[2])
 		if origintime == 0 then
 			origintime = seconds
+            songdifficulty = CalcDifficultyRating(seconds);
 		end
+
+        newtxt = newtxt.." | [⭐ "..songdifficulty.."]"
 
 		if uidata.SongProgress then
 			local function handler()
