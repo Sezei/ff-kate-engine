@@ -28,7 +28,7 @@ local tweenservice = game:GetService("TweenService");
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local UIS = game:GetService("UserInputService");
 local origintime = 0;
-local version = "v0.7A";
+local version = "v0.7B";
 local prevcombo = 0;
 local counter = 0;
 local songdifficulty = 0;
@@ -70,6 +70,7 @@ secondary.Text = ""
 secondary.Position = UDim2.new(0.5,0,0,40)
 secondary.TextSize = 30
 secondary.Name = "KE_secondary"
+--[[
 local watermark = Instance.new("TextLabel");
 watermark.Parent = gameUi;
 watermark.BackgroundTransparency = 1;
@@ -82,6 +83,57 @@ watermark.TextColor3 = Color3.new(1,1,1);
 watermark.TextStrokeTransparency = 0.5;
 watermark.Position = UDim2.new(0,10,0,0);
 watermark.Name = "KE_watermark"
+--]]
+local watermark = Instance.new("ImageLabel")
+watermark.Name = "KE_watermark"
+watermark.Image = "rbxassetid://11306098055"
+watermark.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+watermark.BackgroundTransparency = 1
+watermark.Size = UDim2.fromOffset(143, 94)
+
+local wversion = Instance.new("TextLabel")
+wversion.Name = "Version"
+wversion.Font = Enum.Font.PermanentMarker
+wversion.Text = version
+wversion.TextColor3 = Color3.fromRGB(255, 255, 255)
+wversion.TextSize = 28
+wversion.TextXAlignment = Enum.TextXAlignment.Left
+wversion.TextYAlignment = Enum.TextYAlignment.Bottom
+wversion.AnchorPoint = Vector2.new(0.5, 1)
+wversion.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+wversion.BackgroundTransparency = 1
+wversion.Position = UDim2.new(0.5, 0, 1, 10)
+wversion.Size = UDim2.new(0.95, 0, 0, 50)
+
+local uIStroke = Instance.new("UIStroke")
+uIStroke.Name = "UIStroke"
+uIStroke.Thickness = 2
+uIStroke.Parent = wversion
+
+wversion.Parent = watermark
+
+local woptions = Instance.new("TextLabel")
+woptions.Name = "Options"
+woptions.Font = Enum.Font.PermanentMarker
+woptions.Text = "Options: ;"
+woptions.TextColor3 = Color3.fromRGB(255, 255, 255)
+woptions.TextSize = 20
+woptions.TextXAlignment = Enum.TextXAlignment.Right
+woptions.TextYAlignment = Enum.TextYAlignment.Bottom
+woptions.AnchorPoint = Vector2.new(0.5, 1)
+woptions.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+woptions.BackgroundTransparency = 1
+woptions.Position = UDim2.new(0.5, 0, 1, 8)
+woptions.Size = UDim2.new(0.95, 0, 0, 50)
+
+local uIStroke1 = Instance.new("UIStroke")
+uIStroke1.Name = "UIStroke"
+uIStroke1.Thickness = 2
+uIStroke1.Parent = woptions
+
+woptions.Parent = watermark
+watermark.Parent = gameUi;
+--
 local topb = gameUi.TopbarLabel:Clone();
 topb.Parent = gameUi;
 topb.Visible = true;
@@ -112,7 +164,7 @@ hpupper.Position = UDim2.new(1,0,0.5,0);
 hpupper.BackgroundColor3 = Color3.new(0,1,0);
 hpupper.Name = "Front";
 
-material.Banner({Text = "Kate Engine <b>v0.7A</b>\n + Added (automatic) difficulty ratings."});
+material.Banner({Text = "A rewrite may be coming soon!"});
 
 local globaldata = { -- Data that will be used across the entire script.
 	totalnotes = 0;
