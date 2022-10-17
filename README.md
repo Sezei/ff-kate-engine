@@ -1,7 +1,7 @@
 ### Use Kate Engine at your own risk!
 ```diff
 ! Due to the nature of how to use Kate Engine, it is recommended to take safety precautions to avoid a permanent account deletion of your Roblox account.
-! Myself, Lyte Interactive's Affliates, and whoever redirected you here has no control over what happens next if you get caught.
+! Myself, Lyte Interactive's Affliates, and whoever redirected you here have no control over what happens next if you get caught.
 
 ! Please be safe and don't cheat.
 ```
