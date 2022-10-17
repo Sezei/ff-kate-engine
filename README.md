@@ -1,17 +1,24 @@
-# Warning: Do not post anything regarding Kate Engine in the FF community server!
+### Use Kate Engine at your own risk!
 ```diff
-! WARNING: If you indeed use this, MAKE SURE YOU DON'T POST SCREENSHOTS OF IT IN THE COMMUNITY SERVER ! 
-! It WILL get you banned, and the appeal will be declined. (or stuck on pending) !
+! Due to the nature of how to use Kate Engine, it is recommended to take safety precautions to avoid a permanent account deletion of your Roblox account.
+! Myself, Lyte Interactive's Affliates, and whoever redirected you here has no control over what happens next if you get caught.
+
+! Please be safe and don't cheat.
 ```
 
-# Funky Friday | Kate Engine
+----
+
+<p align="center">
+  <img src="https://github.com/Sezei/ff-kate-engine/blob/main/kateengine_github.png?raw=true" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/latest%20version-0.7A-7300a8?style=for-the-badge" />
+</p>
+
+<p align="center">
 Funky Friday's modding framework; which by itself is a mod lol; Absolutely nothing that gives you advantages over your opponents, all absolutely client-sided.
-decided on the name 'kate engine' both because of Kade and because my name's katherine (or kate for short lol)
-
-i mean, it technically does mod ff to add new features just like kade did for fnf so dont point fingers at me
-
-# Requirements
-- Synapse X lol
+</p>
 
 # Features (so far)
 The 'mods' so far are the following;
@@ -23,21 +30,26 @@ The 'mods' so far are the following;
 ![image](https://user-images.githubusercontent.com/49373598/168380945-e086d9be-7d29-45dd-84f8-66db7b254d29.png)
 - (cheaply made) Song Progress Bar
 
-![image](https://user-images.githubusercontent.com/49373598/168381001-f61f281e-ca80-4aa8-9c62-0ff8b456bce8.png)
+![image](https://user-images.githubusercontent.com/49373598/196227193-0fb07b42-8d33-470b-85d3-871a2dccedc8.png)
 - Solo Healthbar
 
 ![image](https://user-images.githubusercontent.com/49373598/169907335-2f8e8313-231c-4419-8a52-ad20eceb9e5b.png)
 
 - Count total notes.
 
-- See how many ghost notes you missed.
+- See how many notes you didn't hold long enough.
 
 - Dynamic bot difficulty (yes this means you can make the bot suck worse than you already are lmao)
 
-- Multi-Stage toggle now visible only if you're up against someone
+- ~~Multi-Stage toggle now visible only if you're up against someone~~ *Broken*
+
+- Automatic Difficulty Rating Calculation (Shown as [⭐DIFF] in KE's topbar)
+
+![image](https://user-images.githubusercontent.com/49373598/196227335-4e63f505-3174-42de-951c-36eddbf3ee44.png)
+
 
 # How to load (correctly)
-Simply put the following into the script executor. It will do the rest ***and*** will auto-update whenever an update comes.
+I will not elaborate how to get the script into the game and stuff, but it's here;
 ```lua
 local engine = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/loader.lua",true))()
 ```
@@ -46,6 +58,6 @@ local engine = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/
 If you encounter a bug, please either report it in Issues (https://github.com/Sezei/ff-kate-engine/issues) or if you feel courageous enough to fix it yourself, you can open a pull request by forking the script and sending it in the appropriate place. (https://github.com/Sezei/ff-kate-engine/pulls)
 
 While there isn't a specific template you should follow, it's required that you add the following details, otherwise I won't be able to help;
-- The exploit you're using
-- What the error is (Screenshot the F9 menu, as well as the Internal Console if exists)
+- What the error is (Screenshot the F9 menu, as well as the Internal Console if one exists)
 - What config are you using (the settings); You can send the .mp5 file that is generated when you save the config.
+- The way you executed the script. (You know what I mean.)
