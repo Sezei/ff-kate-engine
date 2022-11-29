@@ -28,7 +28,7 @@ local tweenservice = game:GetService("TweenService");
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local UIS = game:GetService("UserInputService");
 local origintime = 0;
-local version = "v0.7B";
+local version = "v0.7C";
 local prevcombo = 0;
 local counter = 0;
 local songdifficulty = 0;
@@ -164,7 +164,7 @@ hpupper.Position = UDim2.new(1,0,0.5,0);
 hpupper.BackgroundColor3 = Color3.new(0,1,0);
 hpupper.Name = "Front";
 
-material.Banner({Text = "A rewrite may be coming soon!"});
+material.Banner({Text = "+ Added 3D Combos\n> A rewrite may be coming soon!"});
 
 local globaldata = { -- Data that will be used across the entire script.
 	totalnotes = 0;
@@ -174,6 +174,7 @@ local globaldata = { -- Data that will be used across the entire script.
 local uidata = { -- Saving Purposes. Also easier to access ig.
 	DataVersion = version;
 	ManiaCounter = true;
+	WorldCombo = true;
 	SongProgress = true;
 	SoloGamemodes = true;
 	Health = true;
@@ -262,6 +263,13 @@ local maintab = material.New({Title = "Main"}) do
 		Text = "Mania Combo Counter";
 		Callback = function(bool)
 			uidata.ManiaCounter = bool
+		end;
+		Enabled = true;
+	});
+	WorldCombo = maintab.Toggle({
+		Text = "3D Combo Counter";
+		Callback = function(bool)
+			uidata.WorldCombo = bool
 		end;
 		Enabled = true;
 	});
@@ -846,7 +854,7 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 	local t = gameUi.Arrows.InfoBar.Text
 	local tt = string.split(t, " ")
 	local num;
-	local prevcombo = prevcombo -- :)
+	local prevcombo = prevcombo -- i dont even remember why it's here...
 	local isReset = false;
 
 	if tt[2] == "0.00%" and tt[5] == "0" then
@@ -859,6 +867,72 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 	elseif tt[8] then
 		num = string.gsub(tt[8], "%D", "")
 		updateCombo(tonumber(num),tt[2],tonumber(tt[5]))
+	end
+
+	if tonumber(num) >= 10 then -- if the combo is 10 or higher
+		-- check if worldcombo is enabled
+		if uidata.WorldCombo then
+			-- check the direction of the player's head; Add +5 studs to the direction of the player's head
+			local head = game.Players.LocalPlayer.Character.Head
+			local direction = head.CFrame.lookVector
+			local position = head.Position + (direction * 5)
+
+			-- create a billboard gui at the position of the player's head and attach it to an invisible part
+			local part = Instance.new("Part")
+			part.Anchored = true
+			part.CanCollide = false
+			part.Size = Vector3.new(1, 1, 1)
+			part.Transparency = 1
+			part.CFrame = CFrame.new(position)
+			part.Parent = workspace
+
+			local billboard = Instance.new("BillboardGui")
+			billboard.Adornee = part
+			billboard.AlwaysOnTop = true
+			billboard.Size = UDim2.new(0, 100, 0, 100)
+			billboard.StudsOffset = Vector3.new(0, 0, 0)
+			billboard.Parent = part
+			billboard.LightInfluence = 0;
+
+			-- create a text label and set it's text to the combo
+			local label = Instance.new("TextLabel")
+			label.BackgroundTransparency = 1
+			label.Size = UDim2.new(2, 0, 2, 0)
+			label.Text = num
+			label.TextColor3 = Color3.fromRGB(255, 255, 255)
+			label.TextScaled = true
+			label.TextStrokeTransparency = 0.25
+			label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+			label.Rotation = math.random(-10, 10)
+			-- Use the arcade font
+			label.FontFace = Font.new("rbxasset://fonts/families/PressStart2P.json")
+			label.Parent = billboard
+
+			-- tween the billboard gui up and fade it out
+			tweenservice:Create(
+				billboard,
+				TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{
+					StudsOffset = Vector3.new(0, 5, 0),
+				}
+			):Play()
+
+			tweenservice:Create(
+				label,
+				TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{
+					TextTransparency = 1,
+					TextStrokeTransparency = 1,
+					Size = UDim2.new(1, 0, 1, 0)
+				}
+			):Play()
+
+			task.wait(1)
+
+			-- destroy the billboard gui
+			billboard:Destroy()
+			part:Destroy()
+		end
 	end
 
 	if inNoMiss then
