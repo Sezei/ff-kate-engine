@@ -9,7 +9,7 @@
 ----
 
 <p align="center">
-  <img src="https://github.com/Sezei/ff-kate-engine/blob/main/kateengine_github.png?raw=true" />
+  <img src="https://github.com/Sezei/ff-kate-engine/blob/main/kateengine_2.png?raw=true" />
 </p>
 
 <p align="center">
