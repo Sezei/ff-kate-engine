@@ -37,13 +37,15 @@ The 'mods' so far are the following;
 
 - Count total notes.
 
-- See how many notes you didn't hold long enough.
+- See how many notes you didn't hold long enough. (Marked as ghost notes)
 
-- Dynamic bot difficulty (yes this means you can make the bot suck worse than you already are lmao)
+- Dynamic bot difficulty (yes this means you can make the bot suck worse than you lmao)
 
 - ~~Multi-Stage toggle now visible only if you're up against someone~~ *Broken*
 
-- Automatic Difficulty Rating Calculation (Shown as [⭐DIFF] in KE's topbar)
+- Automatic Difficulty Rating Calculation (Shown as [⭐DIFFICULTY] in KE's topbar)
+
+- Better miss-sound handling than the original.. somehow lol
 
 ![image](https://user-images.githubusercontent.com/49373598/196227335-4e63f505-3174-42de-951c-36eddbf3ee44.png)
 
