@@ -28,7 +28,7 @@ local tweenservice = game:GetService("TweenService");
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local UIS = game:GetService("UserInputService");
 local origintime = 0;
-local version = "v0.7C";
+local version = "v0.8";
 local prevcombo = 0;
 local counter = 0;
 local songdifficulty = 0;
@@ -43,6 +43,40 @@ local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Seze
 material.Self.Enabled = false;
 
 local framework, scrollHandler, network; -- nil values
+
+task.spawn(function()
+	while true do
+		for _, obj in next, getgc(true) do
+			if type(obj) == 'table' then 
+				if rawget(obj, 'GameUI') then
+					framework = obj;
+				elseif type(rawget(obj, 'Server')) == 'table' then
+					network = obj;     
+				end
+			end
+	
+			if network and framework then break end
+		end
+	
+		for _, module in next, getloadedmodules() do
+			if module.Name == 'ScrollHandler' then
+				scrollHandler = module;
+				break;
+			end
+		end 
+	
+		if (type(framework) == 'table' and typeof(scrollHandler) == 'Instance' and type(network) == 'table') then
+			break
+		end
+	
+		counter = counter + 1
+		if counter > 6 then
+			error(string.format('Failed to load game dependencies. Details: %s, %s, %s', type(framework), typeof(scrollHandler), type(network)))
+		end
+		task.wait(1)
+	end
+end)
+
 -- UI setup
 local funny = Instance.new("TextLabel")
 funny.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -164,7 +198,7 @@ hpupper.Position = UDim2.new(1,0,0.5,0);
 hpupper.BackgroundColor3 = Color3.new(0,1,0);
 hpupper.Name = "Front";
 
-material.Banner({Text = "+ Added 3D Combos\n> A rewrite may be coming soon!"});
+material.Banner({Text = "+ Added better miss sound handling\n\n> Dynamic Font Increments is no longer an experimental\n\n> A rewrite may be coming soon!"});
 
 local globaldata = { -- Data that will be used across the entire script.
 	totalnotes = 0;
@@ -180,7 +214,7 @@ local uidata = { -- Saving Purposes. Also easier to access ig.
 	Health = true;
 	Mania_FCIndicator = true;
 	Mania_SimpleRatings = false;
-	Mania_DynamicIncrements = false;
+	Mania_DynamicIncrements = true;
 	Mania_Milestone = 50;
 	Mania_0Combo = Color3.new(1,1,1);
 	Mania_100Combo = Color3.new(1,1,0.75);
@@ -194,6 +228,8 @@ local uidata = { -- Saving Purposes. Also easier to access ig.
 	Health_RemainingColor = Color3.new(0,1,0);
 	Health_HitGain = 3;
 	Health_MissLoss = 15;
+    BetterMiss_Enabled = true;
+    BetterMiss_Volume = 0.5;
 }
 
 local maintab = material.New({Title = "Main"}) do
@@ -324,11 +360,11 @@ local maniatab = material.New({Title = "Mania"}) do
 		Text = "-- OTHER --";
 	});
 	Mania_DynamicIncrements = maniatab.Toggle({
-		Text = "Dynamic Font Increments (Experimental)";
+		Text = "Dynamic Font Increments";
 		Callback = function(bool)
 			uidata.Mania_DynamicIncrements = bool
 		end;
-		Enabled = false;
+		Enabled = true;
 	});
 	Mania_Milestone = maniatab.Dropdown({
 		Text = "Combo Milestones";
@@ -437,6 +473,47 @@ local healthtab = material.New({Title = "Health"}) do
 	});
 end;
 
+local botplaytab = material.New({Title = "Bot"}) do
+    botplaytab.Label({
+        Text = "-- BOT OPPONENT SETTINGS --";
+    });
+    botplaytab.Dropdown({
+        Text = "Bot Opponent";
+        Callback = function(option)
+            uidata.Bot_AILevel = option
+        end;
+        Options = {"Noob_At_3AM","Easy","Normal","Hard","Insane","Impossible"};
+    });
+end
+
+local bettermisstab = material.New({Title = "Better Miss"}) do
+    bettermisstab.Label({
+        Text = "-- BETTER MISS SETTINGS --";
+    });
+    bettermisstab.Label({
+        Text = "This will make the sounds only play when you actually miss a note.";
+    });
+    bettermisstab.Toggle({
+        Text = "Enabled";
+        Callback = function(bool)
+            uidata.BetterMiss_Enabled = bool
+            if framework then
+                framework.Settings.MissedSound.Value = not bool;
+            end
+        end;
+        Enabled = true;
+    });
+    bettermisstab.Slider({
+        Text = "Volume";
+        Callback = function(num)
+            uidata.BetterMiss_Volume = num/100
+        end;
+        Min = 0;
+        Max = 100;
+        Def = 50;
+    });
+end
+
 local crtab = material.New({Title = "Credits"}) do
 	crtab.Label({
 		Text = "-- CREDITS --";
@@ -458,52 +535,6 @@ local crtab = material.New({Title = "Credits"}) do
 		Enabled = false;
 	});
 end;
-
-local botplaytab = material.New({Title = "Bot Opponent"}) do
-    botplaytab.Label({
-        Text = "-- BOT OPPONENT SETTINGS --";
-    });
-    botplaytab.Dropdown({
-        Text = "Bot Opponent";
-        Callback = function(option)
-            uidata.Bot_AILevel = option
-        end;
-        Options = {"Noob_At_3AM","Easy","Normal","Hard","Insane","Impossible"};
-    });
-end
-
-task.spawn(function()
-	while true do
-		for _, obj in next, getgc(true) do
-			if type(obj) == 'table' then 
-				if rawget(obj, 'GameUI') then
-					framework = obj;
-				elseif type(rawget(obj, 'Server')) == 'table' then
-					network = obj;     
-				end
-			end
-	
-			if network and framework then break end
-		end
-	
-		for _, module in next, getloadedmodules() do
-			if module.Name == 'ScrollHandler' then
-				scrollHandler = module;
-				break;
-			end
-		end 
-	
-		if (type(framework) == 'table' and typeof(scrollHandler) == 'Instance' and type(network) == 'table') then
-			break
-		end
-	
-		counter = counter + 1
-		if counter > 6 then
-			error(string.format('Failed to load game dependencies. Details: %s, %s, %s', type(framework), typeof(scrollHandler), type(network)))
-		end
-		task.wait(1)
-	end
-end)
 
 local keyCodeMap = {}
 for _, enum in next, Enum.KeyCode:GetEnumItems() do
@@ -850,6 +881,8 @@ local function SendPlay(var)
 	end
 end
 
+local lastmiss = 0;
+
 gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 	local t = gameUi.Arrows.InfoBar.Text
 	local tt = string.split(t, " ")
@@ -860,6 +893,22 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 	if tt[2] == "0.00%" and tt[5] == "0" then
 		isReset = true;
 	end
+
+    if uidata.BetterMiss_Enabled and not isReset then
+        if tonumber(tt[5]) > lastmiss then
+            -- Play the miss sound if the miss count is higher than the last miss count
+            local sound = Instance.new("Sound")
+            sound.SoundId = framework.Assets.Sounds:FindFirstChild("MissedNotes"):GetChildren()[math.random(#framework.Assets.Sounds:FindFirstChild("MissedNotes"):GetChildren())].SoundId
+            sound.Volume = uidata.BetterMiss_Volume
+            sound.Parent = gameUi
+            sound:Play();
+            task.spawn(function()
+                task.wait(2);
+                sound:Destroy();
+            end) 
+        end
+        lastmiss = tonumber(tt[5]);
+    end
 
 	if tt[10] then
 		num = string.gsub(tt[10], "%D", "")
@@ -1025,6 +1074,8 @@ gameUi.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
 		end
 	end
 end)
+
+framework.Settings.MissedSound.Value = false;
 
 gameUi.TopbarLabel:GetPropertyChangedSignal("TextColor3"):Connect(function()
     topb.TextColor3 = gameUi.TopbarLabel.TextColor3
