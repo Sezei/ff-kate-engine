@@ -28,7 +28,7 @@ local tweenservice = game:GetService("TweenService");
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local UIS = game:GetService("UserInputService");
 local origintime = 0;
-local version = "v0.8";
+local version = "b0.9";
 local prevcombo = 0;
 local counter = 0;
 local songdifficulty = 0;
@@ -126,7 +126,7 @@ watermark.BackgroundTransparency = 1
 watermark.Size = UDim2.fromOffset(143, 94)
 
 local wversion = Instance.new("TextLabel")
-wversion.Name = "Version"
+wversion.Name = "KE_version"
 wversion.Font = Enum.Font.PermanentMarker
 wversion.Text = version
 wversion.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -139,12 +139,29 @@ wversion.BackgroundTransparency = 1
 wversion.Position = UDim2.new(0.5, 0, 1, 10)
 wversion.Size = UDim2.new(0.95, 0, 0, 50)
 
+local debugstuff = Instance.new("TextLabel")
+debugstuff.Name = "KE_debuglabel"
+debugstuff.Font = Enum.Font.PermanentMarker
+debugstuff.Text = "DEBUG STUFF!"
+debugstuff.TextColor3 = Color3.fromRGB(255, 255, 255)
+debugstuff.TextSize = 18
+debugstuff.TextXAlignment = Enum.TextXAlignment.Left
+debugstuff.TextYAlignment = Enum.TextYAlignment.Top
+debugstuff.AnchorPoint = Vector2.new(0.5, 1)
+debugstuff.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+debugstuff.BackgroundTransparency = 1
+debugstuff.Position = UDim2.new(0.5, 0, 1, 48)
+debugstuff.Size = UDim2.new(0.95, 0, 0, 20)
+
 local uIStroke = Instance.new("UIStroke")
 uIStroke.Name = "UIStroke"
 uIStroke.Thickness = 2
 uIStroke.Parent = wversion
 
+uIStroke:Clone().Parent = debugstuff
+
 wversion.Parent = watermark
+debugstuff.Parent = watermark
 
 local woptions = Instance.new("TextLabel")
 woptions.Name = "Options"
@@ -212,6 +229,7 @@ local uidata = { -- Saving Purposes. Also easier to access ig.
 	SongProgress = true;
 	SoloGamemodes = true;
 	Health = true;
+	CameraBump = true;
 	Mania_FCIndicator = true;
 	Mania_SimpleRatings = false;
 	Mania_DynamicIncrements = true;
@@ -230,6 +248,7 @@ local uidata = { -- Saving Purposes. Also easier to access ig.
 	Health_MissLoss = 15;
     BetterMiss_Enabled = true;
     BetterMiss_Volume = 0.5;
+	BPMFix_Enabled = true;
 }
 
 local maintab = material.New({Title = "Main"}) do
@@ -338,101 +357,159 @@ local maintab = material.New({Title = "Main"}) do
 	});
 end;
 
-local maniatab = material.New({Title = "Mania"}) do
-	maniatab.Label({
-		Text = "-- RATINGS --";
+local displaymodstab = material.New({Title = "Display Mods"}) do
+	displaymodstab.Label({
+		Text = "-- MANIA --";
 	});
-	Mania_FCIndicator = maniatab.Toggle({
+	displaymodstab.Label({
+		Text = "Mania is a combo counter that displays the current combo in a mania-like fashion.";
+	});
+	Mania_FCIndicator = displaymodstab.Toggle({
 		Text = "FC Indicator";
 		Callback = function(bool)
 			uidata.Mania_FCIndicator = bool
 		end;
 		Enabled = true;
 	});
-	Mania_SimpleRatings = maniatab.Toggle({
+	Mania_SimpleRatings = displaymodstab.Toggle({
 		Text = "Simple Ratings";
 		Callback = function(bool)
 			uidata.Mania_SimpleRatings = bool
 		end;
 		Enabled = false;
 	});
-	maniatab.Label({
-		Text = "-- OTHER --";
-	});
-	Mania_DynamicIncrements = maniatab.Toggle({
+	Mania_DynamicIncrements = displaymodstab.Toggle({
 		Text = "Dynamic Font Increments";
 		Callback = function(bool)
 			uidata.Mania_DynamicIncrements = bool
 		end;
 		Enabled = true;
 	});
-	Mania_Milestone = maniatab.Dropdown({
+	Mania_Milestone = displaymodstab.Dropdown({
 		Text = "Combo Milestones";
 		Callback = function(option)
 			uidata.Mania_Milestone = tonumber(option)
 		end;
 		Options = {"20","25","50","100"};
 	});
-	maniatab.Label({
-		Text = "-- COLORS --";
-	});
-	Mania_0Combo = maniatab.ColorPicker({
+	Mania_0Combo = displaymodstab.ColorPicker({
 		Text = "Mania 0 Combo";
 		Callback = function(color)
 			uidata.Mania_0Combo = color
 		end;
 		Default = Color3.new(1,1,1);
 	});
-	Mania_100Combo = maniatab.ColorPicker({
+	Mania_100Combo = displaymodstab.ColorPicker({
 		Text = "Mania 100 Combo";
 		Callback = function(color)
 			uidata.Mania_100Combo = color
 		end;
 		Default = Color3.new(1,1,0.75);
 	});
-	Mania_200Combo = maniatab.ColorPicker({
+	Mania_200Combo = displaymodstab.ColorPicker({
 		Text = "Mania 200 Combo";
 		Callback = function(color)
 			uidata.Mania_200Combo = color
 		end;
 		Default = Color3.new(1,1,0.5);
 	});
-	Mania_300Combo = maniatab.ColorPicker({
+	Mania_300Combo = displaymodstab.ColorPicker({
 		Text = "Mania 300 Combo";
 		Callback = function(color)
 			uidata.Mania_300Combo = color
 		end;
 		Default = Color3.new(1,1,0.25);
 	});
-	Mania_400Combo = maniatab.ColorPicker({
+	Mania_400Combo = displaymodstab.ColorPicker({
 		Text = "Mania 400 Combo";
 		Callback = function(color)
 			uidata.Mania_400Combo = color
 		end;
 		Default = Color3.new(1,1,0);
 	});
+	
 end;
 
-local modestab = material.New({Title = "Game Modes"}) do
-	modestab.Label({
-		Text = "-- ENABLED MODES --";
+local modstab = material.New({Title = "Gameplay Mods"}) do
+	modstab.Label({
+		Text = "<b>Everything in this tab is affecting <i>solo-play</i> rounds only!</b>";
 	});
-	Modes_NoMiss = modestab.Toggle({
+	modstab.Label({
+		Text = "-- GAMEMODES --";
+	});
+	modstab.Label({
+		Text = "These are the gamemodes that can be toggled on and off.";
+	});
+	Modes_NoMiss = modstab.Toggle({
 		Text = "No-Miss Mode Button";
 		Callback = function(bool)
 			uidata.Modes_NoMiss = bool
 		end;
 		Enabled = true;
 	});
-	Modes_SicksOnly = modestab.Toggle({
+	Modes_SicksOnly = modstab.Toggle({
 		Text = "Sicks-Only Mode Button";
 		Callback = function(bool)
 			uidata.Modes_SicksOnly = bool
 		end;
 		Enabled = true;
 	});
+	modstab.Label({
+		Text = "-- HEALTHBAR --";
+	});
+	modstab.Label({
+		Text = "The healthbar indicates how much health you have. Hit notes to gain health, miss notes to lose health.";
+	});
+	Health_MissingColor = modstab.ColorPicker({
+		Text = "Missing Health Color";
+		Callback = function(color)
+			uidata.Health_MissingColor = color
+			hplower.BackgroundColor3 = color
+		end;
+		Default = Color3.new(1,0,0);
+	});
+	Health_RemainingColor = modstab.ColorPicker({
+		Text = "Remaining Health Color";
+		Callback = function(color)
+			uidata.Health_RemainingColor = color
+			hpupper.BackgroundColor3 = color
+		end;
+		Default = Color3.new(0,1,0);
+	});
+	Health_HitGain = modstab.Slider({
+		Text = "Note Hit Gain";
+		Callback = function(num)
+			uidata.Health_HitGain = num
+		end;
+		Min = 1;
+		Max = 50;
+		Def = 3;
+	});
+	Health_MissLoss = modstab.Slider({
+		Text = "Note Miss Loss";
+		Callback = function(color)
+			uidata.Health_MissLoss = color
+		end;
+		Min = 1;
+		Max = 50;
+		Def = 15;
+	});
+	modstab.Label({
+		Text = "-- BOT OPPONENT --";
+	});
+	modstab.Label({
+		Text = "This setting affect how the bot opponent plays. (Difficulty)";
+	});
+	modstab.Dropdown({
+        Text = "Bot Opponent";
+        Callback = function(option)
+            uidata.Bot_AILevel = option
+        end;
+        Options = {"Noob_At_3AM","Easy","Normal","Hard","Insane","Impossible"};
+    });
 end;
 
+--[[
 local healthtab = material.New({Title = "Health"}) do
 	healthtab.Label({
 		Text = "-- HEALTHBAR SETTINGS --";
@@ -485,15 +562,16 @@ local botplaytab = material.New({Title = "Bot"}) do
         Options = {"Noob_At_3AM","Easy","Normal","Hard","Insane","Impossible"};
     });
 end
+]]
 
-local bettermisstab = material.New({Title = "Better Miss"}) do
-    bettermisstab.Label({
+local gamefixestab = material.New({Title = "Gameplay Fixes"}) do
+    gamefixestab.Label({
         Text = "-- BETTER MISS SETTINGS --";
     });
-    bettermisstab.Label({
+    gamefixestab.Label({
         Text = "This will make the sounds only play when you actually miss a note.";
     });
-    bettermisstab.Toggle({
+    gamefixestab.Toggle({
         Text = "Enabled";
         Callback = function(bool)
             uidata.BetterMiss_Enabled = bool
@@ -503,7 +581,7 @@ local bettermisstab = material.New({Title = "Better Miss"}) do
         end;
         Enabled = true;
     });
-    bettermisstab.Slider({
+    gamefixestab.Slider({
         Text = "Volume";
         Callback = function(num)
             uidata.BetterMiss_Volume = num/100
@@ -512,6 +590,19 @@ local bettermisstab = material.New({Title = "Better Miss"}) do
         Max = 100;
         Def = 50;
     });
+	gamefixestab.Label({
+		Text = "-- BPM FIX --";
+	});
+	gamefixestab.Label({
+		Text = "This will fix the BPM of the song to match the camera. (Scrapped code?)";
+	});
+	gamefixestab.Toggle({
+		Text = "Enabled";
+		Callback = function(bool)
+			uidata.BPMFix_Enabled = bool
+		end;
+		Enabled = true;
+	});
 end
 
 local crtab = material.New({Title = "Credits"}) do
@@ -522,7 +613,7 @@ local crtab = material.New({Title = "Credits"}) do
 		Text = "<font color=\"#ff00a6\">Sezei</font> - Script";
 	});
 	crtab.Label({
-		Text = "<font color=\"#00ff00\">Wally</font> - Framework Detection (Autoplay stuff)";
+		Text = "<font color=\"#00ff00\">Wally</font> - Framework Detection";
 	});
 	crtab.Label({
 		Text = "Kinlei(?) - UI Library";
@@ -1126,28 +1217,13 @@ SicksOnlyB.MouseButton1Click:Connect(function()
 	end
 end)
 
---[[ -- piss
-local AutoplayB = buttontemplate:Clone(); -- Autoplay
-AutoplayB.Parent = newloc
-AutoplayB.Name = "StartAutoPlay"
-AutoplayB.Label.Text = "Autoplay";
-AutoplayB.Label.BackgroundColor3 = Color3.new(1,1,1);
-AutoplayB.MouseButton1Click:Connect(function()
-	if AutoplayB.Visible and buttontemplate.BackgroundColor3.R >= buttontemplate.BackgroundColor3.G then
-		SendPlay("autoplay")
-	end
-end)
---]]
-
 buttontemplate:GetPropertyChangedSignal("Visible"):Connect(function() -- Don't let the people press the no-miss if it's not solo
 	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and buttontemplate.Visible;
 	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and buttontemplate.Visible;
-	AutoplayB.Visible = uidata.SoloGamemodes and buttontemplate.Visible;
 end)
 buttontemplate:GetPropertyChangedSignal("BackgroundColor3"):Connect(function() -- Oopsie!
 	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and (buttontemplate.BackgroundColor3.R > buttontemplate.BackgroundColor3.G);
 	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and (buttontemplate.BackgroundColor3.R > buttontemplate.BackgroundColor3.G);
-	AutoplayB.Visible = uidata.SoloGamemodes and buttontemplate.Visible;
 end)
 
 -- Stats UI clone
@@ -1202,5 +1278,99 @@ gameUi.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This 
 		end
 	end
 end)
+
+local Camera = workspace.Camera;
+local FOV = Camera.FieldOfView;
+
+local id = 0;
+local connectedevent = nil;
+local CurrentStep = 0;
+local CurrentBeat = 0;
+
+local debugtext = "";
+
+local SoundEvent = framework:GetEvent("SoundEvent");
+
+ModchartSystem = {
+	CameraZoom = function()
+		-- Tween the camera
+		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
+		Camera.FieldOfView = FOV;
+		local camtween = tweenservice:Create(Camera, tweenInfo, {FieldOfView = FOV+1});
+		secondary.TextSize = 35;
+		local txttween = tweenservice:Create(secondary, tweenInfo, {TextSize = 30});
+		camtween:Play();
+		txttween:Play();
+		camtween.Completed:Wait();
+		camtween:Destroy();
+		txttween:Destroy();
+	end;
+	Kill = function()
+		-- Kill the player
+		game.Players.LocalPlayer.Character.Humanoid.Health = -100;
+	end;
+
+}
+
+SoundEvent:Connect(function(Active)
+	if Active == false then
+		connectedevent:Disconnect();
+		connectedevent = nil;
+	end
+	id = id + 1;
+	local assigned = id;
+	local songstart = os.clock();
+	if Active == true then
+		local Zone = framework.StageZone and framework.StageZone.CurrentZone;
+		local Stage = Zone and (Zone.Parent.Name:match("Stage") and Zone.Parent);
+		if Stage then
+			local BPM = Stage:GetAttribute("BPM");
+			local OFFSET = Stage:GetAttribute("Offset");
+			if BPM and OFFSET then
+				local BPS = BPM / 60; -- BPS
+				local SPB = 1 / BPS; -- SPB
+				task.wait(OFFSET % SPB);
+				CurrentStep = 0;
+				CurrentBeat = 0;
+				local laststepcheck = 0;
+				connectedevent = game:GetService("RunService").RenderStepped:Connect(function() -- Use this to more accurately time the steps
+					if id ~= assigned or not uidata.BPMFix_Enabled then
+						return;
+					end;
+
+					if CurrentStep == 0 then
+						CurrentStep = 1;
+						CurrentBeat = 1;
+					end;
+
+					laststepcheck = os.clock();
+					-- Get the BPM timing (SPB)
+					-- Check if laststep+BPM waiting time is greater than what it would've been if it was on time
+					-- If it is, then we're behind and we need to catch up
+					-- If it isn't, then we're ahead and we need to wait
+					-- How to check: laststep + BPM waiting time > songstart + BPM waiting time * currentstep
+
+					if (laststepcheck + SPB) > (songstart + (SPB * CurrentStep)) then
+						-- We're behind, catch up
+						-- Check how many steps we're behind
+						CurrentStep = CurrentStep + 1;
+					else
+						debugtext = "BPM: "..BPM.."\nBeat: "..(CurrentStep-1).."\nSection: "..CurrentBeat;
+						debugstuff.Text = debugtext;
+						return;
+					end;
+
+					if CurrentStep % 4 == 2 then -- Every 4 beats is a section
+						CurrentBeat = CurrentBeat + 1;
+						ModchartSystem.CameraZoom();
+					end;
+
+					debugtext = "BPM: "..BPM.."\nBeat: "..(CurrentStep-1).."\nSection: "..CurrentBeat;
+					debugstuff.Text = debugtext;
+				end);
+			end;
+		end;
+	end;
+end);
 
 return gameUi, material
