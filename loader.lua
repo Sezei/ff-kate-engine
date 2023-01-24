@@ -42,40 +42,26 @@ local shared = {};
 local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..version;Theme = "Dark";SizeX = 500;})
 material.Self.Enabled = false;
 
-local framework, scrollHandler, network; -- nil values
+local framework;
 
-task.spawn(function()
-	while true do
-		for _, obj in next, getgc(true) do
-			if type(obj) == 'table' then 
-				if rawget(obj, 'GameUI') then
-					framework = obj;
-				elseif type(rawget(obj, 'Server')) == 'table' then
-					network = obj;     
-				end
-			end
-	
-			if network and framework then break end
+function getGameFramework()
+	for _, v in next, getgc(true) do
+		if type(v) == 'table' and rawget(v, 'GameUI') then
+			return v
 		end
-	
-		for _, module in next, getloadedmodules() do
-			if module.Name == 'ScrollHandler' then
-				scrollHandler = module;
-				break;
-			end
-		end 
-	
-		if (type(framework) == 'table' and typeof(scrollHandler) == 'Instance' and type(network) == 'table') then
-			break
-		end
-	
-		counter = counter + 1
-		if counter > 6 then
-			error(string.format('Failed to load game dependencies. Details: %s, %s, %s', type(framework), typeof(scrollHandler), type(network)))
-		end
-		task.wait(1)
 	end
-end)
+end
+
+framework = getGameFramework();
+
+framework.KEValues = {};
+
+function framework:SetKEValue(key, value)
+	self.KEValues[key] = value;
+end
+function framework:GetKEValue(key)
+	return self.KEValues[key];
+end
 
 -- UI setup
 local funny = Instance.new("TextLabel")
@@ -1321,6 +1307,21 @@ SoundEvent:Connect(function(Active)
 	local assigned = id;
 	local songstart = os.clock();
 	if Active == true then
+
+		-- Find which song is playing; Usually marked with 'rbxassetid://' as the prefix for the name
+		local songid = nil;
+		for _,Sound in pairs(game:GetService("SoundService"):GetChildren()) do
+			if Sound.Name:sub(1,12) == "rbxassetid://" then
+				songid = Sound.Name:sub(13);
+				framework:SetKEValue("SongID", songid);
+				break;
+			end
+		end
+
+		if not songid then
+			framework:SetKEValue("SongID", nil);
+		end
+
 		local Zone = framework.StageZone and framework.StageZone.CurrentZone;
 		local Stage = Zone and (Zone.Parent.Name:match("Stage") and Zone.Parent);
 		if Stage then
@@ -1373,4 +1374,4 @@ SoundEvent:Connect(function(Active)
 	end;
 end);
 
-return gameUi, material
+return framework;
