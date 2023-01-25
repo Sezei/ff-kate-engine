@@ -1278,6 +1278,7 @@ local debugtext = "";
 local SoundEvent = framework:GetEvent("SoundEvent");
 
 ModchartSystem = {
+	-- Camera zooming thing
 	CameraZoom = function()
 		-- Tween the camera
 		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
@@ -1287,50 +1288,143 @@ ModchartSystem = {
 		local txttween = tweenservice:Create(secondary, tweenInfo, {TextSize = 30});
 		camtween:Play();
 		txttween:Play();
-		camtween.Completed:Wait();
-		camtween:Destroy();
-		txttween:Destroy();
-	end;
-	Kill = function()
-		-- Kill the player
-		game.Players.LocalPlayer.Character.Humanoid.Health = -100;
+		task.spawn(function()
+			camtween.Completed:Wait();
+			camtween:Destroy();
+			txttween:Destroy();
+		end);
 	end;
 
+	SetArrowStyle = function(Key, Style)
+		framework.ArrowData["4Key"].Arrows[Key].Style = Style;
+		framework:GetEvent("ArrowDataChanged"):Fire();
+	end;
+
+	SetAllArrows = function(Style)
+		for _,v in pairs(framework.ArrowData["4Key"].Arrows) do
+			v.Style = Style;
+		end;
+		framework:GetEvent("ArrowDataChanged"):Fire();
+	end;
+
+	SaveArrowsStyle = function()
+		local Arrows = {};
+		for i,v in pairs(framework.ArrowData["4Key"].Arrows) do
+			Arrows[i] = v.Style;
+		end
+		framework:SetKEValue("SavedArrowsStyle", Arrows);
+	end;
+
+	LoadArrowsStyle = function()
+		local Arrows = framework:GetKEValue("SavedArrowsStyle");
+		for i,v in pairs(Arrows) do
+			framework.ArrowData["4Key"].Arrows[i].Style = v;
+		end
+		framework:GetEvent("ArrowDataChanged"):Fire();
+	end;
+};
+
+framework.KEMS = ModchartSystem;
+
+Modcharts = {
+	-- Modcharts go by [SongId] = {OnBeat, OnSection, ...}
+
+	["9134422683"] = { -- FNF - Mother
+		DisableDefault = true; -- Disable the default "modchart" - This disables the default camera zooming (one-per-section).
+		SongStart = function(Framework)
+			-- This function is called when the song starts.
+			print("Started Mother")
+		end;
+		OnBeat = function(Framework, Beat)
+			print("Beat: "..Beat)
+			if Beat >= 169 and Beat <= 200 then
+				Framework.KEMS.CameraZoom();
+			end
+		end;
+		OnSection = function(Framework, Section)
+			print("Section: "..Section)
+			Framework.KEMS.CameraZoom();
+		end;
+		Variables = {
+			["HelloWorld"] = 0; -- Framework:GetKEValue("HelloWorld") => 0
+		}; -- Sets KE variables here; Accessible by doing Framework:GetKEValue("VariableName");
+	};
+
+	["10729979967"] = { -- Vs. LSE - Means of Destruction
+		OnBeat = function(Framework, Beat)
+			if Beat == 138 then
+				Framework.KEMS.SetAllArrows("CircularWide");
+				Framework:GetEvent("ArrowDataChanged"):Fire();
+			elseif Beat == 300 then
+				Framework.KEMS.LoadArrowsStyle();
+				Framework:GetEvent("ArrowDataChanged"):Fire();
+			end
+		end;
+	};
+
+	["10729982629"] = { -- Vs. LSE - DAW Wars
+		OnBeat = function(Framework, Beat)
+			if Beat == 308 then
+				Framework.KEMS.SetAllArrows("CircularWide");
+				Framework:GetEvent("ArrowDataChanged"):Fire();
+			elseif Beat == 436 then
+				Framework.KEMS.LoadArrowsStyle();
+				Framework:GetEvent("ArrowDataChanged"):Fire();
+			end
+		end;
+	};
 }
 
 SoundEvent:Connect(function(Active)
 	if Active == false then
 		connectedevent:Disconnect();
 		connectedevent = nil;
+		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
 	end
 	id = id + 1;
 	local assigned = id;
 	local songstart = os.clock();
 	if Active == true then
+		ModchartSystem.SaveArrowsStyle();
+		local defaultbumping = true;
+		local songmodchart = nil;
+		local songid = framework.SongPlayer.CurrentlyPlaying and framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
+		-- Should come out as just the ID number of the song
+		-- Like this; rbxassetid://12345 => 12345
 
-		-- Find which song is playing; Usually marked with 'rbxassetid://' as the prefix for the name
-		local songid = nil;
-		for _,Sound in pairs(game:GetService("SoundService"):GetChildren()) do
-			if Sound.Name:sub(1,12) == "rbxassetid://" then
-				songid = Sound.Name:sub(13);
-				framework:SetKEValue("SongID", songid);
-				break;
+		framework:SetKEValue("SongID", songid);
+		print("SongID: "..songid)
+
+		-- Check if the song has a modchart
+		if Modcharts and Modcharts[songid] then
+			if Modcharts[songid].DisableDefault then
+				defaultbumping = false;
 			end
-		end
 
-		if not songid then
-			framework:SetKEValue("SongID", nil);
-		end
+			if Modcharts[songid].Variables then
+				for i,v in pairs(Modcharts[songid].Variables) do
+					framework:SetKEValue(i, v);
+				end
+			end
+
+			if Modcharts[songid].SongStart then
+				Modcharts[songid].SongStart(framework);
+			end
+
+			songmodchart = Modcharts[songid];
+		end;
 
 		local Zone = framework.StageZone and framework.StageZone.CurrentZone;
 		local Stage = Zone and (Zone.Parent.Name:match("Stage") and Zone.Parent);
 		if Stage then
 			local BPM = Stage:GetAttribute("BPM");
 			local OFFSET = Stage:GetAttribute("Offset");
-			if BPM and OFFSET then
+			if BPM then
 				local BPS = BPM / 60; -- BPS
 				local SPB = 1 / BPS; -- SPB
-				task.wait(OFFSET % SPB);
+				if OFFSET then
+					task.wait(OFFSET % SPB);
+				end;
 				CurrentStep = 0;
 				CurrentBeat = 0;
 				local laststepcheck = 0;
@@ -1355,18 +1449,27 @@ SoundEvent:Connect(function(Active)
 						-- We're behind, catch up
 						-- Check how many steps we're behind
 						CurrentStep = CurrentStep + 1;
+
+						if songmodchart and songmodchart.OnBeat then
+							songmodchart.OnBeat(framework, CurrentStep-1);
+						end
 					else
-						debugtext = "BPM: "..BPM.."\nBeat: "..(CurrentStep-1).."\nSection: "..CurrentBeat;
+						debugtext = "BPM: "..BPM.."\nBeat: "..(CurrentStep-1).."\nSection: "..CurrentBeat.."\nSongID: "..songid;
 						debugstuff.Text = debugtext;
 						return;
 					end;
 
 					if CurrentStep % 4 == 2 then -- Every 4 beats is a section
 						CurrentBeat = CurrentBeat + 1;
-						ModchartSystem.CameraZoom();
+						if defaultbumping then
+							ModchartSystem.CameraZoom();
+						end
+						if songmodchart and songmodchart.OnSection then
+							songmodchart.OnSection(framework, CurrentBeat);
+						end;
 					end;
 
-					debugtext = "BPM: "..BPM.."\nBeat: "..(CurrentStep-1).."\nSection: "..CurrentBeat;
+					debugtext = "BPM: "..BPM.."\nBeat: "..(CurrentStep-1).."\nSection: "..CurrentBeat.."\nSongID: "..songid;
 					debugstuff.Text = debugtext;
 				end);
 			end;
