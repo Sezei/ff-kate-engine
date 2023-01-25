@@ -1251,7 +1251,7 @@ gameUi.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This 
 	end
 
 	if res ~= globaldata.totalnotes then
-		statgui.Text = statgui.Text.."\n<font color='#AAAAAA'>Shadow Notes: "..globaldata.totalnotes - res.."</font>"
+		statgui.Text = "Sick: "..stats.sick.."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad .. " <font color='#AAAAAA'>(+"..globaldata.totalnotes - res..")</font>".."\nMissed: "..stats.missed
 		showtotalnotes = true;
 	end
 	if showtotalnotes then
@@ -1420,13 +1420,15 @@ SoundEvent:Connect(function(Active)
 			local BPM = Stage:GetAttribute("BPM");
 			local OFFSET = Stage:GetAttribute("Offset");
 			if BPM then
-				local BPS = BPM / 60; -- BPS
-				local SPB = 1 / BPS; -- SPB
+				local BPS = BPM / 60; -- BPS (Beats per second)
+				local SPB = 1 / BPS; -- SPB (Seconds per beat)
+				local SPS = SPB / 4; -- SPS (Steps per second)
 				if OFFSET then
 					task.wait(OFFSET % SPB);
 				end;
 				CurrentStep = 0;
 				CurrentBeat = 0;
+				CurrentSection = 0;
 				local laststepcheck = 0;
 				connectedevent = game:GetService("RunService").RenderStepped:Connect(function() -- Use this to more accurately time the steps
 					if id ~= assigned or not uidata.BPMFix_Enabled then
@@ -1436,40 +1438,45 @@ SoundEvent:Connect(function(Active)
 					if CurrentStep == 0 then
 						CurrentStep = 1;
 						CurrentBeat = 1;
+						CurrentSection = 1;
 					end;
 
 					laststepcheck = os.clock();
-					-- Get the BPM timing (SPB)
-					-- Check if laststep+BPM waiting time is greater than what it would've been if it was on time
-					-- If it is, then we're behind and we need to catch up
-					-- If it isn't, then we're ahead and we need to wait
-					-- How to check: laststep + BPM waiting time > songstart + BPM waiting time * currentstep
 
-					if (laststepcheck + SPB) > (songstart + (SPB * CurrentStep)) then
-						-- We're behind, catch up
-						-- Check how many steps we're behind
+					if (laststepcheck + SPS) > (songstart + (SPS * CurrentStep)) then
 						CurrentStep = CurrentStep + 1;
-
-						if songmodchart and songmodchart.OnBeat then
-							songmodchart.OnBeat(framework, CurrentStep-1);
+						if songmodchart and songmodchart.OnStep then
+							songmodchart.OnStep(framework, CurrentStep-1);
 						end
 					else
-						debugtext = "BPM: "..BPM.."\nBeat: "..(CurrentStep-1).."\nSection: "..CurrentBeat.."\nSongID: "..songid;
+						debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
 						debugstuff.Text = debugtext;
 						return;
 					end;
 
-					if CurrentStep % 4 == 2 then -- Every 4 beats is a section
+					if CurrentStep % 4 == 2 then -- Every 4 steps is a beat
 						CurrentBeat = CurrentBeat + 1;
+						if songmodchart and songmodchart.OnBeat then
+							songmodchart.OnBeat(framework, CurrentBeat);
+						end
+					else
+						debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
+						debugstuff.Text = debugtext;
+						return;
+					end;
+
+					-- Every 4 beats is a section
+					if CurrentBeat % 4 == 2 then
+						CurrentSection = CurrentSection + 1;
 						if defaultbumping then
 							ModchartSystem.CameraZoom();
 						end
 						if songmodchart and songmodchart.OnSection then
-							songmodchart.OnSection(framework, CurrentBeat);
+							songmodchart.OnSection(framework, CurrentSection);
 						end;
 					end;
 
-					debugtext = "BPM: "..BPM.."\nBeat: "..(CurrentStep-1).."\nSection: "..CurrentBeat.."\nSongID: "..songid;
+					debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
 					debugstuff.Text = debugtext;
 				end);
 			end;
