@@ -59,7 +59,7 @@ return {
 			[1824] = "[Maniacal Laugher]";
 			[1838] = "";
 		};
-	}
+	};
 
 	["10575656167"] = { -- Seek's Cool Deltarune Mod - HYPERLINK
 		Lyrics = {
@@ -165,6 +165,6 @@ return {
 			[1357] = "";
 			[1358] = "Deal";
 			[1359] = "";
-		}
-	}
-}
+		};
+	};
+};
