@@ -47,7 +47,7 @@ The 'mods' so far are the following;
 
 - Better miss-sound handling than the original.. somehow lol
 
-- ***NEW*** BPM Camera/Text, allowing for *experimental* custom modcharting of the songs.
+- M o d c h a r t s, such as [Hyperlink](https://www.youtube.com/watch?v=1AxvBATQDAQ), [Means of Destruction](https://www.youtube.com/watch?v=CSoFgLZSp_8) or even [Mother](https://www.youtube.com/watch?v=mGKn6BV_Zkc)
 
 # How to load (correctly)
 I will not elaborate how to get the script into the game and stuff, but it's here;
