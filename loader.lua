@@ -28,7 +28,7 @@ local tweenservice = game:GetService("TweenService");
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local UIS = game:GetService("UserInputService");
 local origintime = 0;
-local version = "b0.9";
+local version = "v0.9";
 local prevcombo = 0;
 local counter = 0;
 local songdifficulty = 0;
@@ -1354,7 +1354,7 @@ ModchartSystem = {
 };
 
 framework.KEMS = ModchartSystem;
-Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))()
 
 SoundEvent:Connect(function(Active)
 	if Active == false then
