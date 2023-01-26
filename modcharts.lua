@@ -45,6 +45,21 @@ return {
 			end
 		end;
 	};
+	
+	["9103779046"] = { -- Secret Histories - Confrontation
+		Lyrics = {
+			[1624] = "YOU'RE AN IMPOSTOR, SONIC!";
+			[1654] = "[inaudible] LIKED YOU!";
+			[1675] = "<i>I</i> LOVED YOU!";
+			[1688] = "YOU THINK YOU COULD BE WITH FRIENDS?!";
+			[1717] = "<i>I</i> WAS YOUR BEST FRIEND, SONIC!";
+			[1754] = "DON'T YOU GET IT?";
+			[1770] = "SONIC'S BEST FRIEND IS TAILS!";
+			[1808] = "<font size='70'><u>ME!</u></font>";
+			[1824] = "[Maniacal Laugher]";
+			[1838] = "";
+		};
+	}
 
 	["10575656167"] = { -- Seek's Cool Deltarune Mod - HYPERLINK
 		Lyrics = {
