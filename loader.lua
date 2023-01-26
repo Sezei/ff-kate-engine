@@ -63,7 +63,7 @@ function framework:GetKEValue(key)
 	return self.KEValues[key];
 end
 
--- UI setup
+-- Mania UI
 local funny = Instance.new("TextLabel")
 funny.AnchorPoint = Vector2.new(0.5, 0.5)
 funny.Position = UDim2.fromScale(0.5, 0.5)
@@ -73,7 +73,7 @@ funny.TextColor3 = Color3.new(1, 1, 1)
 funny.TextStrokeColor3 = Color3.new(0, 0, 0)
 funny.TextStrokeTransparency = 0.5
 funny.TextSize = 50
-funny.Text = 0
+funny.Text = "0"
 funny.Font = Enum.Font.Arcade
 funny.Visible = false
 funny.Name = "KE_funny"
@@ -90,20 +90,24 @@ secondary.Text = ""
 secondary.Position = UDim2.new(0.5,0,0,40)
 secondary.TextSize = 30
 secondary.Name = "KE_secondary"
---[[
-local watermark = Instance.new("TextLabel");
-watermark.Parent = gameUi;
-watermark.BackgroundTransparency = 1;
-watermark.Font = Enum.Font.PermanentMarker;
-watermark.Text = "Kate Engine | "..version.."\nCreated by Sezei\n\nOptions: [  ;  ]"
-watermark.TextSize = 26
-watermark.TextXAlignment = Enum.TextXAlignment.Left;
-watermark.TextYAlignment = Enum.TextYAlignment.Top;
-watermark.TextColor3 = Color3.new(1,1,1);
-watermark.TextStrokeTransparency = 0.5;
-watermark.Position = UDim2.new(0,10,0,0);
-watermark.Name = "KE_watermark"
---]]
+
+-- Lyrics UI
+local lyricstext = Instance.new("TextLabel")
+lyricstext.AnchorPoint = Vector2.new(0.5, 0.75)
+lyricstext.Position = UDim2.fromScale(0.5, 0.75)
+lyricstext.Parent = gameUi
+lyricstext.BackgroundTransparency = 1
+lyricstext.TextColor3 = Color3.new(1, 1, 1)
+lyricstext.TextStrokeColor3 = Color3.new(0, 0, 0)
+lyricstext.TextStrokeTransparency = 0.5
+lyricstext.TextSize = 35
+lyricstext.Text = ""
+lyricstext.Font = Enum.Font.PermanentMarker
+lyricstext.Visible = false
+lyricstext.Name = "KE_lyrics"
+lyricstext.RichText = true
+
+-- Watermark stuff
 local watermark = Instance.new("ImageLabel")
 watermark.Name = "KE_watermark"
 watermark.Image = "rbxassetid://11306098055"
@@ -341,6 +345,18 @@ local maintab = material.New({Title = "Main"}) do
 		end;
 		Enabled = true;
 	});
+	if setclipboard then
+		maintab.Button({
+			Text = "Copy Song ID";
+			Callback = function()
+				if framework:GetKEValue("SongID") == nil then
+					return material.Banner({Text = "Song ID is not available."});
+				end
+				setclipboard(framework:GetKEValue("SongID"));
+				return material.Banner({Text = "The Song ID (".. framework:GetKEValue("SongID") ..") has been copied to clipboard."});
+			end;
+		});
+	end;
 end;
 
 local displaymodstab = material.New({Title = "Display Mods"}) do
@@ -635,9 +651,9 @@ local chances = {
 }
 local accuracystuff = {
     Sick = 100,
-    Good = 93,
-    Ok = 87,
-    Bad = 77,
+    Good = 94,
+    Ok = 86,
+    Bad = 79,
 }
 
 game:GetService("RunService"):BindToRenderStep(shared._id, 1, function()
@@ -1286,12 +1302,15 @@ ModchartSystem = {
 		local camtween = tweenservice:Create(Camera, tweenInfo, {FieldOfView = FOV+1});
 		secondary.TextSize = 35;
 		local txttween = tweenservice:Create(secondary, tweenInfo, {TextSize = 30});
+		lyricstext.TextSize = 45;
+		local txttween2 = tweenservice:Create(lyricstext, tweenInfo, {TextSize = 35});
 		camtween:Play();
 		txttween:Play();
 		task.spawn(function()
 			camtween.Completed:Wait();
 			camtween:Destroy();
 			txttween:Destroy();
+			txttween2:Destroy();
 		end);
 	end;
 
@@ -1322,58 +1341,20 @@ ModchartSystem = {
 		end
 		framework:GetEvent("ArrowDataChanged"):Fire();
 	end;
+
+	SetLyrics = function(Text)
+		if Text == "" then
+			lyricstext.Text = "";
+			lyricstext.Visible = false;
+			return;
+		end
+		lyricstext.Text = Text;
+		lyricstext.Visible = true;
+	end;
 };
 
 framework.KEMS = ModchartSystem;
-
-Modcharts = {
-	-- Modcharts go by [SongId] = {OnBeat, OnSection, ...}
-
-	["9134422683"] = { -- FNF - Mother
-		DisableDefault = true; -- Disable the default "modchart" - This disables the default camera zooming (one-per-section).
-		SongStart = function(Framework)
-			-- This function is called when the song starts.
-			print("Started Mother")
-		end;
-		OnBeat = function(Framework, Beat)
-			print("Beat: "..Beat)
-			if Beat >= 169 and Beat <= 200 then
-				Framework.KEMS.CameraZoom();
-			end
-		end;
-		OnSection = function(Framework, Section)
-			print("Section: "..Section)
-			Framework.KEMS.CameraZoom();
-		end;
-		Variables = {
-			["HelloWorld"] = 0; -- Framework:GetKEValue("HelloWorld") => 0
-		}; -- Sets KE variables here; Accessible by doing Framework:GetKEValue("VariableName");
-	};
-
-	["10729979967"] = { -- Vs. LSE - Means of Destruction
-		OnBeat = function(Framework, Beat)
-			if Beat == 138 then
-				Framework.KEMS.SetAllArrows("CircularWide");
-				Framework:GetEvent("ArrowDataChanged"):Fire();
-			elseif Beat == 300 then
-				Framework.KEMS.LoadArrowsStyle();
-				Framework:GetEvent("ArrowDataChanged"):Fire();
-			end
-		end;
-	};
-
-	["10729982629"] = { -- Vs. LSE - DAW Wars
-		OnBeat = function(Framework, Beat)
-			if Beat == 308 then
-				Framework.KEMS.SetAllArrows("CircularWide");
-				Framework:GetEvent("ArrowDataChanged"):Fire();
-			elseif Beat == 436 then
-				Framework.KEMS.LoadArrowsStyle();
-				Framework:GetEvent("ArrowDataChanged"):Fire();
-			end
-		end;
-	};
-}
+Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
 
 SoundEvent:Connect(function(Active)
 	if Active == false then
@@ -1447,6 +1428,10 @@ SoundEvent:Connect(function(Active)
 						CurrentStep = CurrentStep + 1;
 						if songmodchart and songmodchart.OnStep then
 							songmodchart.OnStep(framework, CurrentStep-1);
+						end
+
+						if songmodchart and songmodchart.Lyrics and songmodchart.Lyrics[CurrentStep-1] then
+							ModchartSystem.SetLyrics(songmodchart.Lyrics[CurrentStep-1]);
 						end
 					else
 						debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
