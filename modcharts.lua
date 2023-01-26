@@ -1,33 +1,68 @@
 return {
 	-- Modcharts go by [SongId] = {OnBeat, OnSection, ...}
 
+	--[[
+		Event Functions; (Called when the event happens)
+
+		void SongStart {Framework}
+		    - Called when the song starts.
+			- Framework is the Framework object.
+
+		void OnStep {Framework, Step}
+		    - Called when a step is reached.
+			- A step happens every 1/4th beat.
+			- Step is the step number.
+
+		void OnBeat {Framework, Beat}
+		    - Called when a beat is reached.
+			- A beat is happening at the rate of the BPM; For example, if the BPM is 120, then a beat happens every 0.5 seconds.
+
+		void OnSection {Framework, Section}
+		    - Called when a section is reached.
+			- A section happens every 4th beat.
+
+
+		Variables;
+
+		boolean DisableDefault
+		    - Disables the default modchart.
+			- This disables the default camera zooming (one-per-section).
+			- This is false by default.
+
+		table Lyrics
+		    - Sets the lyrics for the song.
+			- The table is formatted as [Step] = "Lyric";
+			- Setting the lyric to an empty string ("") will set the lyrictext's visibility to false.
+
+		table Variables
+		    - Sets KE variables.
+			- Usable for doing Framework:GetKEValue("VariableName");
+
+
+		How to get the Song ID?
+
+		While there are 2 mains to do it, the officially endorsed way is to use the "Get Song ID" button in mod menu's main page.
+		Alternatively, you could use Framework:GetKEValue("SongID") to get the song ID, but doesn't paste it to the clipboard.
+	]]
+
 	["9134422683"] = { -- FNF - Mother
-		DisableDefault = true; -- Disable the default "modchart" - This disables the default camera zooming (one-per-section).
-		SongStart = function(Framework)
-			-- This function is called when the song starts.
-			print("Started Mother")
-		end;
+		DisableDefault = true;
 		OnBeat = function(Framework, Beat)
-			print("Beat: "..Beat)
 			if Beat >= 169 and Beat <= 200 then
 				Framework.KEMS.CameraZoom();
 			end
 		end;
 		OnSection = function(Framework, Section)
-			print("Section: "..Section)
 			Framework.KEMS.CameraZoom();
 		end;
-		Variables = {
-			["HelloWorld"] = 0; -- Framework:GetKEValue("HelloWorld") => 0
-		}; -- Sets KE variables here; Accessible by doing Framework:GetKEValue("VariableName");
 	};
 
 	["10729979967"] = { -- Vs. LSE - Means of Destruction
 		OnBeat = function(Framework, Beat)
-			if Beat == 138 then
+			if Beat == 140 then
 				Framework.KEMS.SetAllArrows("CircularWide");
 				Framework:GetEvent("ArrowDataChanged"):Fire();
-			elseif Beat == 300 then
+			elseif Beat == 306 then
 				Framework.KEMS.LoadArrowsStyle();
 				Framework:GetEvent("ArrowDataChanged"):Fire();
 			end
@@ -62,6 +97,15 @@ return {
 	};
 
 	["10575656167"] = { -- Seek's Cool Deltarune Mod - HYPERLINK
+		DisableDefault = true;
+		OnSection = function(Framework, Section)
+			if Section >= 28 and Section <= 30 then
+				return;
+			elseif Section == 65 or Section == 66 then
+				return;
+			end;
+			Framework.KEMS.CameraZoom();
+		end;
 		Lyrics = {
 			[4] = "[[Attention customers,";
 			[14] = "clean up on aisle 3]]";
@@ -126,16 +170,12 @@ return {
 			[592] = "";
 			[639] = "WATCH ME FLY,";
 			[656] = "[MAMA]";
-			[670] = "[MAMAA]";
-			[671] = "[MAMAAAA]";
-			[672] = "[MAMAAAAAAAA]";
-			[673] = "[MAMAAAAAAAAAA]";
 			[674] = "";
 			[720] = "[[Pipis]]";
 			[724] = "";
 			[816] = "Now's your chance to be a big shot";
-			[826] = "Now's your chance to be a <font color='#ffff00'>[[PI</font> shot";
-			[829] = "Now's your chance to be a [[PI<font color='#ffff00'>PIS]]</font>";
+			[826] = "Now's your chance to be a [[PI <s>shot</s>";
+			[829] = "Now's your chance to be a [[PIPIS]]";
 			[832] = "";
 			[924] = "[[Ugh]]";
 			[926] = "";
