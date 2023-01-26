@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/latest%20version-0.8-7300a8?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/latest%20version-0.9-7300a8?style=for-the-badge" />
 </p>
 
 <p align="center">
@@ -41,19 +41,23 @@ The 'mods' so far are the following;
 
 - Dynamic bot difficulty (yes this means you can make the bot suck worse than you lmao)
 
-- ~~Multi-Stage toggle now visible only if you're up against someone~~ *Broken*
-
 - Automatic Difficulty Rating Calculation (Shown as [⭐DIFFICULTY] in KE's topbar)
-
-- Better miss-sound handling than the original.. somehow lol
 
 ![image](https://user-images.githubusercontent.com/49373598/196227335-4e63f505-3174-42de-951c-36eddbf3ee44.png)
 
+- Better miss-sound handling than the original.. somehow lol
+
+- ***NEW*** BPM Camera/Text, allowing for *experimental* custom modcharting of the songs.
 
 # How to load (correctly)
 I will not elaborate how to get the script into the game and stuff, but it's here;
 ```lua
 local engine = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/loader.lua",true))()
+```
+
+or for the beta users;
+```lua
+local engine = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/loader.lua",true))()
 ```
 
 # Reporting bugs
@@ -63,3 +67,9 @@ While there isn't a specific template you should follow, it's required that you 
 - What the error is (Screenshot the F9 menu, as well as the Internal Console if one exists)
 - What config are you using (the settings); You can send the .mp5 file that is generated when you save the config.
 - The way you executed the script. (You know what I mean.)
+
+Soon you will be able to share your own modcharts with pull requests in https://github.com/Sezei/ffke-modcharts/pulls
+In order to get the asset, you can use the following;
+```lua
+setclipboard(engine:GetKEValue("SongID"));
+```

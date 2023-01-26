@@ -28,7 +28,7 @@ local tweenservice = game:GetService("TweenService");
 local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local UIS = game:GetService("UserInputService");
 local origintime = 0;
-local version = "v0.8";
+local version = "b0.9";
 local prevcombo = 0;
 local counter = 0;
 local songdifficulty = 0;
@@ -42,42 +42,28 @@ local shared = {};
 local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..version;Theme = "Dark";SizeX = 500;})
 material.Self.Enabled = false;
 
-local framework, scrollHandler, network; -- nil values
+local framework;
 
-task.spawn(function()
-	while true do
-		for _, obj in next, getgc(true) do
-			if type(obj) == 'table' then 
-				if rawget(obj, 'GameUI') then
-					framework = obj;
-				elseif type(rawget(obj, 'Server')) == 'table' then
-					network = obj;     
-				end
-			end
-	
-			if network and framework then break end
+function getGameFramework()
+	for _, v in next, getgc(true) do
+		if type(v) == 'table' and rawget(v, 'GameUI') then
+			return v
 		end
-	
-		for _, module in next, getloadedmodules() do
-			if module.Name == 'ScrollHandler' then
-				scrollHandler = module;
-				break;
-			end
-		end 
-	
-		if (type(framework) == 'table' and typeof(scrollHandler) == 'Instance' and type(network) == 'table') then
-			break
-		end
-	
-		counter = counter + 1
-		if counter > 6 then
-			error(string.format('Failed to load game dependencies. Details: %s, %s, %s', type(framework), typeof(scrollHandler), type(network)))
-		end
-		task.wait(1)
 	end
-end)
+end
 
--- UI setup
+framework = getGameFramework();
+
+framework.KEValues = {};
+
+function framework:SetKEValue(key, value)
+	self.KEValues[key] = value;
+end
+function framework:GetKEValue(key)
+	return self.KEValues[key];
+end
+
+-- Mania UI
 local funny = Instance.new("TextLabel")
 funny.AnchorPoint = Vector2.new(0.5, 0.5)
 funny.Position = UDim2.fromScale(0.5, 0.5)
@@ -87,7 +73,7 @@ funny.TextColor3 = Color3.new(1, 1, 1)
 funny.TextStrokeColor3 = Color3.new(0, 0, 0)
 funny.TextStrokeTransparency = 0.5
 funny.TextSize = 50
-funny.Text = 0
+funny.Text = "0"
 funny.Font = Enum.Font.Arcade
 funny.Visible = false
 funny.Name = "KE_funny"
@@ -104,20 +90,24 @@ secondary.Text = ""
 secondary.Position = UDim2.new(0.5,0,0,40)
 secondary.TextSize = 30
 secondary.Name = "KE_secondary"
---[[
-local watermark = Instance.new("TextLabel");
-watermark.Parent = gameUi;
-watermark.BackgroundTransparency = 1;
-watermark.Font = Enum.Font.PermanentMarker;
-watermark.Text = "Kate Engine | "..version.."\nCreated by Sezei\n\nOptions: [  ;  ]"
-watermark.TextSize = 26
-watermark.TextXAlignment = Enum.TextXAlignment.Left;
-watermark.TextYAlignment = Enum.TextYAlignment.Top;
-watermark.TextColor3 = Color3.new(1,1,1);
-watermark.TextStrokeTransparency = 0.5;
-watermark.Position = UDim2.new(0,10,0,0);
-watermark.Name = "KE_watermark"
---]]
+
+-- Lyrics UI
+local lyricstext = Instance.new("TextLabel")
+lyricstext.AnchorPoint = Vector2.new(0.5, 0.75)
+lyricstext.Position = UDim2.fromScale(0.5, 0.75)
+lyricstext.Parent = gameUi
+lyricstext.BackgroundTransparency = 1
+lyricstext.TextColor3 = Color3.new(1, 1, 1)
+lyricstext.TextStrokeColor3 = Color3.new(0, 0, 0)
+lyricstext.TextStrokeTransparency = 0.5
+lyricstext.TextSize = 35
+lyricstext.Text = ""
+lyricstext.Font = Enum.Font.PermanentMarker
+lyricstext.Visible = false
+lyricstext.Name = "KE_lyrics"
+lyricstext.RichText = true
+
+-- Watermark stuff
 local watermark = Instance.new("ImageLabel")
 watermark.Name = "KE_watermark"
 watermark.Image = "rbxassetid://11306098055"
@@ -126,7 +116,7 @@ watermark.BackgroundTransparency = 1
 watermark.Size = UDim2.fromOffset(143, 94)
 
 local wversion = Instance.new("TextLabel")
-wversion.Name = "Version"
+wversion.Name = "KE_version"
 wversion.Font = Enum.Font.PermanentMarker
 wversion.Text = version
 wversion.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -139,12 +129,29 @@ wversion.BackgroundTransparency = 1
 wversion.Position = UDim2.new(0.5, 0, 1, 10)
 wversion.Size = UDim2.new(0.95, 0, 0, 50)
 
+local debugstuff = Instance.new("TextLabel")
+debugstuff.Name = "KE_debuglabel"
+debugstuff.Font = Enum.Font.PermanentMarker
+debugstuff.Text = "DEBUG STUFF!"
+debugstuff.TextColor3 = Color3.fromRGB(255, 255, 255)
+debugstuff.TextSize = 18
+debugstuff.TextXAlignment = Enum.TextXAlignment.Left
+debugstuff.TextYAlignment = Enum.TextYAlignment.Top
+debugstuff.AnchorPoint = Vector2.new(0.5, 1)
+debugstuff.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+debugstuff.BackgroundTransparency = 1
+debugstuff.Position = UDim2.new(0.5, 0, 1, 48)
+debugstuff.Size = UDim2.new(0.95, 0, 0, 20)
+
 local uIStroke = Instance.new("UIStroke")
 uIStroke.Name = "UIStroke"
 uIStroke.Thickness = 2
 uIStroke.Parent = wversion
 
+uIStroke:Clone().Parent = debugstuff
+
 wversion.Parent = watermark
+debugstuff.Parent = watermark
 
 local woptions = Instance.new("TextLabel")
 woptions.Name = "Options"
@@ -212,6 +219,7 @@ local uidata = { -- Saving Purposes. Also easier to access ig.
 	SongProgress = true;
 	SoloGamemodes = true;
 	Health = true;
+	CameraBump = true;
 	Mania_FCIndicator = true;
 	Mania_SimpleRatings = false;
 	Mania_DynamicIncrements = true;
@@ -230,6 +238,7 @@ local uidata = { -- Saving Purposes. Also easier to access ig.
 	Health_MissLoss = 15;
     BetterMiss_Enabled = true;
     BetterMiss_Volume = 0.5;
+	BPMFix_Enabled = true;
 }
 
 local maintab = material.New({Title = "Main"}) do
@@ -336,103 +345,173 @@ local maintab = material.New({Title = "Main"}) do
 		end;
 		Enabled = true;
 	});
+	if setclipboard then
+		maintab.Button({
+			Text = "Copy Song ID";
+			Callback = function()
+				if framework:GetKEValue("SongID") == nil then
+					return material.Banner({Text = "Song ID is not available."});
+				end
+				setclipboard(framework:GetKEValue("SongID"));
+				return material.Banner({Text = "The Song ID (".. framework:GetKEValue("SongID") ..") has been copied to clipboard."});
+			end;
+		});
+	end;
 end;
 
-local maniatab = material.New({Title = "Mania"}) do
-	maniatab.Label({
-		Text = "-- RATINGS --";
+local displaymodstab = material.New({Title = "Display Mods"}) do
+	displaymodstab.Label({
+		Text = "-- MANIA --";
 	});
-	Mania_FCIndicator = maniatab.Toggle({
+	displaymodstab.Label({
+		Text = "Mania is a combo counter that displays the current combo in a mania-like fashion.";
+	});
+	Mania_FCIndicator = displaymodstab.Toggle({
 		Text = "FC Indicator";
 		Callback = function(bool)
 			uidata.Mania_FCIndicator = bool
 		end;
 		Enabled = true;
 	});
-	Mania_SimpleRatings = maniatab.Toggle({
+	Mania_SimpleRatings = displaymodstab.Toggle({
 		Text = "Simple Ratings";
 		Callback = function(bool)
 			uidata.Mania_SimpleRatings = bool
 		end;
 		Enabled = false;
 	});
-	maniatab.Label({
-		Text = "-- OTHER --";
-	});
-	Mania_DynamicIncrements = maniatab.Toggle({
+	Mania_DynamicIncrements = displaymodstab.Toggle({
 		Text = "Dynamic Font Increments";
 		Callback = function(bool)
 			uidata.Mania_DynamicIncrements = bool
 		end;
 		Enabled = true;
 	});
-	Mania_Milestone = maniatab.Dropdown({
+	Mania_Milestone = displaymodstab.Dropdown({
 		Text = "Combo Milestones";
 		Callback = function(option)
 			uidata.Mania_Milestone = tonumber(option)
 		end;
 		Options = {"20","25","50","100"};
 	});
-	maniatab.Label({
-		Text = "-- COLORS --";
-	});
-	Mania_0Combo = maniatab.ColorPicker({
+	Mania_0Combo = displaymodstab.ColorPicker({
 		Text = "Mania 0 Combo";
 		Callback = function(color)
 			uidata.Mania_0Combo = color
 		end;
 		Default = Color3.new(1,1,1);
 	});
-	Mania_100Combo = maniatab.ColorPicker({
+	Mania_100Combo = displaymodstab.ColorPicker({
 		Text = "Mania 100 Combo";
 		Callback = function(color)
 			uidata.Mania_100Combo = color
 		end;
 		Default = Color3.new(1,1,0.75);
 	});
-	Mania_200Combo = maniatab.ColorPicker({
+	Mania_200Combo = displaymodstab.ColorPicker({
 		Text = "Mania 200 Combo";
 		Callback = function(color)
 			uidata.Mania_200Combo = color
 		end;
 		Default = Color3.new(1,1,0.5);
 	});
-	Mania_300Combo = maniatab.ColorPicker({
+	Mania_300Combo = displaymodstab.ColorPicker({
 		Text = "Mania 300 Combo";
 		Callback = function(color)
 			uidata.Mania_300Combo = color
 		end;
 		Default = Color3.new(1,1,0.25);
 	});
-	Mania_400Combo = maniatab.ColorPicker({
+	Mania_400Combo = displaymodstab.ColorPicker({
 		Text = "Mania 400 Combo";
 		Callback = function(color)
 			uidata.Mania_400Combo = color
 		end;
 		Default = Color3.new(1,1,0);
 	});
+	
 end;
 
-local modestab = material.New({Title = "Game Modes"}) do
-	modestab.Label({
-		Text = "-- ENABLED MODES --";
+local modstab = material.New({Title = "Gameplay Mods"}) do
+	modstab.Label({
+		Text = "<b>Everything in this tab is affecting <i>solo-play</i> rounds only!</b>";
 	});
-	Modes_NoMiss = modestab.Toggle({
+	modstab.Label({
+		Text = "-- GAMEMODES --";
+	});
+	modstab.Label({
+		Text = "These are the gamemodes that can be toggled on and off.";
+	});
+	Modes_NoMiss = modstab.Toggle({
 		Text = "No-Miss Mode Button";
 		Callback = function(bool)
 			uidata.Modes_NoMiss = bool
 		end;
 		Enabled = true;
 	});
-	Modes_SicksOnly = modestab.Toggle({
+	Modes_SicksOnly = modstab.Toggle({
 		Text = "Sicks-Only Mode Button";
 		Callback = function(bool)
 			uidata.Modes_SicksOnly = bool
 		end;
 		Enabled = true;
 	});
+	modstab.Label({
+		Text = "-- HEALTHBAR --";
+	});
+	modstab.Label({
+		Text = "The healthbar indicates how much health you have. Hit notes to gain health, miss notes to lose health.";
+	});
+	Health_MissingColor = modstab.ColorPicker({
+		Text = "Missing Health Color";
+		Callback = function(color)
+			uidata.Health_MissingColor = color
+			hplower.BackgroundColor3 = color
+		end;
+		Default = Color3.new(1,0,0);
+	});
+	Health_RemainingColor = modstab.ColorPicker({
+		Text = "Remaining Health Color";
+		Callback = function(color)
+			uidata.Health_RemainingColor = color
+			hpupper.BackgroundColor3 = color
+		end;
+		Default = Color3.new(0,1,0);
+	});
+	Health_HitGain = modstab.Slider({
+		Text = "Note Hit Gain";
+		Callback = function(num)
+			uidata.Health_HitGain = num
+		end;
+		Min = 1;
+		Max = 50;
+		Def = 3;
+	});
+	Health_MissLoss = modstab.Slider({
+		Text = "Note Miss Loss";
+		Callback = function(color)
+			uidata.Health_MissLoss = color
+		end;
+		Min = 1;
+		Max = 50;
+		Def = 15;
+	});
+	modstab.Label({
+		Text = "-- BOT OPPONENT --";
+	});
+	modstab.Label({
+		Text = "This setting affect how the bot opponent plays. (Difficulty)";
+	});
+	modstab.Dropdown({
+        Text = "Bot Opponent";
+        Callback = function(option)
+            uidata.Bot_AILevel = option
+        end;
+        Options = {"Noob_At_3AM","Easy","Normal","Hard","Insane","Impossible"};
+    });
 end;
 
+--[[
 local healthtab = material.New({Title = "Health"}) do
 	healthtab.Label({
 		Text = "-- HEALTHBAR SETTINGS --";
@@ -485,15 +564,16 @@ local botplaytab = material.New({Title = "Bot"}) do
         Options = {"Noob_At_3AM","Easy","Normal","Hard","Insane","Impossible"};
     });
 end
+]]
 
-local bettermisstab = material.New({Title = "Better Miss"}) do
-    bettermisstab.Label({
+local gamefixestab = material.New({Title = "Gameplay Fixes"}) do
+    gamefixestab.Label({
         Text = "-- BETTER MISS SETTINGS --";
     });
-    bettermisstab.Label({
+    gamefixestab.Label({
         Text = "This will make the sounds only play when you actually miss a note.";
     });
-    bettermisstab.Toggle({
+    gamefixestab.Toggle({
         Text = "Enabled";
         Callback = function(bool)
             uidata.BetterMiss_Enabled = bool
@@ -503,7 +583,7 @@ local bettermisstab = material.New({Title = "Better Miss"}) do
         end;
         Enabled = true;
     });
-    bettermisstab.Slider({
+    gamefixestab.Slider({
         Text = "Volume";
         Callback = function(num)
             uidata.BetterMiss_Volume = num/100
@@ -512,6 +592,19 @@ local bettermisstab = material.New({Title = "Better Miss"}) do
         Max = 100;
         Def = 50;
     });
+	gamefixestab.Label({
+		Text = "-- BPM FIX --";
+	});
+	gamefixestab.Label({
+		Text = "This will fix the BPM of the song to match the camera. (Scrapped code?)";
+	});
+	gamefixestab.Toggle({
+		Text = "Enabled";
+		Callback = function(bool)
+			uidata.BPMFix_Enabled = bool
+		end;
+		Enabled = true;
+	});
 end
 
 local crtab = material.New({Title = "Credits"}) do
@@ -522,7 +615,7 @@ local crtab = material.New({Title = "Credits"}) do
 		Text = "<font color=\"#ff00a6\">Sezei</font> - Script";
 	});
 	crtab.Label({
-		Text = "<font color=\"#00ff00\">Wally</font> - Framework Detection (Autoplay stuff)";
+		Text = "<font color=\"#00ff00\">Wally</font> - Framework Detection";
 	});
 	crtab.Label({
 		Text = "Kinlei(?) - UI Library";
@@ -558,9 +651,9 @@ local chances = {
 }
 local accuracystuff = {
     Sick = 100,
-    Good = 93,
-    Ok = 87,
-    Bad = 77,
+    Good = 94,
+    Ok = 86,
+    Bad = 79,
 }
 
 game:GetService("RunService"):BindToRenderStep(shared._id, 1, function()
@@ -1126,28 +1219,13 @@ SicksOnlyB.MouseButton1Click:Connect(function()
 	end
 end)
 
---[[ -- piss
-local AutoplayB = buttontemplate:Clone(); -- Autoplay
-AutoplayB.Parent = newloc
-AutoplayB.Name = "StartAutoPlay"
-AutoplayB.Label.Text = "Autoplay";
-AutoplayB.Label.BackgroundColor3 = Color3.new(1,1,1);
-AutoplayB.MouseButton1Click:Connect(function()
-	if AutoplayB.Visible and buttontemplate.BackgroundColor3.R >= buttontemplate.BackgroundColor3.G then
-		SendPlay("autoplay")
-	end
-end)
---]]
-
 buttontemplate:GetPropertyChangedSignal("Visible"):Connect(function() -- Don't let the people press the no-miss if it's not solo
 	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and buttontemplate.Visible;
 	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and buttontemplate.Visible;
-	AutoplayB.Visible = uidata.SoloGamemodes and buttontemplate.Visible;
 end)
 buttontemplate:GetPropertyChangedSignal("BackgroundColor3"):Connect(function() -- Oopsie!
 	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and (buttontemplate.BackgroundColor3.R > buttontemplate.BackgroundColor3.G);
 	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and (buttontemplate.BackgroundColor3.R > buttontemplate.BackgroundColor3.G);
-	AutoplayB.Visible = uidata.SoloGamemodes and buttontemplate.Visible;
 end)
 
 -- Stats UI clone
@@ -1189,7 +1267,7 @@ gameUi.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This 
 	end
 
 	if res ~= globaldata.totalnotes then
-		statgui.Text = statgui.Text.."\n<font color='#AAAAAA'>Shadow Notes: "..globaldata.totalnotes - res.."</font>"
+		statgui.Text = "Sick: "..stats.sick.."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad .. " <font color='#AAAAAA'>(+"..globaldata.totalnotes - res..")</font>".."\nMissed: "..stats.missed
 		showtotalnotes = true;
 	end
 	if showtotalnotes then
@@ -1203,4 +1281,192 @@ gameUi.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This 
 	end
 end)
 
-return gameUi, material
+local Camera = workspace.Camera;
+local FOV = Camera.FieldOfView;
+
+local id = 0;
+local connectedevent = nil;
+local CurrentStep = 0;
+local CurrentBeat = 0;
+
+local debugtext = "";
+
+local SoundEvent = framework:GetEvent("SoundEvent");
+
+ModchartSystem = {
+	-- Camera zooming thing
+	CameraZoom = function()
+		-- Tween the camera
+		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
+		Camera.FieldOfView = FOV;
+		local camtween = tweenservice:Create(Camera, tweenInfo, {FieldOfView = FOV+1});
+		secondary.TextSize = 35;
+		local txttween = tweenservice:Create(secondary, tweenInfo, {TextSize = 30});
+		lyricstext.TextSize = 45;
+		local txttween2 = tweenservice:Create(lyricstext, tweenInfo, {TextSize = 35});
+		camtween:Play();
+		txttween:Play();
+		task.spawn(function()
+			camtween.Completed:Wait();
+			camtween:Destroy();
+			txttween:Destroy();
+			txttween2:Destroy();
+		end);
+	end;
+
+	SetArrowStyle = function(Key, Style)
+		framework.ArrowData["4Key"].Arrows[Key].Style = Style;
+		framework:GetEvent("ArrowDataChanged"):Fire();
+	end;
+
+	SetAllArrows = function(Style)
+		for _,v in pairs(framework.ArrowData["4Key"].Arrows) do
+			v.Style = Style;
+		end;
+		framework:GetEvent("ArrowDataChanged"):Fire();
+	end;
+
+	SaveArrowsStyle = function()
+		local Arrows = {};
+		for i,v in pairs(framework.ArrowData["4Key"].Arrows) do
+			Arrows[i] = v.Style;
+		end
+		framework:SetKEValue("SavedArrowsStyle", Arrows);
+	end;
+
+	LoadArrowsStyle = function()
+		local Arrows = framework:GetKEValue("SavedArrowsStyle");
+		for i,v in pairs(Arrows) do
+			framework.ArrowData["4Key"].Arrows[i].Style = v;
+		end
+		framework:GetEvent("ArrowDataChanged"):Fire();
+	end;
+
+	SetLyrics = function(Text)
+		if Text == "" then
+			lyricstext.Text = "";
+			lyricstext.Visible = false;
+			return;
+		end
+		lyricstext.Text = Text;
+		lyricstext.Visible = true;
+	end;
+};
+
+framework.KEMS = ModchartSystem;
+Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+
+SoundEvent:Connect(function(Active)
+	if Active == false then
+		connectedevent:Disconnect();
+		connectedevent = nil;
+		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
+	end
+	id = id + 1;
+	local assigned = id;
+	local songstart = os.clock();
+	if Active == true then
+		ModchartSystem.SaveArrowsStyle();
+		local defaultbumping = true;
+		local songmodchart = nil;
+		local songid = framework.SongPlayer.CurrentlyPlaying and framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
+		-- Should come out as just the ID number of the song
+		-- Like this; rbxassetid://12345 => 12345
+
+		framework:SetKEValue("SongID", songid);
+		print("SongID: "..songid)
+
+		-- Check if the song has a modchart
+		if Modcharts and Modcharts[songid] then
+			if Modcharts[songid].DisableDefault then
+				defaultbumping = false;
+			end
+
+			if Modcharts[songid].Variables then
+				for i,v in pairs(Modcharts[songid].Variables) do
+					framework:SetKEValue(i, v);
+				end
+			end
+
+			if Modcharts[songid].SongStart then
+				Modcharts[songid].SongStart(framework);
+			end
+
+			songmodchart = Modcharts[songid];
+		end;
+
+		local Zone = framework.StageZone and framework.StageZone.CurrentZone;
+		local Stage = Zone and (Zone.Parent.Name:match("Stage") and Zone.Parent);
+		if Stage then
+			local BPM = Stage:GetAttribute("BPM");
+			local OFFSET = Stage:GetAttribute("Offset");
+			if BPM then
+				local BPS = BPM / 60; -- BPS (Beats per second)
+				local SPB = 1 / BPS; -- SPB (Seconds per beat)
+				local SPS = SPB / 4; -- SPS (Steps per second)
+				if OFFSET then
+					task.wait(OFFSET % SPB);
+				end;
+				CurrentStep = 0;
+				CurrentBeat = 0;
+				CurrentSection = 0;
+				local laststepcheck = 0;
+				connectedevent = game:GetService("RunService").RenderStepped:Connect(function() -- Use this to more accurately time the steps
+					if id ~= assigned or not uidata.BPMFix_Enabled then
+						return;
+					end;
+
+					if CurrentStep == 0 then
+						CurrentStep = 1;
+						CurrentBeat = 1;
+						CurrentSection = 1;
+					end;
+
+					laststepcheck = os.clock();
+
+					if (laststepcheck + SPS) > (songstart + (SPS * CurrentStep)) then
+						CurrentStep = CurrentStep + 1;
+						if songmodchart and songmodchart.OnStep then
+							songmodchart.OnStep(framework, CurrentStep-1);
+						end
+
+						if songmodchart and songmodchart.Lyrics and songmodchart.Lyrics[CurrentStep-1] then
+							ModchartSystem.SetLyrics(songmodchart.Lyrics[CurrentStep-1]);
+						end
+					else
+						debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
+						debugstuff.Text = debugtext;
+						return;
+					end;
+
+					if CurrentStep % 4 == 2 then -- Every 4 steps is a beat
+						CurrentBeat = CurrentBeat + 1;
+						if songmodchart and songmodchart.OnBeat then
+							songmodchart.OnBeat(framework, CurrentBeat);
+						end
+					else
+						debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
+						debugstuff.Text = debugtext;
+						return;
+					end;
+
+					-- Every 4 beats is a section
+					if CurrentBeat % 4 == 2 then
+						CurrentSection = CurrentSection + 1;
+						if defaultbumping then
+							ModchartSystem.CameraZoom();
+						end
+						if songmodchart and songmodchart.OnSection then
+							songmodchart.OnSection(framework, CurrentSection);
+						end;
+					end;
+
+					debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
+					debugstuff.Text = debugtext;
+				end);
+			end;
+		end;
+	end;
+end);
+
+return framework;
