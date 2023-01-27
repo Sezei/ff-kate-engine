@@ -234,6 +234,14 @@ KateEngine = {
 				Stored = true;
 			};
 			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Death on 0 Health";
+				Key = "Healthbar_DeathOnZero";
+
+				Stored = true;
+			};
+			{
 				Type = "Slider";
 				Default = 5; -- Apparently it's 5 from the Framework source.
 				Text = "Health Gain";
@@ -250,6 +258,30 @@ KateEngine = {
 				Key = "Healthbar_HealthLoss";
 				Minimum = 1;
 				Maximum = 50;
+
+				Stored = true;
+			};
+			{
+				Type = "Color3";
+				Default = ColorJSON.Encode(Color3.new(1,0,0));
+				Text = "Missing Health Color";
+				Key = "Healthbar_ColorBack";
+
+				Callback = function(Value)
+					--KateEngine.Assets.Healthbar.Back.BackgroundColor3 = Value;
+				end;
+
+				Stored = true;
+			};
+			{
+				Type = "Color3";
+				Default = ColorJSON.Encode(Color3.new(0,1,0));
+				Text = "Remaining Health Color";
+				Key = "Healthbar_ColorFront";
+
+				Callback = function(Value)
+					KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Value;
+				end;
 
 				Stored = true;
 			};
@@ -438,11 +470,12 @@ Healthbar.Parent = GameUI.Arrows;
 Healthbar.AnchorPoint = Vector2.new(0.5,1);
 Healthbar.Position = UDim2.new(0.5,0,1,-50);
 Healthbar.Size = UDim2.new(0.4,0,0,20);
-Healthbar.BackgroundColor3 = Color3.fromRGB(27,27,27);
+Healthbar.BackgroundColor3 = Color3.fromRGB(46, 46, 46);
 Healthbar.BorderSizePixel = 0;
 Healthbar.Name = "KE_Healthbar";
 KateEngine.Assets.Healthbar = Healthbar;
 
+--[[
 local HBMissing = Healthbar:Clone();
 HBMissing.Visible = true;
 HBMissing.Parent = Healthbar;
@@ -452,10 +485,11 @@ HBMissing.Position = UDim2.new(0.5,0,0.5,0);
 HBMissing.BackgroundColor3 = Color3.new(1,0,0);
 HBMissing.ZIndex = 1;
 HBMissing.Name = "Back";
+]]
 
 local HBFront = Healthbar:Clone();
 HBFront.Visible = true;
-HBFront.Parent = HBMissing;
+HBFront.Parent = Healthbar;
 HBFront.AnchorPoint = Vector2.new(1,0.5);
 HBFront.Size = UDim2.new(0.4,0,1,0);
 HBFront.Position = UDim2.new(1,0,0.5,0);
@@ -613,6 +647,14 @@ local Ratings = {
 	};
 }
 
+local function UpdateHealth() -- To be fired every time health is added/reduced
+	KateEngine.Health.Current = math.clamp(KateEngine.Health.Current,0,100);
+	HBFront.Size = UDim2.new(KateEngine.Health.Current/100,0,1,0);
+	if KateEngine.Health.Current == 0 and KateEngine.Settings.Healthbar_DeathOnZero then
+		game.Players.LocalPlayer.Character.Humanoid.Health = -100;
+	end
+end
+
 local function CalcRating(one,two)
 	local combinedrating = one + (two/100); -- Combine the two ratings
 	local highestrank = {0,"F"};
@@ -711,12 +753,8 @@ local function updateCombo(combo,acc,miss)
 			else
 				KateEngine.Health.Current += KateEngine.Settings.Healthbar_HealthGain;
 			end
-			KateEngine.Health.Current = math.clamp(KateEngine.Health.Current,0,100);
-			HBFront.Size = UDim2.new(KateEngine.Health.Current/100,0,1,0);
-
-			if KateEngine.Health.Current == 0 then
-				game.Players.LocalPlayer.Character.Humanoid.Health = -100;
-			end
+			
+			UpdateHealth();
 		else
 			Healthbar.Visible = false;
 			KateEngine.Health.Current = 40;
@@ -926,8 +964,8 @@ GameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 	else
 		if KateEngine.InSolo then
 			KateEngine.Health.Current = 40;
-			HBFront.Size = UDim2.new(0.4,0,1,0);
 			Healthbar.Visible = KateEngine.Settings.Healthbar;
+			UpdateHealth();
 		else
 			Healthbar.Visible = false;
 		end
@@ -1095,6 +1133,21 @@ ModchartSystem = {
 		end
 		LyricsLabel.Text = Text;
 		LyricsLabel.Visible = true;
+	end;
+
+	IncrementHealth = function(Amount)
+		KateEngine.Health.Current += Amount;
+		UpdateHealth();
+	end;
+
+	DecrementHealth = function(Amount)
+		KateEngine.Health.Current -= Amount;
+		UpdateHealth();
+	end;
+
+	SetHealth = function(Amount)
+		KateEngine.Health.Current = Amount;
+		UpdateHealth();
 	end;
 };
 
