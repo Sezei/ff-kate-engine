@@ -27,6 +27,16 @@ function getGameFramework()
 	end
 end
 
+local ColorJSON = {
+	Encode = function(Color)
+		return string.format("%s,%s,%s", Color.r, Color.g, Color.b);
+	end;
+	Decode = function(Color)
+		local r, g, b = Color:match("([^,]+),([^,]+),([^,]+)");
+		return Color3.fromRGB(r, g, b);
+	end;
+};
+
 local Framework = getGameFramework();
 
 local Version = "b0.10";
@@ -55,6 +65,8 @@ KateEngine = {
 		OriginTime = 0;
 		SongDifficulty = 0;
 	};
+
+	ColorJSON = ColorJSON;
 
 	-- UI Settings; They are built from the MenuBuild table, so for now it's empty. For documentation sake, Key is the name of the setting, and Value is the value of the setting.
 	Settings = {};
@@ -140,7 +152,7 @@ KateEngine = {
 			};
 			{
 				Type = "Color3";
-				Default = Color3.new(1,1,1);
+				Default = ColorJSON.Encode(Color3.new(1,1,1));
 				Text = "0 Combo Color";
 				Key = "Mania_0Combo";
 
@@ -148,7 +160,7 @@ KateEngine = {
 			};
 			{
 				Type = "Color3";
-				Default = Color3.new(1,1,0.75);
+				Default = ColorJSON.Encode(Color3.new(1,1,0.75));
 				Text = "100 Combo Color";
 				Key = "Mania_100Combo";
 
@@ -156,7 +168,7 @@ KateEngine = {
 			};
 			{
 				Type = "Color3";
-				Default = Color3.new(1,1,0.5);
+				Default = ColorJSON.Encode(Color3.new(1,1,0.5));
 				Text = "200 Combo Color";
 				Key = "Mania_200Combo";
 
@@ -164,7 +176,7 @@ KateEngine = {
 			};
 			{
 				Type = "Color3";
-				Default = Color3.new(1,1,0.25);
+				Default = ColorJSON.Encode(Color3.new(1,1,0.25));
 				Text = "300 Combo Color";
 				Key = "Mania_300Combo";
 
@@ -172,7 +184,7 @@ KateEngine = {
 			};
 			{
 				Type = "Color3";
-				Default = Color3.new(1,1,0);
+				Default = ColorJSON.Encode(Color3.new(1,1,0));
 				Text = "400 Combo Color";
 				Key = "Mania_400Combo";
 
@@ -535,10 +547,10 @@ for category, v in pairs(KateEngine.MenuBuild) do
 					if data.Callback then
 						data.Callback(value);
 					end
-					KateEngine.Settings[data.Key] = value;
+					KateEngine.Settings[data.Key] = KateEngine.ColorJSON.Encode(value);
 					writefile("KateEngine.mp5", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
 				end;
-				Default = KateEngine.Settings[data.Key] or data.Default;
+				Default = KateEngine.ColorJSON.Decode(KateEngine.Settings[data.Key] or data.Default);
 			});
 		end
 	end
@@ -754,15 +766,15 @@ local function updateCombo(combo,acc,miss)
 	end
 
 	if combo >= 400 then
-		ManiaComboCounter.TextColor3 = KateEngine.Settings.Mania_400Combo
+		ManiaComboCounter.TextColor3 = KateEngine.ColorJSON.Decode(KateEngine.Settings.Mania_400Combo)
 	elseif combo >= 300 then
-		ManiaComboCounter.TextColor3 = KateEngine.Settings.Mania_300Combo
+		ManiaComboCounter.TextColor3 = KateEngine.ColorJSON.Decode(KateEngine.Settings.Mania_300Combo)
 	elseif combo >= 200 then
-		ManiaComboCounter.TextColor3 = KateEngine.Settings.Mania_200Combo
+		ManiaComboCounter.TextColor3 = KateEngine.ColorJSON.Decode(KateEngine.Settings.Mania_200Combo)
 	elseif combo >= 100 then
-		ManiaComboCounter.TextColor3 = KateEngine.Settings.Mania_100Combo
+		ManiaComboCounter.TextColor3 = KateEngine.ColorJSON.Decode(KateEngine.Settings.Mania_100Combo)
 	else
-		ManiaComboCounter.TextColor3 = KateEngine.Settings.Mania_0Combo
+		ManiaComboCounter.TextColor3 = KateEngine.ColorJSON.Decode(KateEngine.Settings.Mania_0Combo)
 	end
 	ManiaComboCounter.Text = combo
 	if KateEngine.Settings.Mania_DynamicIncrements then
