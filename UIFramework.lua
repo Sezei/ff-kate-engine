@@ -1131,6 +1131,7 @@ function Material.Load(Config)
 			local DropdownCallback = DropdownConfig.Callback or function() print("nil dropdown") end
 			local DropdownOptions = DropdownConfig.Options or {}
 			local Menu = DropdownConfig.Menu or {}
+			local DefaultText = DropdownConfig.Default or "";
 
 			local Dropdown = Objects.new("Frame")
 			Dropdown.Name = "Dropdown"
@@ -1191,6 +1192,10 @@ function Material.Load(Config)
 			DropdownList.SortOrder = Enum.SortOrder.LayoutOrder
 			DropdownList.Padding = UDim.new(0,5)
 			DropdownList.Parent = DropdownContent
+
+			if DefaultText ~= "" then
+				DropdownTitle.Text ..= ": "..DefaultText
+			end
 
 			DropdownList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 				if DropToggle then

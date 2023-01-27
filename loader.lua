@@ -438,6 +438,7 @@ HBMissing.AnchorPoint = Vector2.new(0.5,0.5);
 HBMissing.Size = UDim2.new(0.99,0,0,16);
 HBMissing.Position = UDim2.new(0.5,0,0.5,0);
 HBMissing.BackgroundColor3 = Color3.new(1,0,0);
+HBMissing.ZIndex = 1;
 HBMissing.Name = "Back";
 
 local HBFront = Healthbar:Clone();
@@ -447,9 +448,17 @@ HBFront.AnchorPoint = Vector2.new(1,0.5);
 HBFront.Size = UDim2.new(0.4,0,1,0);
 HBFront.Position = UDim2.new(1,0,0.5,0);
 HBFront.BackgroundColor3 = Color3.new(0,1,0);
+HBFront.ZIndex = 2;
 HBFront.Name = "Front";
 
 material.Banner({Text = "Rewrote Kate Engine to be more readable. All of the mods are now disabled by default. You can enable them in the settings menu.\n\n- Removed Gamemodes."});
+
+if not missing["file storage"] then
+	if isfile("KateEngine.mp5") then -- Load the settings if they exist
+		local data = game:GetService("HttpService"):JSONDecode(readfile("KateEngine.mp5"));
+		KateEngine.Settings = data;
+	end
+end
 
 -- Create the UI
 for category, v in pairs(KateEngine.MenuBuild) do
@@ -477,7 +486,7 @@ for category, v in pairs(KateEngine.MenuBuild) do
 				end;
 			});
 		elseif datatype == "Boolean" then
-			KateEngine.Settings[data.Key] = data.Default;
+			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
 			tab.Toggle({
 				Text = data.Text;
 				Callback = function(bool)
@@ -485,11 +494,12 @@ for category, v in pairs(KateEngine.MenuBuild) do
 						data.Callback(bool);
 					end
 					KateEngine.Settings[data.Key] = bool;
+					writefile("KateEngine.mp5", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
 				end;
-				Enabled = data.Default;
+				Enabled = KateEngine.Settings[data.Key] or data.Default;
 			});
 		elseif datatype == "Slider" then
-			KateEngine.Settings[data.Key] = data.Default;
+			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
 			tab.Slider({
 				Text = data.Text;
 				Callback = function(value)
@@ -497,26 +507,28 @@ for category, v in pairs(KateEngine.MenuBuild) do
 						data.Callback(value);
 					end
 					KateEngine.Settings[data.Key] = value;
+					writefile("KateEngine.mp5", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
 				end;
 				Min = data.Minimum;
 				Max = data.Maximum;
-				Def = data.Default;
+				Def = KateEngine.Settings[data.Key] or data.Default;
 			});
 		elseif datatype == "Multichoice" then
-			KateEngine.Settings[data.Key] = data.Default;
-			tab.Dropdown({
+			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
+			local dropdown = tab.Dropdown({
 				Text = data.Text;
 				Callback = function(value)
 					if data.Callback then
 						data.Callback(value);
 					end
 					KateEngine.Settings[data.Key] = value;
+					writefile("KateEngine.mp5", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
 				end;
 				Options = data.Options;
-				Def = data.Default;
+				Default = KateEngine.Settings[data.Key] or data.Default;
 			});
 		elseif datatype == "Color3" then
-			KateEngine.Settings[data.Key] = data.Default;
+			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
 			tab.ColorPicker({
 				Text = data.Text;
 				Callback = function(value)
@@ -524,8 +536,9 @@ for category, v in pairs(KateEngine.MenuBuild) do
 						data.Callback(value);
 					end
 					KateEngine.Settings[data.Key] = value;
+					writefile("KateEngine.mp5", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
 				end;
-				Def = data.Default;
+				Default = KateEngine.Settings[data.Key] or data.Default;
 			});
 		end
 	end
