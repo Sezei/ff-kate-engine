@@ -32,8 +32,8 @@ local ColorJSON = {
 		return string.format("%s,%s,%s", Color.r, Color.g, Color.b);
 	end;
 	Decode = function(Color)
-		local r, g, b = Color:match("([^,]+),([^,]+),([^,]+)");
-		return Color3.fromRGB(r, g, b);
+		local RGB = string.split(Color, ",");
+		return Color3.new(RGB[1], RGB[2], RGB[3]);
 	end;
 };
 
