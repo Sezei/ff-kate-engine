@@ -49,21 +49,21 @@ return {
 		DisableDefault = true;
 		OnBeat = function(Framework, Beat)
 			if Beat >= 169 and Beat <= 200 then
-				Framework.KEMS.CameraZoom();
+				Framework.KateEngine.Modcharter.CameraZoom();
 			end
 		end;
 		OnSection = function(Framework, Section)
-			Framework.KEMS.CameraZoom();
+			Framework.KateEngine.Modcharter.CameraZoom();
 		end;
 	};
 
 	["10729979967"] = { -- Vs. LSE - Means of Destruction
 		OnBeat = function(Framework, Beat)
 			if Beat == 140 then
-				Framework.KEMS.SetAllArrows("CircularWide");
+				Framework.KateEngine.Modcharter.SetAllArrows("CircularWide");
 				Framework:GetEvent("ArrowDataChanged"):Fire();
 			elseif Beat == 306 then
-				Framework.KEMS.LoadArrowsStyle();
+				Framework.KateEngine.Modcharter.LoadArrowsStyle();
 				Framework:GetEvent("ArrowDataChanged"):Fire();
 			end
 		end;
@@ -72,10 +72,10 @@ return {
 	["10729982629"] = { -- Vs. LSE - DAW Wars
 		OnBeat = function(Framework, Beat)
 			if Beat == 308 then
-				Framework.KEMS.SetAllArrows("CircularWide");
+				Framework.KateEngine.Modcharter.SetAllArrows("CircularWide");
 				Framework:GetEvent("ArrowDataChanged"):Fire();
 			elseif Beat == 436 then
-				Framework.KEMS.LoadArrowsStyle();
+				Framework.KateEngine.Modcharter.LoadArrowsStyle();
 				Framework:GetEvent("ArrowDataChanged"):Fire();
 			end
 		end;
@@ -104,7 +104,7 @@ return {
 			elseif Section == 65 or Section == 66 then
 				return;
 			end;
-			Framework.KEMS.CameraZoom();
+			Framework.KateEngine.Modcharter.CameraZoom();
 		end;
 		Lyrics = {
 			[4] = "[[Attention customers,";
