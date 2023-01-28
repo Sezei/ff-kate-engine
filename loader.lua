@@ -294,15 +294,15 @@ KateEngine = {
 			};
 			{
 				Type = "Label";
-				Text = "Direct Contributors:";
+				Text = "Contributors:";
 			};
 			{
 				Type = "Label";
-				Text = "<font color=\"#ff1a70\">Sezei</font> - Script";
+				Text = "<font color=\"#ff1a70\">Sezei</font>";
 			};
 			{
 				Type = "Label";
-				Text = "<font color=\"#00ff00\">Wally</font> / <font color=\"#00ff00\">Bigtimbob</font> - Framework Detection";
+				Text = "<font color=\"#11a7b8\">Aaron</font>";
 			};
 			{
 				Type = "Label";
@@ -310,7 +310,11 @@ KateEngine = {
 			};
 			{
 				Type = "Label";
-				Text = "<font color=\"#ff7700\">Kinlei</font>(?) - UI Library";
+				Text = "<font color=\"#00ff00\">Wally</font> / <font color=\"#00ff00\">Bigtimbob</font> - Framework Detection";
+			};
+			{
+				Type = "Label";
+				Text = "<font color=\"#ff7700\">Kinlei</font>(?) - UI Library (MaterialUI)";
 			};
 			{
 				Type = "Boolean";
