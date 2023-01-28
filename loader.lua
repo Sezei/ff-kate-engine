@@ -268,7 +268,7 @@ KateEngine = {
 				Key = "Healthbar_ColorBack";
 
 				Callback = function(Value)
-					--KateEngine.Assets.Healthbar.Back.BackgroundColor3 = Value;
+					KateEngine.Assets.Healthbar.BackgroundColor3 = Value;
 				end;
 
 				Stored = true;
@@ -445,12 +445,11 @@ BPMSheet.BackgroundTransparency = 1;
 BPMSheet.Position = UDim2.new(0.5, 0, 1, 48);
 BPMSheet.Size = UDim2.new(0.95, 0, 0, 20);
 
-local uIStroke = Instance.new("UIStroke");
-uIStroke.Name = "UIStroke";
-uIStroke.Thickness = 2;
-uIStroke.Parent = WatermarkVersion;
+local UIStroke = Instance.new("UIStroke");
+UIStroke.Thickness = 2;
+UIStroke.Parent = WatermarkVersion;
 
-uIStroke:Clone().Parent = BPMSheet;
+UIStroke:Clone().Parent = BPMSheet;
 
 WatermarkVersion.Parent = Watermark;
 BPMSheet.Parent = Watermark;
@@ -469,23 +468,17 @@ Healthbar.Visible = true;
 Healthbar.Parent = GameUI.Arrows;
 Healthbar.AnchorPoint = Vector2.new(0.5,1);
 Healthbar.Position = UDim2.new(0.5,0,1,-50);
-Healthbar.Size = UDim2.new(0.4,0,0,20);
-Healthbar.BackgroundColor3 = Color3.fromRGB(46, 46, 46);
+Healthbar.Size = UDim2.new(0.4,0,0,16);
+Healthbar.BackgroundColor3 = Color3.fromRGB(255, 0, 0);
 Healthbar.BorderSizePixel = 0;
 Healthbar.Name = "KE_Healthbar";
 KateEngine.Assets.Healthbar = Healthbar;
 
---[[
-local HBMissing = Healthbar:Clone();
-HBMissing.Visible = true;
-HBMissing.Parent = Healthbar;
-HBMissing.AnchorPoint = Vector2.new(0.5,0.5);
-HBMissing.Size = UDim2.new(0.99,0,0,16);
-HBMissing.Position = UDim2.new(0.5,0,0.5,0);
-HBMissing.BackgroundColor3 = Color3.new(1,0,0);
-HBMissing.ZIndex = 1;
-HBMissing.Name = "Back";
-]]
+local UIStrokeHealthbar = Instance.new("UIStroke");
+UIStrokeHealthbar.Thickness = 2;
+UIStrokeHealthbar.Transparency = 0.25;
+UIStrokeHealthbar.Parent = Healthbar;
+UIStrokeHealthbar.Color = Color3.fromRGB(46, 46, 46);
 
 local HBFront = Healthbar:Clone();
 HBFront.Visible = true;
@@ -648,6 +641,10 @@ local Ratings = {
 }
 
 local function UpdateHealth() -- To be fired every time health is added/reduced
+	-- If healthbar is disabled, set health to 40 (starting value) and return.
+	if not KateEngine.Settings.Healthbar then KateEngine.Health.Current = 40; return end;
+
+	-- Otherwise, clamp the health between 0 and 100 and update the healthbar.
 	KateEngine.Health.Current = math.clamp(KateEngine.Health.Current,0,100);
 	HBFront.Size = UDim2.new(KateEngine.Health.Current/100,0,1,0);
 	if KateEngine.Health.Current == 0 and KateEngine.Settings.Healthbar_DeathOnZero then
@@ -1074,7 +1071,10 @@ local CurrentSection = 0;
 
 local debugtext = "";
 
-local SoundEvent = Framework:GetEvent("SoundEvent");
+local SceneLoaded = Framework:GetEvent("SceneLoaded"); -- This is the event that gets fired when a scene is loaded; @param {string? = scenename, folder? = sceneinstance | nil = scene unloading}
+local SoundEvent = Framework:GetEvent("SoundEvent"); -- This is the event that gets fired when a song starts or ends; @param {boolean = songstarted/songended}
+local NoteMiss = Framework:GetEvent("NoteMissed"); -- This is the event that gets fired when a note is missed, used for modcharts; 
+local NoteHit = Framework:GetEvent("NoteHitBegan"); -- NoteHitEnded is also available, but we need the NoteHit part because it contains the ms; @param: {table {HitAccuracy:number<0-100>, MS:float?, Note:table {NoteData}, HitTime:float<tick()>}, table {?}}
 
 ModchartSystem = {
 	-- Camera zooming thing
@@ -1135,6 +1135,35 @@ ModchartSystem = {
 		LyricsLabel.Visible = true;
 	end;
 
+	Sprite = function(SpriteID, Position, Size, ZIndex, AnchorPoint)
+		local Sprite = Instance.new("ImageLabel");
+		Sprite.Image = SpriteID;
+		Sprite.BackgroundTransparency = 1;
+		Sprite.Size = Size or UDim2.new(0, 100, 0, 100);
+		Sprite.Position = Position or UDim2.new(0.5, 0, 0.5, 0);
+		Sprite.ZIndex = ZIndex or 1;
+		Sprite.Parent = GameUI;
+		Sprite.AnchorPoint = AnchorPoint or Vector2.new(0.5, 0.5);
+		table.insert(KateEngine.Assets, Sprite);
+		return Sprite;
+	end;
+
+	Sound = function(SoundID, Volume, Pitch)
+		if not SoundID then return end
+		local Sound = Instance.new("Sound");
+		Sound.SoundId = SoundID;
+		Sound.Volume = Volume or 1;
+		Sound.Pitch = Pitch or 1;
+		Sound.Parent = GameUI;
+		table.insert(KateEngine.Assets, Sound);
+		Sound:Play();
+		task.spawn(function()
+			Sound.Ended:Wait();
+			Sound:Destroy();
+		end);
+		return Sound;
+	end;
+
 	IncrementHealth = function(Amount)
 		KateEngine.Health.Current += Amount;
 		UpdateHealth();
@@ -1154,10 +1183,66 @@ ModchartSystem = {
 KateEngine.Modcharter = ModchartSystem;
 Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
 
+SceneLoaded:Connect(function(SceneID, Scene)
+	--@param {string? = scenename, folder? = sceneinstance | nil = scene unloading}
+	if not SceneID then
+		-- Scene is unloading
+		-- Do stuff here
+		-- Like disconnecting events
+		if connectedevent then
+			connectedevent:Disconnect();
+			connectedevent = nil;
+		end;
+		Framework:SetKEValue("SceneID", nil);
+		Framework:SetKEValue("SceneInstance", nil);
+		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
+		return;
+	end
+
+	-- Scene is loaded; Set KE values
+	Framework:SetKEValue("SceneID", SceneID);
+	Framework:SetKEValue("SceneInstance", Scene);
+
+	-- Can't do anything with modcharts due to the fact that the song hasn't started yet, hence no songID can be grabbed!
+	-- If the modcharters want to do something with the scene, they could theoretically use the SongStart event and use the KE values above to do the stuff they want to do.
+end);
+
+NoteHit:Connect(function(NoteHitData, _)
+	-- @param: {table {HitAccuracy:number<0-100>, MS:float?, Note:NoteData, HitTime:float<tick()>}, table {?}}
+	-- NoteHitData.Note contains the note data
+	-- NoteHitData.HitAccuracy is the accuracy of the note hit
+	-- NoteHitData.MS is the ms of the note hit
+	-- NoteHitData.HitTime is the tick() of the note hit
+
+	local Modchart = Framework:GetKEValue("CurrentModchart")
+	
+	if Modchart and Modchart.NoteHit then
+		Modchart.NoteHit(NoteHitData); -- Send the raw data to the modchart so the modcharter has full control over the note hit
+	end;
+
+	-- Example of how to use the data
+	if NoteHitData.Note.NoteDataConfigs.Type == "Poison" then
+		ModchartSystem.DecrementHealth(20);
+	end;
+end);
+
+NoteMiss:Connect(function(v1, v2)
+	-- @param: {Unknown; Returns 2 tables?}
+
+	local Modchart = Framework:GetKEValue("CurrentModchart")
+	
+	if Modchart and Modchart.NoteMiss then
+		Modchart.NoteMiss(v1, v2);
+	end
+end);
+
 SoundEvent:Connect(function(Active)
 	if Active == false then
-		connectedevent:Disconnect();
-		connectedevent = nil;
+		if connectedevent then -- Avoid an error (💀)
+			connectedevent:Disconnect();
+			connectedevent = nil;
+		end;
+		Framework:SetKEValue("CurrentModchart", nil);
 		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
 	end
 	id = id + 1;
@@ -1190,6 +1275,7 @@ SoundEvent:Connect(function(Active)
 				Modcharts[songid].SongStart(Framework);
 			end
 
+			Framework:SetKEValue("CurrentModchart", Modcharts[songid]);
 			songmodchart = Modcharts[songid];
 		end;
 
@@ -1261,6 +1347,13 @@ SoundEvent:Connect(function(Active)
 
 					debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
 					BPMSheet.Text = debugtext;
+				end);
+			else
+				-- There was no BPM set for the stage?
+				task.spawn(function()
+					ModchartSystem.SetLyrics("<font color='#ff3333'>No BPM was set for this song!</font>");
+					task.wait(3);
+					ModchartSystem.SetLyrics("");
 				end);
 			end;
 		end;
