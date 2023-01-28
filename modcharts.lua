@@ -85,10 +85,10 @@ return {
 	
 	["9103779046"] = { -- Secret Histories - Confrontation
 		Lyrics = {
-			[1624] = "YOU'RE AN IMPOSTOR, SONIC!";
-			[1654] = "[inaudible] LIKED YOU!";
+			[1624] = "They were impostors, SONIC!";
+			[1654] = "They didn't love you";
 			[1675] = "<i>I</i> LOVED YOU!";
-			[1688] = "YOU THINK YOU COULD BE WITH FRIENDS?!";
+			[1688] = "YOU THINK YOU WERE FRIENDS?!";
 			[1717] = "<i>I</i> WAS YOUR BEST FRIEND, SONIC!";
 			[1754] = "DON'T YOU GET IT?";
 			[1770] = "SONIC'S BEST FRIEND IS TAILS!";
