@@ -642,6 +642,7 @@ local Ratings = {
 
 local function UpdateHealth() -- To be fired every time health is added/reduced
 	-- If healthbar is disabled, set health to 40 (starting value) and return.
+	if not KateEngine.InSolo then KateEngine.Health.Current = 40; return end;
 	if not KateEngine.Settings.Healthbar then KateEngine.Health.Current = 40; return end;
 
 	-- Otherwise, clamp the health between 0 and 100 and update the healthbar.
@@ -1215,7 +1216,8 @@ NoteHit:Connect(function(NoteHitData, Note)
 	end;
 
 	-- Example of how to use the data
-	if Note.NoteDataConfigs and Note.NoteDataConfigs.Type == "Poison" then
+	if Note and Note.NoteDataConfigs and Note.NoteDataConfigs.Type == "Poison" then
+		-- This only affects the player if they are in solo anyways.
 		ModchartSystem.DecrementHealth(20);
 	end;
 end);

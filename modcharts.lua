@@ -96,6 +96,52 @@ return {
 		};
 	};
 
+	["9103362495"] = { -- Hypno's Lullaby - Safety Lullaby
+		Lyrics = {
+			[65] = "Come little Girlfriend, come with me!";
+			[96] = "Boyfriend is waiting, steadily!";
+			[128] = "";
+			[192] = "Alone at night, now let us run..";
+			[224] = "With Hypno, you'll have so much fun!";
+			[258] = "";
+			[320] = "Oh little Girlfriend, please don't cry!";
+			[353] = "Hypno wouldn't hurt a fly!";
+			[385] = "";
+			[447] = "Your father clearly doesn't get...";
+			[480] = "Deep in the forest, BF I met!";
+			[512] = "";
+			[576] = "Oh little Girlfriend, please don't squirm!";
+			[606] = "These ropes, I know: Will hold you firm...";
+			[640] = "Hypno tells you; \"This is true\"...";
+			[670] = "...but sadly, Hypno lied to you!";
+			[705] = "";
+			[770] = "Oh little Girlfriend, you shall not leave...";
+			[800] = "Your father for you will never grieve!";
+			[835] = "";
+			[897] = "Minds unravel at the seams...";
+			--[[
+				Allowing me to haunt their dreams!
+				Surеly now, you must know
+				That it is time for you to go!
+				
+				Oh little Girlfriend, you weren't clever...
+				RESISTING ME ONLY MAKES ME BITTER!
+			]]
+			[928] = "Allowing me to haunt their dreams!";
+			[960] = "Surely now, you must know...";
+			[991] = "That it is time for you to go!";
+			[1024] = "";
+			[1090] = "Oh little Girlfriend, you weren't clever...";
+			[1120] = "RESISTING";
+			[1130] = "<font color=\"#ffcccc\">RESISTING ME</font>";
+			[1135] = "<font color=\"#ffaaaa\">RESISTING ME ONLY</font>";
+			[1142] = "<font color=\"#ff8888\">RESISTING ME ONLY MAKES</font>";
+			[1147] = "<font color=\"#ff5555\">RESISTING ME ONLY MAKES ME</font>";
+			[1153] = "<font color=\"#ff2222\">RESISTING ME ONLY MAKES ME BITTER!</font>";
+			[1186] = "";
+		};
+	};
+
 	["10575656167"] = { -- Seek's Cool Deltarune Mod - HYPERLINK
 		DisableDefault = true;
 		OnSection = function(Framework, Section)
