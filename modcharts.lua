@@ -1,3 +1,5 @@
+local TweenService = game:GetService("TweenService");
+
 return {
 	-- Modcharts go by [SongId] = {OnBeat, OnSection, ...}
 
@@ -94,6 +96,27 @@ return {
 			[1824] = "[Maniacal Laugher]";
 			[1838] = "";
 		};
+	};
+
+	["9103346396"] = { -- Vs. Kapi: Arcade Showdown - Sanctuary
+		OnStep = function(Framework, Step) -- Need precise timing for these ones xd!
+			if Step == 700 or Step == 1680 then
+				task.spawn(function()
+					local sprite = Framework.KateEngine.Modcharter.Sprite("rbxassetid://12301335754", UDim2.fromScale(0.5,0.5), UDim2.fromScale(0.5,0.5), 5, Vector2.new(0.5, 0.5));
+					sprite.ImageTransparency = 0;
+
+					local aspectratio = Instance.new("UIAspectRatioConstraint");
+					aspectratio.AspectRatio = 1;
+					aspectratio.Parent = sprite;
+
+					task.wait(0.2);
+					local tween = TweenService:Create(sprite, TweenInfo.new(0.3), {ImageTransparency = 1});
+					tween:Play();
+					tween.Completed:Wait();
+					sprite:Destroy();
+				end);
+			end;
+		end;
 	};
 
 	["9103362495"] = { -- Hypno's Lullaby - Safety Lullaby
