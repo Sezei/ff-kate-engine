@@ -1189,13 +1189,8 @@ SceneLoaded:Connect(function(SceneID, Scene)
 		-- Scene is unloading
 		-- Do stuff here
 		-- Like disconnecting events
-		if connectedevent then
-			connectedevent:Disconnect();
-			connectedevent = nil;
-		end;
 		Framework:SetKEValue("SceneID", nil);
 		Framework:SetKEValue("SceneInstance", nil);
-		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
 		return;
 	end
 
@@ -1207,9 +1202,8 @@ SceneLoaded:Connect(function(SceneID, Scene)
 	-- If the modcharters want to do something with the scene, they could theoretically use the SongStart event and use the KE values above to do the stuff they want to do.
 end);
 
-NoteHit:Connect(function(NoteHitData, _)
+NoteHit:Connect(function(NoteHitData, Note)
 	-- @param: {table {HitAccuracy:number<0-100>, MS:float?, Note:NoteData, HitTime:float<tick()>}, table {?}}
-	-- NoteHitData.Note contains the note data
 	-- NoteHitData.HitAccuracy is the accuracy of the note hit
 	-- NoteHitData.MS is the ms of the note hit
 	-- NoteHitData.HitTime is the tick() of the note hit
@@ -1221,7 +1215,7 @@ NoteHit:Connect(function(NoteHitData, _)
 	end;
 
 	-- Example of how to use the data
-	if NoteHitData.Note.NoteDataConfigs.Type == "Poison" then
+	if Note.NoteDataConfigs and Note.NoteDataConfigs.Type == "Poison" then
 		ModchartSystem.DecrementHealth(20);
 	end;
 end);
@@ -1242,6 +1236,7 @@ SoundEvent:Connect(function(Active)
 			connectedevent:Disconnect();
 			connectedevent = nil;
 		end;
+		ModchartSystem.SetLyrics(""); -- Clear out the lyrics (how did i miss that)
 		Framework:SetKEValue("CurrentModchart", nil);
 		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
 	end
