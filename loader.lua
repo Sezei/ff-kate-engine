@@ -1183,6 +1183,32 @@ ModchartSystem = {
 		KateEngine.Health.Current = Amount;
 		UpdateHealth();
 	end;
+
+	-- Note Controls; It is recommended to only call this exact function once, rather than calling it on every step/hit/whatever. heck, use the Variables table for that.
+	Note = function(NoteKey) -- TODO
+		local Note = Framework.UI.Arrows.Receptors[tostring(NoteKey)];
+		if not Note then return end;
+
+		return {
+			TweenXPosition = function()
+
+			end;
+		}
+	end;
+
+	Lane = function(LaneKey) -- TODO
+
+	end;
+
+	CamHUD = {
+		SetAngle = function(Angle)
+			Framework.GameUI.Arrows.Rotation = Angle;
+		end;
+
+		GetAngle = function()
+			return Framework.GameUI.Arrows.Rotation;
+		end;
+	}
 };
 
 KateEngine.Modcharter = ModchartSystem;
@@ -1216,11 +1242,11 @@ NoteHit:Connect(function(NoteHitData, Note)
 	local Modchart = Framework:GetKEValue("CurrentModchart")
 	
 	if Modchart and Modchart.NoteHit then
-		Modchart.NoteHit(NoteHitData); -- Send the raw data to the modchart so the modcharter has full control over the note hit
+		Modchart.NoteHit(NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
 	end;
 
 	-- Example of how to use the data
-	if Note and Note.NoteDataConfigs and Note.NoteDataConfigs.Type == "Poison" then
+	if Note and Note.NoteDataConfigs and (Note.NoteDataConfigs.Type == "Poison" or Note.NoteDataConfigs.Type == "LividLycanthrope") and Note.Side and Note.Side == Framework.UI.CurrentSide then
 		-- This only affects the player if they are in solo anyways.
 		ModchartSystem.DecrementHealth(20);
 	end;
@@ -1283,7 +1309,7 @@ SoundEvent:Connect(function(Active)
 		local Zone = Framework.StageZone and Framework.StageZone.CurrentZone;
 		local Stage = Zone and (Zone.Parent.Name:match("Stage") and Zone.Parent);
 		if Stage then
-			local BPM = Stage:GetAttribute("BPM");
+			local BPM = (Modcharts[songid] and Modcharts[songid].SetBPM) or Stage:GetAttribute("BPM");
 			local OFFSET = Stage:GetAttribute("Offset");
 			if BPM then
 				local BPS = BPM / 60; -- BPS (Beats per second)

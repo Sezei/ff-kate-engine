@@ -85,10 +85,10 @@ return {
 	
 	["9103779046"] = { -- Secret Histories - Confrontation
 		Lyrics = {
-			[1624] = "They were impostors, SONIC!";
+			[1624] = "They were impostors, Sonic!";
 			[1654] = "They didn't love you";
-			[1675] = "<i>I</i> LOVED YOU!";
-			[1688] = "YOU THINK THEY WERE YOUR FRIENDS?!";
+			[1675] = "I loved you!";
+			[1688] = "You think they were your friends?!";
 			[1717] = "<i>I</i> WAS YOUR BEST FRIEND, SONIC!";
 			[1754] = "DON'T YOU GET IT?";
 			[1770] = "SONIC'S BEST FRIEND IS TAILS!";
@@ -97,6 +97,11 @@ return {
 			[1838] = "";
 		};
 	};
+
+	--[[[Uncanny Valley] = {
+		SetBPM = 171;
+		DisableDefault = true;
+	};--]]
 
 	["9103346396"] = { -- Vs. Kapi: Arcade Showdown - Sanctuary
 		OnStep = function(Framework, Step) -- Need precise timing for these ones xd!
