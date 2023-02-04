@@ -45,7 +45,7 @@ local Version = "b0.10";
 KateEngine = {
 	-- Base Info
 	Version = Version;
-	Shared = {};
+	Cache = {};
 	InSolo = false;
 
 	-- Game Modifications
@@ -1187,11 +1187,175 @@ ModchartSystem = {
 	-- Note Controls; It is recommended to only call this exact function once, rather than calling it on every step/hit/whatever. heck, use the Variables table for that.
 	Note = function(NoteKey) -- TODO
 		local Note = Framework.UI.Arrows.Receptors[tostring(NoteKey)];
-		if not Note then return end;
 
+		-- In order to avoid errors due to a NIL, we'll send a table regardless of if the note exists or not; However, all functions will return instantly if the note doesn't exist.
 		return {
-			TweenXPosition = function()
+			TweenXPosition = function(PositionChange, Time, Enum_EasingStyle, Enum_EasingDirection)
+				if not Note then return end;
 
+				local AbsSize = GameUI.Arrows.AbsoluteSize;
+
+				-- Tween the note
+				local IntValue = Instance.new("IntValue");
+				IntValue.Value = Note.InnerFrame.Position.Y.Offset / (AbsSize.Y / 720);
+
+				if not KateEngine.Cache["DefaultNotePosX"..tostring(NoteKey)] then
+					KateEngine.Cache["DefaultNotePosX"..tostring(NoteKey)] = IntValue.Value;
+				end;
+
+				if not PositionChange then
+					PositionChange = 0;
+				end;
+
+				if not Time then
+					Time = 0; -- Instant?
+				end;
+
+				if not Enum_EasingStyle then
+					Enum_EasingStyle = Enum.EasingStyle.Linear;
+				end;
+
+				if not Enum_EasingDirection then
+					Enum_EasingDirection = Enum.EasingDirection.In;
+				end;
+
+				local TweenCompleteEvent = IntValue:GetPropertyChangedSignal("Value"):Connect(function()
+					Note.InnerFrame.Position = UDim2.new(UDim.new(0, IntValue.Value * (AbsSize.X / 1280)), Note.InnerFrame.Position.Y);
+				end);
+
+				if Time > 0 then
+					local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum_EasingStyle, Enum_EasingDirection), {Value = PositionChange});
+
+					Tween:Play();
+					Tween.Completed:Once(function()
+						TweenCompleteEvent:Disconnect();
+						Tween:Destroy();
+					end);
+				else
+					IntValue.Value = PositionChange;
+				end;
+
+				IntValue:Destroy();
+			end;
+
+			TweenYPosition = function(PositionChange, Time, Enum_EasingStyle, Enum_EasingDirection)
+				if not Note then return end;
+
+				local AbsSize = GameUI.Arrows.AbsoluteSize;
+
+				-- Tween the note
+				local IntValue = Instance.new("IntValue");
+				IntValue.Value = Note.InnerFrame.Position.X.Offset / (AbsSize.X / 1280);
+
+				if not KateEngine.Cache["DefaultNotePosY"..tostring(NoteKey)] then
+					KateEngine.Cache["DefaultNotePosY"..tostring(NoteKey)] = IntValue.Value;
+				end;
+
+				if not PositionChange then
+					PositionChange = 0;
+				end;
+
+				if not Time then
+					Time = 0;
+				end;
+
+				if not Enum_EasingStyle then
+					Enum_EasingStyle = Enum.EasingStyle.Linear;
+				end;
+
+				if not Enum_EasingDirection then
+					Enum_EasingDirection = Enum.EasingDirection.In;
+				end;
+
+				local TweenCompleteEvent = IntValue:GetPropertyChangedSignal("Value"):Connect(function()
+					Note.InnerFrame.Position = UDim2.new(Note.InnerFrame.Position.X, UDim.new(0, IntValue.Value * (AbsSize.Y / 720)));
+				end);
+
+				if Time > 0 then
+					local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum_EasingStyle, Enum_EasingDirection), {Value = PositionChange});
+
+					Tween:Play();
+					Tween.Completed:Once(function()
+						TweenCompleteEvent:Disconnect();
+						Tween:Destroy();
+					end);
+				else
+					IntValue.Value = PositionChange;
+				end;
+
+				IntValue:Destroy();
+			end;
+
+			TweenAngle = function(AngleChange, Time)
+				if not Note then return end;
+
+				-- Tween the note rotation value
+				local IntValue = Instance.new("IntValue");
+				IntValue.Value = Note.InnerFrame.Rotation;
+
+				if not KateEngine.Cache["DefaultNoteAngle"..tostring(NoteKey)] then
+					KateEngine.Cache["DefaultNoteAngle"..tostring(NoteKey)] = IntValue.Value;
+				end;
+
+				if not AngleChange then
+					AngleChange = 0;
+				end;
+
+				if not Time then
+					Time = 0;
+				end;
+
+				local TweenCompleteEvent = IntValue:GetPropertyChangedSignal("Value"):Connect(function()
+					Note.InnerFrame.Rotation = IntValue.Value;
+				end);
+
+				if Time > 0 then
+					local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Value = AngleChange});
+
+					Tween:Play();
+					Tween.Completed:Once(function()
+						TweenCompleteEvent:Disconnect();
+						Tween:Destroy();
+					end);
+				else
+					IntValue.Value = AngleChange;
+				end;
+
+				IntValue:Destroy();
+			end;
+
+			TweenAlpha = function(NewAlpha, Time)
+				if not Note then return end;
+
+				-- Tween the note transparency (Uses the receptor's UpdateTransparency function, apparently)
+				local IntValue = Instance.new("IntValue");
+				IntValue.Value = KateEngine.Cache["CurrentNoteAlpha"..tostring(NoteKey)] or 0; -- Assuming the alpha range is 0-255 = 0 is opaque, 255 is transparent;
+
+				if not NewAlpha then
+					NewAlpha = 0;
+				end;
+
+				if not Time then
+					Time = 0;
+				end;
+
+				local TweenCompleteEvent = IntValue:GetPropertyChangedSignal("Value"):Connect(function()
+					Note:UpdateTransparency(IntValue.Value / 255);
+				end);
+
+				if Time > 0 then
+					local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Value = NewAlpha});
+
+					Tween:Play();
+					Tween.Completed:Once(function()
+						TweenCompleteEvent:Disconnect();
+						Tween:Destroy();
+					end);
+				else
+					IntValue.Value = NewAlpha;
+				end;
+
+				IntValue:Destroy();
 			end;
 		}
 	end;
