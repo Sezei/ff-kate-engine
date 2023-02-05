@@ -10,7 +10,7 @@ if not getgc then -- This one is required for the script to work, as it hooks in
 	return error("Your exploit is not supported by this script; Missing function getgc().")
 end;
 
-if not writefile or not readfile or not isfile then
+if not writefile or not readfile or not isfile or not isfolder or not makefolder then
 	missing["file storage"] = true;
 	missing["custom modchart"] = true;
 elseif not isfile("KateEngine/Modcharts.lua") then
@@ -19,6 +19,11 @@ end;
 
 if not setclipboard then
 	missing["clipboard"] = true;
+end;
+
+-- 💀
+if not isfolder("KateEngine") then
+    makefolder("KateEngine");
 end;
 
 -- Function to get the Framework
@@ -106,6 +111,26 @@ KateEngine = {
 				Text = "Copy Song ID";
 				Callback = function()
 					setclipboard(Framework:GetKEValue("SongID"));
+				end;
+			};
+			{
+				Requirement = "file storage";
+				Type = "Button";
+				Text = "Export Chart";
+				Callback = function()
+					-- Get the chart
+					local Chart = Framework.KateEngine.Cache["CurrentChart"];
+
+					-- Attempt to turn the chart into JSON
+					local Success, JSON = pcall(game:GetService("HttpService").JSONEncode, game:GetService("HttpService"), Chart);
+
+					if Success then
+						if not isfolder("KateEngine/Exported_Charts") then
+							makefolder("KateEngine/Exported_Charts");
+						end;
+
+						writefile("KateEngine/Exported_Charts/" .. Framework:GetKEValue("SongID") .. ".json", JSON);
+					end
 				end;
 			};
 			{
@@ -638,6 +663,8 @@ local function CalcDifficultyRating(lenght)
 
     -- Make the difficulty a float number with 2 decimals
     diff = math.floor(diff * 100) / 100;
+
+	KateEngine.Cache["CurrentChart"] = Framework.SongPlayer.CurrentSongData; -- unbelievable
 
     return diff;
 end
