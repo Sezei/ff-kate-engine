@@ -158,7 +158,7 @@ KateEngine = {
 			};
 			{
 				Type = "Label";
-				Text = "This section contains settings for the Mania Combo Counter.";
+				Text = "This section contains settings for the Mania Improvements and the Combo Counter.";
 			};
 			{
 				Type = "Boolean";
@@ -192,6 +192,14 @@ KateEngine = {
 
 				Stored = true;
 			};
+            {
+                Type = "Boolean";
+                Default = false;
+                Text = "Show Judgement Overlays";
+                Key = "Mania_JudgementOverlays";
+
+                Stored = true;
+            };
 			{
 				Type = "Multichoice";
 				Default = 50;
@@ -258,32 +266,6 @@ KateEngine = {
 				Text = "Bot Difficulty";
 				Key = "BotDifficulty";
 				Options = {"Average Blimey (Insane) Player", "Easy", "Normal", "Hard", "Insane", "PFC"};
-
-				Stored = true;
-			};
-			{
-				Type = "Label";
-				Text = "-- CAMERA --"
-			};
-			{
-				Type = "Label";
-				Text = "This section contains settings that can be used to manipulate the camera."
-			};
-			{
-				Type = "Boolean";
-				Default = true;
-				Text = "Camera Manipulation";
-				Key = "CamManipulation";
-
-				Stored = true;
-			};
-			{
-				Type = "Slider";
-				Default = 5;
-				Text = "Camera Displacement";
-				Key = "CamDisplace";
-				Minimum = 1;
-				Maximum = 30;
 
 				Stored = true;
 			};
@@ -359,6 +341,32 @@ KateEngine = {
 				Callback = function(Value)
 					KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Value;
 				end;
+
+				Stored = true;
+			};
+            {
+				Type = "Label";
+				Text = "-- CAMERA --"
+			};
+			{
+				Type = "Label";
+				Text = "This section contains settings that can be used to manipulate the camera."
+			};
+			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Camera Manipulation";
+				Key = "CamManipulation";
+
+				Stored = true;
+			};
+			{
+				Type = "Slider";
+				Default = 5;
+				Text = "Camera Displacement";
+				Key = "CamDisplace";
+				Minimum = 1;
+				Maximum = 30;
 
 				Stored = true;
 			};
@@ -471,6 +479,22 @@ ManiaRating.Text = "";
 ManiaRating.Position = UDim2.new(0.5,0,0,40);
 ManiaRating.TextSize = 30;
 ManiaRating.Name = "Rating";
+
+-- Mania-Like Judgement Overlay (For some reason modern rhythm games use this, so I added it as well ig lol)
+local ManiaJudgementOverlay = Instance.new("ImageLabel");
+ManiaJudgementOverlay.Position = UDim2.new(0, 0, 0, -40);
+ManiaJudgementOverlay.Size = UDim2.new(1, 0, 1, 40);
+ManiaJudgementOverlay.Parent = GameUI;
+ManiaJudgementOverlay.BackgroundTransparency = 1;
+ManiaJudgementOverlay.Image = "rbxassetid://12395330181";
+ManiaJudgementOverlay.Visible = false;
+ManiaJudgementOverlay.Name = "KE_ManiaJudgementOverlay";
+ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 255, 255);
+ManiaJudgementOverlay.ImageTransparency = 1;
+ManiaJudgementOverlay.ScaleType = Enum.ScaleType.Slice;
+ManiaJudgementOverlay.SliceCenter = Rect.new(4, 4, 96, 96);
+ManiaJudgementOverlay.SliceScale = 1.5;
+KateEngine.Assets.ManiaJudgementOverlay = ManiaJudgementOverlay;
 
 -- Lyrics UI
 local LyricsLabel = Instance.new("TextLabel");
@@ -1152,7 +1176,7 @@ GameUI.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This 
 end)
 
 local Camera = workspace.Camera;
-local FOV = 70;
+local FOV = Camera.FieldOfView;
 
 local id = 0;
 local connectedevent = nil;
@@ -1162,7 +1186,7 @@ local CurrentSection = 0;
 
 local debugtext = "";
 
-local LanePressed = Framework:GetEvent("LanePressed") -- This is the event that is fired whenever you press a strum
+local LanePressed = Framework:GetEvent("LanePressed") -- This is the event that is fired whenever you press a strum; @param {table {Direction : number<0-3>, Position : ?}}
 local SceneLoaded = Framework:GetEvent("SceneLoaded"); -- This is the event that gets fired when a scene is loaded; @param {string? = scenename, folder? = sceneinstance | nil = scene unloading}
 local SoundEvent = Framework:GetEvent("SoundEvent"); -- This is the event that gets fired when a song starts or ends; @param {boolean = songstarted/songended}
 local NoteMiss = Framework:GetEvent("NoteMissed"); -- This is the event that gets fired when a note is missed, used for modcharts; 
@@ -1172,8 +1196,8 @@ ModchartSystem = {
 	-- Camera zooming thing
 	CameraZoom = function()
 		-- Tween the camera
-		local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out);
-		Camera.FieldOfView = FOV - 3;
+		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
+		Camera.FieldOfView = FOV-1;
 		local camtween = TweenService:Create(Camera, tweenInfo, {FieldOfView = FOV});
 		ManiaRating.TextSize = 35;
 		local txttween = TweenService:Create(ManiaRating, tweenInfo, {TextSize = 30});
@@ -1284,7 +1308,7 @@ ModchartSystem = {
 				local AbsSize = GameUI.Arrows.AbsoluteSize;
 
 				-- Tween the note
-				local IntValue = Instance.new("IntValue");
+				local IntValue = Instance.new("NumberValue");
 				IntValue.Value = Note.InnerFrame.Position.Y.Offset / (AbsSize.Y / 720);
 
 				if not KateEngine.Cache["DefaultNotePosX"..tostring(NoteKey)] then
@@ -1307,7 +1331,7 @@ ModchartSystem = {
 					Enum_EasingDirection = Enum.EasingDirection.In;
 				end;
 
-				local TweenCompleteEvent = IntValue:GetPropertyChangedSignal("Value"):Connect(function()
+				local TweenCompleteEvent = IntValue.Changed:Connect(function()
 					Note.InnerFrame.Position = UDim2.new(UDim.new(0, IntValue.Value * (AbsSize.X / 1280)), Note.InnerFrame.Position.Y);
 				end);
 
@@ -1332,7 +1356,7 @@ ModchartSystem = {
 				local AbsSize = GameUI.Arrows.AbsoluteSize;
 
 				-- Tween the note
-				local IntValue = Instance.new("IntValue");
+				local IntValue = Instance.new("NumberValue");
 				IntValue.Value = Note.InnerFrame.Position.X.Offset / (AbsSize.X / 1280);
 
 				if not KateEngine.Cache["DefaultNotePosY"..tostring(NoteKey)] then
@@ -1355,7 +1379,7 @@ ModchartSystem = {
 					Enum_EasingDirection = Enum.EasingDirection.In;
 				end;
 
-				local TweenCompleteEvent = IntValue:GetPropertyChangedSignal("Value"):Connect(function()
+				local TweenCompleteEvent = IntValue.Changed:Connect(function()
 					Note.InnerFrame.Position = UDim2.new(Note.InnerFrame.Position.X, UDim.new(0, IntValue.Value * (AbsSize.Y / 720)));
 				end);
 
@@ -1378,7 +1402,7 @@ ModchartSystem = {
 				if not Note then return end;
 
 				-- Tween the note rotation value
-				local IntValue = Instance.new("IntValue");
+				local IntValue = Instance.new("NumberValue");
 				IntValue.Value = Note.InnerFrame.Rotation;
 
 				if not KateEngine.Cache["DefaultNoteAngle"..tostring(NoteKey)] then
@@ -1393,7 +1417,7 @@ ModchartSystem = {
 					Time = 0;
 				end;
 
-				local TweenCompleteEvent = IntValue:GetPropertyChangedSignal("Value"):Connect(function()
+				local TweenCompleteEvent = IntValue.Changed:Connect(function()
 					Note.InnerFrame.Rotation = IntValue.Value;
 				end);
 
@@ -1416,7 +1440,7 @@ ModchartSystem = {
 				if not Note then return end;
 
 				-- Tween the note transparency (Uses the receptor's UpdateTransparency function, apparently)
-				local IntValue = Instance.new("IntValue");
+				local IntValue = Instance.new("NumberValue");
 				IntValue.Value = KateEngine.Cache["CurrentNoteAlpha"..tostring(NoteKey)] or 0; -- Assuming the alpha range is 0-255 = 0 is opaque, 255 is transparent;
 
 				if not NewAlpha then
@@ -1427,7 +1451,7 @@ ModchartSystem = {
 					Time = 0;
 				end;
 
-				local TweenCompleteEvent = IntValue:GetPropertyChangedSignal("Value"):Connect(function()
+				local TweenCompleteEvent = IntValue.Changed:Connect(function()
 					Note:UpdateTransparency(IntValue.Value / 255);
 				end);
 
@@ -1468,10 +1492,10 @@ ModchartSystem = {
 				Time = 0;
 			end;
 
-			local IntValue = Instance.new("IntValue");
+			local IntValue = Instance.new("NumberValue");
 			IntValue.Value = 0; -- Assuming the alpha range is 0-255 = 0 is opaque, 255 is transparent;
 
-			local TweenCompleteEvent = IntValue:GetPropertyChangedSignal("Value"):Connect(function()
+			local TweenCompleteEvent = IntValue.Changed:Connect(function()
 				for _, Note in pairs(Framework.UI.Arrows.Receptors) do
 					Note:UpdateTransparency(IntValue.Value / 255);
 				end;
@@ -1505,6 +1529,27 @@ ModchartSystem = {
 		GetAngle = function()
 			return Framework.GameUI.Arrows.Rotation;
 		end;
+
+        TweenAngle = function(Angle, Time)
+            if not Angle then
+                Angle = 0;
+            end;
+
+            if not Time then
+                Time = 0;
+            end;
+
+            if Time > 0 then
+                local Tween = TweenService:Create(Framework.GameUI.Arrows, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Rotation = Angle});
+
+                Tween:Play();
+                Tween.Completed:Once(function()
+                    Tween:Destroy();
+                end);
+            else
+                Framework.GameUI.Arrows.Rotation = Angle;
+            end;
+        end;
 	}
 };
 
@@ -1517,15 +1562,15 @@ if not missing["file storage"] then
 	if isfile("KateEngine/Modcharts.lua") then
 		local ModchartFile = readfile("KateEngine/Modcharts.lua");
 		-- Attempt to load the modcharts file
-		local Success, Modcharts = pcall(loadstring, ModchartFile);
+		local Success, ModchartStuff = pcall(loadstring, ModchartFile);
 		if Success then
-			Modcharts = Modcharts();
+			Modcharts = ModchartStuff();
 
 			function KateEngine.ReloadModcharts()
 				local ModchartFile = readfile("KateEngine/Modcharts.lua");
-				local Success, Modcharts = pcall(loadstring, ModchartFile);
+				local Success, ModchartStuff = pcall(loadstring, ModchartFile);
 				if Success then
-					Modcharts = Modcharts();
+					Modcharts = ModchartStuff();
 				end
 			end
 		else
@@ -1559,6 +1604,7 @@ SceneLoaded:Connect(function(SceneID, Scene)
 	-- If the modcharters want to do something with the scene, they could theoretically use the SongStart event and use the KE values above to do the stuff they want to do.
 end);
 
+local NoteHitTween = nil;
 NoteHit:Connect(function(NoteHitData, Note)
 	-- @param: {table {HitAccuracy:number<0-100>, MS:float?, Note:NoteData, HitTime:float<tick()>}, table {?}}
 	-- NoteHitData.HitAccuracy is the accuracy of the note hit
@@ -1571,7 +1617,37 @@ NoteHit:Connect(function(NoteHitData, Note)
 		Modchart.NoteHit(NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
 	end;
 
-	-- Example of how to use the data
+    if KateEngine.Settings.Mania_JudgementOverlays then
+        if Note and Note.Side and not (Note.Side == Framework.UI.CurrentSide) then return end;
+
+        ManiaJudgementOverlay.Visible = true;
+        
+        if NoteHitData.HitAccuracy >= 95 then
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(0, 255, 255);
+        elseif NoteHitData.HitAccuracy >= 90 then
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(0, 255, 0);
+        elseif NoteHitData.HitAccuracy >= 85 then
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 187, 0);
+        else
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 71, 71);
+        end;
+
+        ManiaJudgementOverlay.ImageTransparency = 0;
+
+        if NoteHitTween then
+            NoteHitTween:Cancel();
+        end;
+
+        NoteHitTween = TweenService:Create(ManiaJudgementOverlay, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1});
+        NoteHitTween:Play();
+
+        NoteHitTween.Completed:Once(function()
+            NoteHitTween = nil;
+        end);
+    else
+        ManiaJudgementOverlay.Visible = false;
+    end
+
 	if Note and Note.NoteDataConfigs and (Note.NoteDataConfigs.Type == "Poison" or Note.NoteDataConfigs.Type == "LividLycanthrope") and Note.Side and Note.Side == Framework.UI.CurrentSide then
 		-- This only affects the player if they are in solo anyways.
 		ModchartSystem.DecrementHealth(20);

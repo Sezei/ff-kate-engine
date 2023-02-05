@@ -99,7 +99,7 @@ return {
 	};
 
 	["9462575360"] = { -- Hotline 024 - Uncanny Valley
-		SetBPM = 171;
+		SetBPM = 170;
 	};
 
 	["9103346396"] = { -- Vs. Kapi: Arcade Showdown - Sanctuary
