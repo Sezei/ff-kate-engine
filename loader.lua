@@ -75,6 +75,7 @@ KateEngine = {
 		CurrentCombo = 0;
 		TotalNotes = 0;
 		Combo = 0;
+		Perfects = 0;
 	};
 	Topbar = {
 		OriginTime = 0;
@@ -195,11 +196,19 @@ KateEngine = {
             {
                 Type = "Boolean";
                 Default = false;
-                Text = "Show Judgement Overlays";
+                Text = "Show Judgement Overlays [EXPERIMENTAL]";
                 Key = "Mania_JudgementOverlays";
 
                 Stored = true;
             };
+			{
+				Type = "Boolean";
+                Default = true; -- Less annoyance for the players (deserved tbh)
+                Text = "Non-Perfect Overlays Only";
+                Key = "Mania_NonPerfectOverlays";
+
+                Stored = true;
+			};
 			{
 				Type = "Multichoice";
 				Default = 50;
@@ -1068,8 +1077,9 @@ GameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 		KateEngine.Topbar.SongDifficulty = 0;
 		KateEngine.Health.Current = 40;
 		KateEngine.InSolo = false;
-		KateEngine.Mania.Comboombo = 0;
+		KateEngine.Mania.Combo = 0;
 		KateEngine.Mania.TotalNotes = 0;
+		KateEngine.Mania.Perfects = 0;
 	else
 		if KateEngine.InSolo then
 			KateEngine.Health.Current = 40;
@@ -1164,12 +1174,17 @@ GameUI.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This 
 
 	local showtotalnotes = true;
 
-	statgui.Text = "Sick: "..stats.sick.."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad.."\nMissed: "..stats.missed
+	statgui.Text = "Sick: "..tostring(tonumber(stats.sick)-KateEngine.Mania.Perfects) .."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad.."\nMissed: "..stats.missed
 
 	if res ~= KateEngine.Mania.TotalNotes then
 		statgui.Text = "Sick: "..stats.sick.."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad .. " <font color='#AAAAAA'>(+"..KateEngine.Mania.TotalNotes - res..")</font>".."\nMissed: "..stats.missed
 		showtotalnotes = true;
 	end
+
+	if KateEngine.Mania.Perfects > 0 then
+		statgui.Text = "<font color='#ff0090'>Perfect</font>: "..KateEngine.Mania.Perfects.."\n"..statgui.Text
+	end
+
 	if showtotalnotes then
 		statgui.Text = statgui.Text.."\n<font color='#FFFF77'>Total Notes: "..KateEngine.Mania.TotalNotes.."</font>"
 	end
@@ -1617,12 +1632,33 @@ NoteHit:Connect(function(NoteHitData, Note)
 		Modchart.NoteHit(NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
 	end;
 
+	if Note and Note.NoteDataConfigs and (Note.NoteDataConfigs.Type == "Poison" or Note.NoteDataConfigs.Type == "LividLycanthrope") and Note.Side and Note.Side == Framework.UI.CurrentSide then
+		-- This only affects the player if they are in solo anyways.
+		ModchartSystem.DecrementHealth(20);
+	end;
+
+	if not Note then
+		-- This is a fake note hit, so we don't want to do anything with it
+		return;
+	end
+
+	if math.abs(tonumber(NoteHitData.MS) or 999) <= 0.5 and Note and Note.Side and (Note.Side == Framework.UI.CurrentSide) then
+		KateEngine.Mania.Perfects += 1;
+	end;
+
     if KateEngine.Settings.Mania_JudgementOverlays then
         if Note and Note.Side and not (Note.Side == Framework.UI.CurrentSide) then return end;
 
-        ManiaJudgementOverlay.Visible = true;
-        
-        if NoteHitData.HitAccuracy >= 95 then
+		if KateEngine.Settings.Mania_NonPerfectOverlays then
+			-- Show the overlay only if the note was not perfect
+			if ((NoteHitData.HitAccuracy > 95) and not (math.abs(tonumber(NoteHitData.MS)) <= 0.5)) then
+				return;
+			end
+		end
+
+		ManiaJudgementOverlay.Visible = true;
+
+		if NoteHitData.HitAccuracy >= 95 then
             ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(0, 255, 255);
         elseif NoteHitData.HitAccuracy >= 90 then
             ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(0, 255, 0);
@@ -1631,6 +1667,10 @@ NoteHit:Connect(function(NoteHitData, Note)
         else
             ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 71, 71);
         end;
+
+		if math.abs(tonumber(NoteHitData.MS)) <= 0.5 then -- PERFECT HIT!!
+			ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 0, 140);
+		end;
 
         ManiaJudgementOverlay.ImageTransparency = 0;
 
@@ -1647,11 +1687,6 @@ NoteHit:Connect(function(NoteHitData, Note)
     else
         ManiaJudgementOverlay.Visible = false;
     end
-
-	if Note and Note.NoteDataConfigs and (Note.NoteDataConfigs.Type == "Poison" or Note.NoteDataConfigs.Type == "LividLycanthrope") and Note.Side and Note.Side == Framework.UI.CurrentSide then
-		-- This only affects the player if they are in solo anyways.
-		ModchartSystem.DecrementHealth(20);
-	end;
 end);
 
 NoteMiss:Connect(function(v1, v2)
