@@ -173,9 +173,9 @@ return {
 		end;
 		OnStep = function(Framework, Step)
 			if Step == 3 or Step == 421 or Step == 1002 then
-				Framework.KateEngine.Modcharter.AllNotes.SetAlpha(127);
+				Framework.KateEngine.Modcharter.AllNotes.TweenAlpha(127, 0.2);
 			elseif Step == 101 or Step == 452 or Step == 1026 then
-				Framework.KateEngine.Modcharter.AllNotes.SetAlpha(0);
+				Framework.KateEngine.Modcharter.AllNotes.SetAlpha(0, 0.2);
 			end;
 		end;
 		Lyrics = {

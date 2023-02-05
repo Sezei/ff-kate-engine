@@ -1373,9 +1373,46 @@ ModchartSystem = {
 
 	AllNotes = {
 		SetAlpha = function(NewAlpha)
+			if not NewAlpha then
+				NewAlpha = 0;
+			end;
+
 			for _, Note in pairs(Framework.UI.Arrows.Receptors) do
 				Note:UpdateTransparency(NewAlpha / 255);
 			end;
+		end;
+
+		TweenAlpha = function(NewAlpha, Time)
+			if not NewAlpha then
+				NewAlpha = 0;
+			end;
+
+			if not Time then
+				Time = 0;
+			end;
+
+			local IntValue = Instance.new("IntValue");
+			IntValue.Value = 0; -- Assuming the alpha range is 0-255 = 0 is opaque, 255 is transparent;
+
+			local TweenCompleteEvent = IntValue:GetPropertyChangedSignal("Value"):Connect(function()
+				for _, Note in pairs(Framework.UI.Arrows.Receptors) do
+					Note:UpdateTransparency(IntValue.Value / 255);
+				end;
+			end);
+
+			if Time > 0 then
+				local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Value = NewAlpha});
+
+				Tween:Play();
+				Tween.Completed:Once(function()
+					TweenCompleteEvent:Disconnect();
+					Tween:Destroy();
+				end);
+			else
+				IntValue.Value = NewAlpha;
+			end;
+
+			IntValue:Destroy();
 		end;
 	};
 
