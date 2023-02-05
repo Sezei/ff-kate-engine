@@ -172,7 +172,7 @@ return {
 			Framework.KateEngine.Modcharter.CameraZoom();
 		end;
 		OnStep = function(Framework, Step)
-			if Step == 0 or Step == 421 or Step == 1002 then
+			if Step == 3 or Step == 421 or Step == 1002 then
 				Framework.KateEngine.Modcharter.AllNotes.SetAlpha(127);
 			elseif Step == 101 or Step == 452 or Step == 1026 then
 				Framework.KateEngine.Modcharter.AllNotes.SetAlpha(0);
