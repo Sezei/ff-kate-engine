@@ -54,7 +54,7 @@ local ColorJSON = {
 
 local Framework = getGameFramework();
 
-local Version = "b0.10";
+local Version = "v0.10";
 
 -- Create the KateEngine table
 KateEngine = {
@@ -204,7 +204,7 @@ KateEngine = {
 			{
 				Type = "Boolean";
                 Default = true; -- Less annoyance for the players (deserved tbh)
-                Text = "Non-Perfect Overlays Only";
+                Text = "Non-Sick Overlays Only";
                 Key = "Mania_NonPerfectOverlays";
 
                 Stored = true;
