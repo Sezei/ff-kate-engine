@@ -13,7 +13,7 @@ end;
 if not writefile or not readfile or not isfile then
 	missing["file storage"] = true;
 	missing["custom modchart"] = true;
-elseif readfile("KateEngine/Modcharts.lua") then
+elseif not isfile("KateEngine/Modcharts.lua") then
 	missing["custom modchart"] = true;
 end;
 
