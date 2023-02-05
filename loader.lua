@@ -263,6 +263,32 @@ KateEngine = {
 			};
 			{
 				Type = "Label";
+				Text = "-- CAMERA --"
+			};
+			{
+				Type = "Label";
+				Text = "This section contains settings that can be used to manipulate the camera."
+			};
+			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Camera Manipulation";
+				Key = "CamManipulation";
+
+				Stored = true;
+			};
+			{
+				Type = "Slider";
+				Default = 5;
+				Text = "Camera Displacement";
+				Key = "CamDisplace";
+				Minimum = 1;
+				Maximum = 30;
+
+				Stored = true;
+			};
+			{
+				Type = "Label";
 				Text = "-- HEALTHBAR --";
 			};
 			{
@@ -1064,6 +1090,9 @@ GameUI.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
 end)
 
 Framework.Settings.MissedSound.Value = false;
+if KateEngine.Settings.CamManipulation then
+	Framework.Settings.CameraDirectionMovement.Value = false;
+end
 
 GameUI.TopbarLabel:GetPropertyChangedSignal("TextColor3"):Connect(function()
     Topbar.TextColor3 = GameUI.TopbarLabel.TextColor3
@@ -1123,7 +1152,7 @@ GameUI.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This 
 end)
 
 local Camera = workspace.Camera;
-local FOV = Camera.FieldOfView;
+local FOV = 70;
 
 local id = 0;
 local connectedevent = nil;
@@ -1133,6 +1162,7 @@ local CurrentSection = 0;
 
 local debugtext = "";
 
+local LanePressed = Framework:GetEvent("LanePressed") -- This is the event that is fired whenever you press a strum
 local SceneLoaded = Framework:GetEvent("SceneLoaded"); -- This is the event that gets fired when a scene is loaded; @param {string? = scenename, folder? = sceneinstance | nil = scene unloading}
 local SoundEvent = Framework:GetEvent("SoundEvent"); -- This is the event that gets fired when a song starts or ends; @param {boolean = songstarted/songended}
 local NoteMiss = Framework:GetEvent("NoteMissed"); -- This is the event that gets fired when a note is missed, used for modcharts; 
@@ -1142,9 +1172,9 @@ ModchartSystem = {
 	-- Camera zooming thing
 	CameraZoom = function()
 		-- Tween the camera
-		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
-		Camera.FieldOfView = FOV;
-		local camtween = TweenService:Create(Camera, tweenInfo, {FieldOfView = FOV+1});
+		local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out);
+		Camera.FieldOfView = FOV - 3;
+		local camtween = TweenService:Create(Camera, tweenInfo, {FieldOfView = FOV});
 		ManiaRating.TextSize = 35;
 		local txttween = TweenService:Create(ManiaRating, tweenInfo, {TextSize = 30});
 		LyricsLabel.TextSize = 45;
@@ -1557,6 +1587,33 @@ NoteMiss:Connect(function(v1, v2)
 		Modchart.NoteMiss(v1, v2);
 	end
 end);
+
+local curPos = nil
+
+LanePressed:Connect(function(direction, isActive)
+	-- Here we are with the strumLine stuffs!
+	-- @param: {direction:table {Direction : number<0-3>, Position : ?}}
+	-- The paramater isActive signifies when the lane is currently being held or not
+
+	local cameraDisplace : number = KateEngine.Settings.CamDisplace / 10;
+	local cameraManipulationTable = {
+		["0"] = CFrame.new(-cameraDisplace, 0, 0),
+		["1"] = CFrame.new(0, -cameraDisplace, 0),
+		["2"] = CFrame.new(0, cameraDisplace, 0),
+		["3"] = CFrame.new(cameraDisplace, 0, 0)
+	}
+-- We check to see if we can go ahead with the camera displacement
+	if Framework.SongPlayer and Framework.SongPlayer.CurrentlyPlaying and direction.Side == Framework.UI.CurrentSide then
+		if isActive then
+			curPos = direction.Direction or direction.Position
+			Framework.StageCam:SetOffset("Direction", cameraManipulationTable[tostring(curPos)])
+			return;
+		end
+		if direction.Direction == curPos then
+			Framework.StageCam:SetOffset("Direction", nil);
+		end
+	end
+end)
 
 SoundEvent:Connect(function(Active)
 	if Active == false then
