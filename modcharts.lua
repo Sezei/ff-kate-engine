@@ -1,34 +1,71 @@
+local TweenService = game:GetService("TweenService");
+
 return {
 	-- Modcharts go by [SongId] = {OnBeat, OnSection, ...}
 
+	--[[
+		Event Functions; (Called when the event happens)
+
+		void SongStart {Framework}
+		    - Called when the song starts.
+			- Framework is the Framework object.
+
+		void OnStep {Framework, Step}
+		    - Called when a step is reached.
+			- A step happens every 1/4th beat.
+			- Step is the step number.
+
+		void OnBeat {Framework, Beat}
+		    - Called when a beat is reached.
+			- A beat is happening at the rate of the BPM; For example, if the BPM is 120, then a beat happens every 0.5 seconds.
+
+		void OnSection {Framework, Section}
+		    - Called when a section is reached.
+			- A section happens every 4th beat.
+
+
+		Variables;
+
+		boolean DisableDefault
+		    - Disables the default modchart.
+			- This disables the default camera zooming (one-per-section).
+			- This is false by default.
+
+		table Lyrics
+		    - Sets the lyrics for the song.
+			- The table is formatted as [Step] = "Lyric";
+			- Setting the lyric to an empty string ("") will set the lyrictext's visibility to false.
+
+		table Variables
+		    - Sets KE variables.
+			- Usable for doing Framework:GetKEValue("VariableName");
+
+
+		How to get the Song ID?
+
+		While there are 2 mains to do it, the officially endorsed way is to use the "Get Song ID" button in mod menu's main page.
+		Alternatively, you could use Framework:GetKEValue("SongID") to get the song ID, but doesn't paste it to the clipboard.
+	]]
+
 	["9134422683"] = { -- FNF - Mother
-		DisableDefault = true; -- Disable the default "modchart" - This disables the default camera zooming (one-per-section).
-		SongStart = function(Framework)
-			-- This function is called when the song starts.
-			print("Started Mother")
-		end;
+		DisableDefault = true;
 		OnBeat = function(Framework, Beat)
-			print("Beat: "..Beat)
 			if Beat >= 169 and Beat <= 200 then
-				Framework.KEMS.CameraZoom();
+				Framework.KateEngine.Modcharter.CameraZoom();
 			end
 		end;
 		OnSection = function(Framework, Section)
-			print("Section: "..Section)
-			Framework.KEMS.CameraZoom();
+			Framework.KateEngine.Modcharter.CameraZoom();
 		end;
-		Variables = {
-			["HelloWorld"] = 0; -- Framework:GetKEValue("HelloWorld") => 0
-		}; -- Sets KE variables here; Accessible by doing Framework:GetKEValue("VariableName");
 	};
 
 	["10729979967"] = { -- Vs. LSE - Means of Destruction
 		OnBeat = function(Framework, Beat)
-			if Beat == 138 then
-				Framework.KEMS.SetAllArrows("CircularWide");
+			if Beat == 140 then
+				Framework.KateEngine.Modcharter.SetAllArrows("CircularWide");
 				Framework:GetEvent("ArrowDataChanged"):Fire();
-			elseif Beat == 300 then
-				Framework.KEMS.LoadArrowsStyle();
+			elseif Beat == 306 then
+				Framework.KateEngine.Modcharter.LoadArrowsStyle();
 				Framework:GetEvent("ArrowDataChanged"):Fire();
 			end
 		end;
@@ -37,16 +74,110 @@ return {
 	["10729982629"] = { -- Vs. LSE - DAW Wars
 		OnBeat = function(Framework, Beat)
 			if Beat == 308 then
-				Framework.KEMS.SetAllArrows("CircularWide");
+				Framework.KateEngine.Modcharter.SetAllArrows("CircularWide");
 				Framework:GetEvent("ArrowDataChanged"):Fire();
 			elseif Beat == 436 then
-				Framework.KEMS.LoadArrowsStyle();
+				Framework.KateEngine.Modcharter.LoadArrowsStyle();
 				Framework:GetEvent("ArrowDataChanged"):Fire();
 			end
 		end;
 	};
+	
+	["9103779046"] = { -- Secret Histories - Confrontation
+		Lyrics = {
+			[1624] = "They were impostors, Sonic!";
+			[1654] = "They didn't love you";
+			[1675] = "I loved you!";
+			[1688] = "You think they were your friends?!";
+			[1717] = "<i>I</i> WAS YOUR BEST FRIEND, SONIC!";
+			[1754] = "DON'T YOU GET IT?";
+			[1770] = "SONIC'S BEST FRIEND IS TAILS!";
+			[1808] = "<font size='70'><u>ME!</u></font>";
+			[1824] = "[Maniacal Laugher]";
+			[1838] = "";
+		};
+	};
+
+	["9462575360"] = { -- Hotline 024 - Uncanny Valley
+		SetBPM = 170;
+	};
+
+	["9103346396"] = { -- Vs. Kapi: Arcade Showdown - Sanctuary
+		OnStep = function(Framework, Step) -- Need precise timing for these ones xd!
+			if Step == 700 or Step == 1680 then
+				task.spawn(function()
+					local sprite = Framework.KateEngine.Modcharter.Sprite("rbxassetid://12301335754", UDim2.fromScale(0.5,0.5), UDim2.fromScale(0.5,0.5), 5, Vector2.new(0.5, 0.5));
+					sprite.ImageTransparency = 0;
+
+					local aspectratio = Instance.new("UIAspectRatioConstraint");
+					aspectratio.AspectRatio = 1;
+					aspectratio.Parent = sprite;
+
+					task.wait(0.2);
+					local tween = TweenService:Create(sprite, TweenInfo.new(0.3), {ImageTransparency = 1});
+					tween:Play();
+					tween.Completed:Wait();
+					sprite:Destroy();
+				end);
+			end;
+		end;
+	};
+
+	["9103362495"] = { -- Hypno's Lullaby - Safety Lullaby
+		Lyrics = {
+			[65] = "Come little Girlfriend, come with me!";
+			[96] = "Boyfriend is waiting, steadily!";
+			[128] = "";
+			[192] = "Alone at night, now let us run..";
+			[224] = "With Hypno, you'll have so much fun!";
+			[258] = "";
+			[320] = "Oh little Girlfriend, please don't cry!";
+			[353] = "Hypno wouldn't hurt a fly!";
+			[385] = "";
+			[447] = "Your father clearly doesn't get...";
+			[480] = "Deep in the forest, BF I met!";
+			[512] = "";
+			[576] = "Oh little Girlfriend, please don't squirm!";
+			[606] = "These ropes, I know: Will hold you firm...";
+			[640] = "Hypno tells you; \"This is true\"...";
+			[670] = "...but sadly, Hypno lied to you!";
+			[705] = "";
+			[770] = "Oh little Girlfriend, you shall not leave...";
+			[800] = "Your father for you will never grieve!";
+			[835] = "";
+			[897] = "Minds unravel at the seams...";
+			[928] = "Allowing me to haunt their dreams!";
+			[960] = "Surely now, you must know...";
+			[991] = "That it is time for you to go!";
+			[1024] = "";
+			[1090] = "Oh little Girlfriend, you weren't clever...";
+			[1120] = "RESISTING";
+			[1130] = "<font color=\"#ffcccc\">RESISTING ME</font>";
+			[1135] = "<font color=\"#ffaaaa\">RESISTING ME ONLY</font>";
+			[1142] = "<font color=\"#ff8888\">RESISTING ME ONLY MAKES</font>";
+			[1147] = "<font color=\"#ff5555\">RESISTING ME ONLY MAKES ME</font>";
+			[1153] = "<font color=\"#ff2222\">RESISTING ME ONLY MAKES ME BITTER!</font>";
+			[1186] = "";
+		};
+	};
 
 	["10575656167"] = { -- Seek's Cool Deltarune Mod - HYPERLINK
+		DisableDefault = true;
+		OnSection = function(Framework, Section)
+			if Section >= 28 and Section <= 30 then
+				return;
+			elseif Section == 65 or Section == 66 then
+				return;
+			end;
+			Framework.KateEngine.Modcharter.CameraZoom();
+		end;
+		OnStep = function(Framework, Step)
+			if Step == 3 or Step == 421 or Step == 1002 then
+				Framework.KateEngine.Modcharter.AllNotes.TweenAlpha(127, 0.2);
+			elseif Step == 101 or Step == 452 or Step == 1026 then
+				Framework.KateEngine.Modcharter.AllNotes.TweenAlpha(0, 0.2);
+			end;
+		end;
 		Lyrics = {
 			[4] = "[[Attention customers,";
 			[14] = "clean up on aisle 3]]";
@@ -111,16 +242,12 @@ return {
 			[592] = "";
 			[639] = "WATCH ME FLY,";
 			[656] = "[MAMA]";
-			[670] = "[MAMAA]";
-			[671] = "[MAMAAAA]";
-			[672] = "[MAMAAAAAAAA]";
-			[673] = "[MAMAAAAAAAAAA]";
 			[674] = "";
 			[720] = "[[Pipis]]";
 			[724] = "";
 			[816] = "Now's your chance to be a big shot";
-			[826] = "Now's your chance to be a <font color='#ffff00'>[[PI</font> shot";
-			[829] = "Now's your chance to be a [[PI<font color='#ffff00'>PIS]]</font>";
+			[826] = "Now's your chance to be a [[PI <s>shot</s>";
+			[829] = "Now's your chance to be a [[PIPIS]]";
 			[832] = "";
 			[924] = "[[Ugh]]";
 			[926] = "";
@@ -150,6 +277,6 @@ return {
 			[1357] = "";
 			[1358] = "Deal";
 			[1359] = "";
-		}
-	}
-}
+		};
+	};
+};

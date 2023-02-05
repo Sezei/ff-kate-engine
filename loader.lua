@@ -1,49 +1,32 @@
---trolling--
---local engine, ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/loader.lua",true))();
-
 -- why did i even need to include this 💀
 if game.PlaceId ~= 6447798030 and game.PlaceId ~= 6996694685 then
 	return error("No!")
 end
 
--- function to deep-print a table key-value pairs
-function printTable(t, indent)
-    if indent == nil then indent = 0 end
-    for k, v in pairs(t) do
-        formatting = string.rep("  ", indent) .. k .. ": "
-        if type(v) == "table" then
-            print(formatting)
-            printTable(v, indent+1)
-        elseif type(v) == 'boolean' then
-            print(formatting .. tostring(v))
-        else
-            print(formatting .. v)
-        end
-    end
-end
+-- Check which functions are missing in order to know what to expect from the client
+local missing = {};
 
--- Services and Variables
-local httpservice = game:GetService("HttpService");
-local tweenservice = game:GetService("TweenService");
-local gameUi = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
-local UIS = game:GetService("UserInputService");
-local origintime = 0;
-local version = "v0.9";
-local prevcombo = 0;
-local counter = 0;
-local songdifficulty = 0;
-local event = game.ReplicatedStorage.RE;
-local inSolo = false;
-local inNoMiss = false;
-local SicksOnly = false;
-local autoplayActive = false;
-local localhealth = 40;
-local shared = {};
-local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..version;Theme = "Dark";SizeX = 500;})
-material.Self.Enabled = false;
+if not getgc then -- This one is required for the script to work, as it hooks into the Framework.
+	return error("Your exploit is not supported by this script; Missing function getgc().")
+end;
 
-local framework;
+if not writefile or not readfile or not isfile or not isfolder or not makefolder then
+	missing["file storage"] = true;
+	missing["custom modchart"] = true;
+elseif not isfile("KateEngine/Modcharts.lua") then
+	missing["custom modchart"] = true;
+end;
 
+if not setclipboard then
+	missing["clipboard"] = true;
+end;
+
+-- 💀
+if not isfolder("KateEngine") then
+    makefolder("KateEngine");
+end;
+
+-- Function to get the Framework
 function getGameFramework()
 	for _, v in next, getgc(true) do
 		if type(v) == 'table' and rawget(v, 'GameUI') then
@@ -52,653 +35,676 @@ function getGameFramework()
 	end
 end
 
-framework = getGameFramework();
+local ColorJSON = {
+	Encode = function(Color)
+		if typeof(Color) == "Color3" then
+			return string.format("%s,%s,%s", Color.r, Color.g, Color.b);
+		end;
+	end;
+	Decode = function(Color)
+		if typeof(Color) == "Color3" then
+			-- It's already a color, so just return it.
+			return Color;
+		elseif typeof(Color) == "string" then
+			local RGB = string.split(Color, ",");
+			return Color3.new(RGB[1], RGB[2], RGB[3]);
+		end;
+	end;
+};
 
-framework.KEValues = {};
+local Framework = getGameFramework();
 
-function framework:SetKEValue(key, value)
+local Version = "v0.10";
+
+-- Create the KateEngine table
+KateEngine = {
+	-- Base Info
+	Version = Version;
+	Cache = {};
+	InSolo = false;
+
+	-- Game Modifications
+	Health = {
+		Current = 40;
+		Max = 100;
+	};
+
+	-- UI Improvements
+	Mania = {
+		PreviousCombo = 0;
+		CurrentCombo = 0;
+		TotalNotes = 0;
+		Combo = 0;
+		Perfects = 0;
+	};
+	Topbar = {
+		OriginTime = 0;
+		SongDifficulty = 0;
+	};
+
+	ColorJSON = ColorJSON;
+
+	-- UI Settings; They are built from the MenuBuild table, so for now it's empty. For documentation sake, Key is the name of the setting, and Value is the value of the setting.
+	Settings = {};
+
+	-- Menu Settings; These are the settings that are used to build the menu and are used to save the settings.
+	MenuBuild = {
+		["Main"] = {
+			{
+				Type = "Boolean";
+				Default = false;
+				Text = "3D Combo Display";
+				Key = "WorldCombo";
+
+				Stored = true;
+			};
+			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Enable Modcharts";
+				Key = "Modcharts";
+
+				Stored = true;
+			};
+			{
+				Requirement = "clipboard";
+				Type = "Button";
+				Text = "Copy Song ID";
+				Callback = function()
+					setclipboard(Framework:GetKEValue("SongID"));
+				end;
+			};
+			{
+				Requirement = "file storage";
+				Type = "Button";
+				Text = "Export Chart";
+				Callback = function()
+					-- Get the chart
+					local Chart = Framework.KateEngine.Cache["CurrentChart"];
+
+					-- Attempt to turn the chart into JSON
+					local Success, JSON = pcall(game:GetService("HttpService").JSONEncode, game:GetService("HttpService"), Chart);
+
+					if Success then
+						if not isfolder("KateEngine/Exported_Charts") then
+							makefolder("KateEngine/Exported_Charts");
+						end;
+
+						writefile("KateEngine/Exported_Charts/" .. Framework:GetKEValue("SongID") .. ".json", JSON);
+					end
+				end;
+			};
+			{
+				Requirement = "file storage";
+				Type = "Button";
+				Text = "Force Save Settings";
+				Callback = function()
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+				end;
+			};
+			{
+				Requirement = "custom modchart";
+				Type = "Button";
+				Text = "Reload Modcharts";
+				Callback = function()
+					KateEngine.ReloadModcharts();
+				end;
+			};
+		};
+
+		["Display"] = {
+			{
+				Type = "Label";
+				Text = "-- MANIA --";
+			};
+			{
+				Type = "Label";
+				Text = "This section contains settings for the Mania Improvements and the Combo Counter.";
+			};
+			{
+				Type = "Boolean";
+				Default = false;
+				Text = "Enabled";
+				Key = "ManiaCounter";
+
+				Stored = true;
+			};
+			{
+				Type = "Boolean";
+				Default = true;
+				Text = "FC Indicator";
+				Key = "Mania_FCIndicator";
+
+				Stored = true;
+			};
+			{
+				Type = "Boolean";
+				Default = false;
+				Text = "Simple Ratings";
+				Key = "Mania_SimpleRatings";
+
+				Stored = true;
+			};
+			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Dynamic Font Increments";
+				Key = "Mania_DynamicIncrements";
+
+				Stored = true;
+			};
+            {
+                Type = "Boolean";
+                Default = false;
+                Text = "Show Judgement Overlays [EXPERIMENTAL]";
+                Key = "Mania_JudgementOverlays";
+
+                Stored = true;
+            };
+			{
+				Type = "Boolean";
+                Default = true; -- Less annoyance for the players (deserved tbh)
+                Text = "Non-Sick Overlays Only";
+                Key = "Mania_NonPerfectOverlays";
+
+                Stored = true;
+			};
+			{
+				Type = "Multichoice";
+				Default = 50;
+				Text = "Milestone";
+				Key = "Mania_Milestone";
+				Options = {10, 20, 25, 50, 100};
+
+				Stored = true;
+			};
+			{
+				Type = "Color3";
+				Default = ColorJSON.Encode(Color3.new(1,1,1));
+				Text = "0 Combo Color";
+				Key = "Mania_0Combo";
+
+				Stored = true;
+			};
+			{
+				Type = "Color3";
+				Default = ColorJSON.Encode(Color3.new(1,1,0.75));
+				Text = "100 Combo Color";
+				Key = "Mania_100Combo";
+
+				Stored = true;
+			};
+			{
+				Type = "Color3";
+				Default = ColorJSON.Encode(Color3.new(1,1,0.5));
+				Text = "200 Combo Color";
+				Key = "Mania_200Combo";
+
+				Stored = true;
+			};
+			{
+				Type = "Color3";
+				Default = ColorJSON.Encode(Color3.new(1,1,0.25));
+				Text = "300 Combo Color";
+				Key = "Mania_300Combo";
+
+				Stored = true;
+			};
+			{
+				Type = "Color3";
+				Default = ColorJSON.Encode(Color3.new(1,1,0));
+				Text = "400 Combo Color";
+				Key = "Mania_400Combo";
+
+				Stored = true;
+			};
+		};
+
+		["Gameplay"] = {
+			{
+				Type = "Label";
+				Text = "-- BOT OPPONENT --";
+			};
+			{
+				Type = "Label";
+				Text = "This section contains settings for the bot opponent. <font color='#ff7700'><b>Temporarily Disabled for Optimization.</b></font>";
+			};
+			{
+				Type = "Multichoice";
+				Default = "Insane";
+				Text = "Bot Difficulty";
+				Key = "BotDifficulty";
+				Options = {"Average Blimey (Insane) Player", "Easy", "Normal", "Hard", "Insane", "PFC"};
+
+				Stored = true;
+			};
+			{
+				Type = "Label";
+				Text = "-- HEALTHBAR --";
+			};
+			{
+				Type = "Label";
+				Text = "This section contains settings for the healthbar.";
+			};
+			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Enabled";
+				Key = "Healthbar";
+				Callback = function(Value)
+					if Value then
+						KateEngine.Assets.Healthbar.Visible = true;
+					else
+						KateEngine.Assets.Healthbar.Visible = false;
+					end
+				end;
+
+				Stored = true;
+			};
+			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Death on 0 Health";
+				Key = "Healthbar_DeathOnZero";
+
+				Stored = true;
+			};
+			{
+				Type = "Slider";
+				Default = 5; -- Apparently it's 5 from the Framework source.
+				Text = "Health Gain";
+				Key = "Healthbar_HealthGain";
+				Minimum = 1;
+				Maximum = 50;
+
+				Stored = true;
+			};
+			{
+				Type = "Slider";
+				Default = 15;
+				Text = "Health Loss";
+				Key = "Healthbar_HealthLoss";
+				Minimum = 1;
+				Maximum = 50;
+
+				Stored = true;
+			};
+			{
+				Type = "Color3";
+				Default = ColorJSON.Encode(Color3.new(1,0,0));
+				Text = "Missing Health Color";
+				Key = "Healthbar_ColorBack";
+
+				Callback = function(Value)
+					KateEngine.Assets.Healthbar.BackgroundColor3 = Value;
+				end;
+
+				Stored = true;
+			};
+			{
+				Type = "Color3";
+				Default = ColorJSON.Encode(Color3.new(0,1,0));
+				Text = "Remaining Health Color";
+				Key = "Healthbar_ColorFront";
+
+				Callback = function(Value)
+					KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Value;
+				end;
+
+				Stored = true;
+			};
+            {
+				Type = "Label";
+				Text = "-- CAMERA --"
+			};
+			{
+				Type = "Label";
+				Text = "This section contains settings that can be used to manipulate the camera."
+			};
+			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Camera Manipulation";
+				Key = "CamManipulation";
+
+				Stored = true;
+			};
+			{
+				Type = "Slider";
+				Default = 5;
+				Text = "Camera Displacement";
+				Key = "CamDisplace";
+				Minimum = 1;
+				Maximum = 30;
+
+				Stored = true;
+			};
+		};
+
+		["Credits"] = {
+			{
+				Type = "Label";
+				Text = "Kate Engine " .. Version;
+			};
+			{
+				Type = "Label";
+				Text = "Contributors:";
+			};
+			{
+				Type = "Label";
+				Text = "<font color=\"#ff1a70\">Sezei</font>";
+			};
+			{
+				Type = "Label";
+				Text = "<font color=\"#11a7b8\">Aaron</font>";
+			};
+			{
+				Type = "Label";
+				Text = "Resources Used:";
+			};
+			{
+				Type = "Label";
+				Text = "<font color=\"#00ff00\">Wally</font> / <font color=\"#00ff00\">Bigtimbob</font> - Framework Detection";
+			};
+			{
+				Type = "Label";
+				Text = "<font color=\"#ff7700\">Kinlei</font>(?) - UI Library (MaterialUI)";
+			};
+			{
+				Type = "Boolean";
+				Default = false;
+				Text = "Hide Watermark";
+				Key = "HideWatermark";
+				Callback = function(Value)
+					if Value then
+						KateEngine.Assets.Watermark.Visible = false;
+					else
+						KateEngine.Assets.Watermark.Visible = true;
+					end
+				end;
+
+				Stored = false;
+			}
+		};
+	};
+
+	-- Store assets generated by the script
+	Assets = {};
+};
+
+Framework.KateEngine = KateEngine;
+
+-- Pre-Rewrite Support
+Framework.KEValues = {};
+
+function Framework:SetKEValue(key, value)
 	self.KEValues[key] = value;
 end
-function framework:GetKEValue(key)
+function Framework:GetKEValue(key)
 	return self.KEValues[key];
 end
 
--- Mania UI
-local funny = Instance.new("TextLabel")
-funny.AnchorPoint = Vector2.new(0.5, 0.5)
-funny.Position = UDim2.fromScale(0.5, 0.5)
-funny.Parent = gameUi
-funny.BackgroundTransparency = 1
-funny.TextColor3 = Color3.new(1, 1, 1)
-funny.TextStrokeColor3 = Color3.new(0, 0, 0)
-funny.TextStrokeTransparency = 0.5
-funny.TextSize = 50
-funny.Text = "0"
-funny.Font = Enum.Font.Arcade
-funny.Visible = false
-funny.Name = "KE_funny"
-local tween = funny:Clone()
-tween.Visible = true
-tween.Parent = funny
-tween.TextStrokeTransparency = 1
-tween.TextTransparency = 1
-tween.Name = "KE_tween"
-local secondary = funny:Clone();
-secondary.Visible = true
-secondary.Parent = funny
-secondary.Text = ""
-secondary.Position = UDim2.new(0.5,0,0,40)
-secondary.TextSize = 30
-secondary.Name = "KE_secondary"
+-- Services and Variables
+local HttpService = game:GetService("HttpService");
+local TweenService = game:GetService("TweenService");
+local UIS = game:GetService("UserInputService");
+
+-- Game Stuff
+local GameUI = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
+local RemoteEvent = game.ReplicatedStorage.RE;
+
+-- Material UI (Used for the menu)
+local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..Version;Theme = "Dark";SizeX = 500;})
+material.Self.Enabled = false;
+
+-- Build the UI
+-- Mania Combo Counter
+local ManiaComboCounter = Instance.new("TextLabel");
+ManiaComboCounter.AnchorPoint = Vector2.new(0.5, 0.5);
+ManiaComboCounter.Position = UDim2.fromScale(0.5, 0.5);
+ManiaComboCounter.Parent = GameUI;
+ManiaComboCounter.BackgroundTransparency = 1;
+ManiaComboCounter.TextColor3 = Color3.new(1, 1, 1);
+ManiaComboCounter.TextStrokeColor3 = Color3.new(0, 0, 0);
+ManiaComboCounter.TextStrokeTransparency = 0.5;
+ManiaComboCounter.TextSize = 50;
+ManiaComboCounter.Text = "0";
+ManiaComboCounter.Font = Enum.Font.Arcade;
+ManiaComboCounter.Visible = false;
+ManiaComboCounter.Name = "KE_ManiaComboCounter";
+KateEngine.Assets.ManiaComboCounter = ManiaComboCounter;
+
+local ManiaComboCounterTween = ManiaComboCounter:Clone();
+ManiaComboCounterTween.Visible = true;
+ManiaComboCounterTween.Parent = ManiaComboCounter;
+ManiaComboCounterTween.TextStrokeTransparency = 1;
+ManiaComboCounterTween.TextTransparency = 1;
+ManiaComboCounterTween.Name = "Tween";
+
+local ManiaRating = ManiaComboCounter:Clone();
+ManiaRating.Visible = true;
+ManiaRating.Parent = ManiaComboCounter;
+ManiaRating.Text = "";
+ManiaRating.Position = UDim2.new(0.5,0,0,40);
+ManiaRating.TextSize = 30;
+ManiaRating.Name = "Rating";
+
+-- Mania-Like Judgement Overlay (For some reason modern rhythm games use this, so I added it as well ig lol)
+local ManiaJudgementOverlay = Instance.new("ImageLabel");
+ManiaJudgementOverlay.Position = UDim2.new(0, 0, 0, -40);
+ManiaJudgementOverlay.Size = UDim2.new(1, 0, 1, 40);
+ManiaJudgementOverlay.Parent = GameUI;
+ManiaJudgementOverlay.BackgroundTransparency = 1;
+ManiaJudgementOverlay.Image = "rbxassetid://12395330181";
+ManiaJudgementOverlay.Visible = false;
+ManiaJudgementOverlay.Name = "KE_ManiaJudgementOverlay";
+ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 255, 255);
+ManiaJudgementOverlay.ImageTransparency = 1;
+ManiaJudgementOverlay.ScaleType = Enum.ScaleType.Slice;
+ManiaJudgementOverlay.SliceCenter = Rect.new(4, 4, 96, 96);
+ManiaJudgementOverlay.SliceScale = 1.5;
+KateEngine.Assets.ManiaJudgementOverlay = ManiaJudgementOverlay;
 
 -- Lyrics UI
-local lyricstext = Instance.new("TextLabel")
-lyricstext.AnchorPoint = Vector2.new(0.5, 0.75)
-lyricstext.Position = UDim2.fromScale(0.5, 0.75)
-lyricstext.Parent = gameUi
-lyricstext.BackgroundTransparency = 1
-lyricstext.TextColor3 = Color3.new(1, 1, 1)
-lyricstext.TextStrokeColor3 = Color3.new(0, 0, 0)
-lyricstext.TextStrokeTransparency = 0.5
-lyricstext.TextSize = 35
-lyricstext.Text = ""
-lyricstext.Font = Enum.Font.PermanentMarker
-lyricstext.Visible = false
-lyricstext.Name = "KE_lyrics"
-lyricstext.RichText = true
+local LyricsLabel = Instance.new("TextLabel");
+LyricsLabel.AnchorPoint = Vector2.new(0.5, 0.75);
+LyricsLabel.Position = UDim2.fromScale(0.5, 0.75);
+LyricsLabel.Parent = GameUI;
+LyricsLabel.BackgroundTransparency = 1;
+LyricsLabel.TextColor3 = Color3.new(1, 1, 1);
+LyricsLabel.TextStrokeColor3 = Color3.new(0, 0, 0);
+LyricsLabel.TextStrokeTransparency = 0.5;
+LyricsLabel.TextSize = 45;
+LyricsLabel.Text = "";
+LyricsLabel.Font = Enum.Font.PermanentMarker;
+LyricsLabel.Visible = false;
+LyricsLabel.Name = "KE_lyrics";
+LyricsLabel.RichText = true;
+KateEngine.Assets.LyricsLabel = LyricsLabel;
 
 -- Watermark stuff
-local watermark = Instance.new("ImageLabel")
-watermark.Name = "KE_watermark"
-watermark.Image = "rbxassetid://11306098055"
-watermark.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-watermark.BackgroundTransparency = 1
-watermark.Size = UDim2.fromOffset(143, 94)
+local Watermark = Instance.new("ImageLabel");
+Watermark.Name = "KE_Watermark";
+Watermark.Image = "rbxassetid://12289530118";
+Watermark.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+Watermark.BackgroundTransparency = 1;
+Watermark.Size = UDim2.fromOffset(143, 94);
+KateEngine.Assets.Watermark = Watermark;
 
-local wversion = Instance.new("TextLabel")
-wversion.Name = "KE_version"
-wversion.Font = Enum.Font.PermanentMarker
-wversion.Text = version
-wversion.TextColor3 = Color3.fromRGB(255, 255, 255)
-wversion.TextSize = 28
-wversion.TextXAlignment = Enum.TextXAlignment.Left
-wversion.TextYAlignment = Enum.TextYAlignment.Bottom
-wversion.AnchorPoint = Vector2.new(0.5, 1)
-wversion.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-wversion.BackgroundTransparency = 1
-wversion.Position = UDim2.new(0.5, 0, 1, 10)
-wversion.Size = UDim2.new(0.95, 0, 0, 50)
+local WatermarkVersion = Instance.new("TextLabel");
+WatermarkVersion.Name = "Version";
+WatermarkVersion.Font = Enum.Font.PermanentMarker;
+WatermarkVersion.Text = KateEngine.Version;
+WatermarkVersion.TextColor3 = Color3.fromRGB(255, 255, 255);
+WatermarkVersion.TextSize = 28;
+WatermarkVersion.TextXAlignment = Enum.TextXAlignment.Left;
+WatermarkVersion.TextYAlignment = Enum.TextYAlignment.Bottom;
+WatermarkVersion.AnchorPoint = Vector2.new(0.5, 1);
+WatermarkVersion.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+WatermarkVersion.BackgroundTransparency = 1;
+WatermarkVersion.Position = UDim2.new(0.5, 0, 1, 10);
+WatermarkVersion.Size = UDim2.new(0.95, 0, 0, 50);
 
-local debugstuff = Instance.new("TextLabel")
-debugstuff.Name = "KE_debuglabel"
-debugstuff.Font = Enum.Font.PermanentMarker
-debugstuff.Text = "DEBUG STUFF!"
-debugstuff.TextColor3 = Color3.fromRGB(255, 255, 255)
-debugstuff.TextSize = 18
-debugstuff.TextXAlignment = Enum.TextXAlignment.Left
-debugstuff.TextYAlignment = Enum.TextYAlignment.Top
-debugstuff.AnchorPoint = Vector2.new(0.5, 1)
-debugstuff.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-debugstuff.BackgroundTransparency = 1
-debugstuff.Position = UDim2.new(0.5, 0, 1, 48)
-debugstuff.Size = UDim2.new(0.95, 0, 0, 20)
+local BPMSheet = Instance.new("TextLabel");
+BPMSheet.Name = "BPMSheet";
+BPMSheet.Font = Enum.Font.PermanentMarker;
+BPMSheet.Text = "DEBUG STUFF!";
+BPMSheet.TextColor3 = Color3.fromRGB(255, 255, 255);
+BPMSheet.TextSize = 18;
+BPMSheet.TextXAlignment = Enum.TextXAlignment.Left;
+BPMSheet.TextYAlignment = Enum.TextYAlignment.Top;
+BPMSheet.AnchorPoint = Vector2.new(0.5, 1);
+BPMSheet.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+BPMSheet.BackgroundTransparency = 1;
+BPMSheet.Position = UDim2.new(0.5, 0, 1, 48);
+BPMSheet.Size = UDim2.new(0.95, 0, 0, 20);
 
-local uIStroke = Instance.new("UIStroke")
-uIStroke.Name = "UIStroke"
-uIStroke.Thickness = 2
-uIStroke.Parent = wversion
+local UIStroke = Instance.new("UIStroke");
+UIStroke.Thickness = 2;
+UIStroke.Parent = WatermarkVersion;
 
-uIStroke:Clone().Parent = debugstuff
+UIStroke:Clone().Parent = BPMSheet;
 
-wversion.Parent = watermark
-debugstuff.Parent = watermark
+WatermarkVersion.Parent = Watermark;
+BPMSheet.Parent = Watermark;
 
-local woptions = Instance.new("TextLabel")
-woptions.Name = "Options"
-woptions.Font = Enum.Font.PermanentMarker
-woptions.Text = "Options: ;"
-woptions.TextColor3 = Color3.fromRGB(255, 255, 255)
-woptions.TextSize = 20
-woptions.TextXAlignment = Enum.TextXAlignment.Right
-woptions.TextYAlignment = Enum.TextYAlignment.Bottom
-woptions.AnchorPoint = Vector2.new(0.5, 1)
-woptions.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-woptions.BackgroundTransparency = 1
-woptions.Position = UDim2.new(0.5, 0, 1, 8)
-woptions.Size = UDim2.new(0.95, 0, 0, 50)
+Watermark.Parent = GameUI;
 
-local uIStroke1 = Instance.new("UIStroke")
-uIStroke1.Name = "UIStroke"
-uIStroke1.Thickness = 2
-uIStroke1.Parent = woptions
+-- Topbar clone
+local Topbar = GameUI.TopbarLabel:Clone();
+Topbar.Parent = GameUI;
+Topbar.Visible = true;
+Topbar.Name = "KE_Topbar";
+KateEngine.Assets.Topbar = Topbar;
 
-woptions.Parent = watermark
-watermark.Parent = gameUi;
---
-local topb = gameUi.TopbarLabel:Clone();
-topb.Parent = gameUi;
-topb.Visible = true;
-topb.Name = "KE_topbar"
-local hpback = Instance.new("Frame");
-hpback.Visible = true;
-hpback.Parent = gameUi.Arrows;
-hpback.AnchorPoint = Vector2.new(0.5,1);
-hpback.Position = UDim2.new(0.5,0,1,-50);
-hpback.Size = UDim2.new(0.4,0,0,20);
-hpback.BackgroundColor3 = Color3.fromRGB(27,27,27);
-hpback.BorderSizePixel = 0;
-hpback.Name = "KE_Healthbar";
-local hplower = hpback:Clone();
-hplower.Visible = true;
-hplower.Parent = hpback;
-hplower.AnchorPoint = Vector2.new(0.5,0.5);
-hplower.Size = UDim2.new(0.99,0,0,16);
-hplower.Position = UDim2.new(0.5,0,0.5,0);
-hplower.BackgroundColor3 = Color3.new(1,0,0);
-hplower.Name = "Back";
-local hpupper = hplower:Clone();
-hpupper.Visible = true;
-hpupper.Parent = hplower;
-hpupper.AnchorPoint = Vector2.new(1,0.5);
-hpupper.Size = UDim2.new(0.4,0,1,0);
-hpupper.Position = UDim2.new(1,0,0.5,0);
-hpupper.BackgroundColor3 = Color3.new(0,1,0);
-hpupper.Name = "Front";
+local Healthbar = Instance.new("Frame");
+Healthbar.Visible = true;
+Healthbar.Parent = GameUI.Arrows;
+Healthbar.AnchorPoint = Vector2.new(0.5,1);
+Healthbar.Position = UDim2.new(0.5,0,1,-50);
+Healthbar.Size = UDim2.new(0.4,0,0,16);
+Healthbar.BackgroundColor3 = Color3.fromRGB(255, 0, 0);
+Healthbar.BorderSizePixel = 0;
+Healthbar.Name = "KE_Healthbar";
+KateEngine.Assets.Healthbar = Healthbar;
 
-material.Banner({Text = "+ Added better miss sound handling\n\n> Dynamic Font Increments is no longer an experimental\n\n> A rewrite may be coming soon!"});
+local UIStrokeHealthbar = Instance.new("UIStroke");
+UIStrokeHealthbar.Thickness = 2;
+UIStrokeHealthbar.Transparency = 0.25;
+UIStrokeHealthbar.Parent = Healthbar;
+UIStrokeHealthbar.Color = Color3.fromRGB(46, 46, 46);
 
-local globaldata = { -- Data that will be used across the entire script.
-	totalnotes = 0;
-	combo = 0;
-};
+local HBFront = Healthbar:Clone();
+HBFront.Visible = true;
+HBFront.Parent = Healthbar;
+HBFront.AnchorPoint = Vector2.new(1,0.5);
+HBFront.Size = UDim2.new(0.4,0,1,0);
+HBFront.Position = UDim2.new(1,0,0.5,0);
+HBFront.BackgroundColor3 = Color3.new(0,1,0);
+HBFront.ZIndex = 2;
+HBFront.Name = "Front";
 
-local uidata = { -- Saving Purposes. Also easier to access ig.
-	DataVersion = version;
-	ManiaCounter = true;
-	WorldCombo = true;
-	SongProgress = true;
-	SoloGamemodes = true;
-	Health = true;
-	CameraBump = true;
-	Mania_FCIndicator = true;
-	Mania_SimpleRatings = false;
-	Mania_DynamicIncrements = true;
-	Mania_Milestone = 50;
-	Mania_0Combo = Color3.new(1,1,1);
-	Mania_100Combo = Color3.new(1,1,0.75);
-	Mania_200Combo = Color3.new(1,1,0.5);
-	Mania_300Combo = Color3.new(1,1,0.25);
-	Mania_400Combo = Color3.new(1,1,0);
-    Bot_AILevel = "Insane";
-	Modes_NoMiss = true;
-	Modes_SicksOnly = true;
-	Health_MissingColor = Color3.new(1,0,0);
-	Health_RemainingColor = Color3.new(0,1,0);
-	Health_HitGain = 3;
-	Health_MissLoss = 15;
-    BetterMiss_Enabled = true;
-    BetterMiss_Volume = 0.5;
-	BPMFix_Enabled = true;
-}
+material.Banner({Text = "Remade the storage stuff. Apologies if you lost data!"});
 
-local maintab = material.New({Title = "Main"}) do
-	if type(readfile) == 'function' and type(writefile) == 'function' and type(isfile) == 'function' then
-		maintab.Label({
-			Text = "-- SAVE & LOAD --";
-		})
-		ConfigLoad = maintab.Button({
-			Text = "Load KE Settings"; 
-			Callback = function()
-				if not isfile('KE_Config.mp5') then
-					material.Banner({Text = "Attempt to load UI config has failed: Unable to read the file.\n\nInfo:\nFile 'KE_Config.mp5' does not exist!"});
-					return
-				end
-				local success, data = pcall(function()
-					return readfile('KE_Config.mp5')
-				end)
-				if not success then
-					material.Banner({Text = "Attempt to load UI config has failed: Unable to read the file.\n\nInfo:\n"..data});
-					return
-				end
-				local success, decoded = pcall(httpservice.JSONDecode, httpservice, readfile('KE_Config.mp5'))
-				if not success then
-					material.Banner({Text = "Attempt to load UI config has failed: Unable to decode UI data.\n\nInfo:\n"..decoded});
-					return
-				end
-				if decoded.DataVersion ~= version then
-					material.Banner({Text = "UI config has loaded correctly, but is outdated - Watch out for any corrupted data!"});
-				end
-				for k,v in pairs(decoded) do
-					if k ~= "DataVersion" then
-						uidata[k] = v;
-					end;
-					local env = getfenv()
-					if type(v) == "boolean" then
-						env[k]:SetState(v);
-					elseif type(v) == "userdata" then
-						env[k]:SetColor(v);
-						-- Number doesn't even have a SetState?
-					end
-				end
-				return material.Banner({Text = "UI config has loaded from file successfully!"});
-			end
-		});
-		ConfigSave = maintab.Button({
-			Text = "Save KE Settings"; 
-			Callback = function() 
-				local success, encoded = pcall(httpservice.JSONEncode, httpservice, uidata)
-				if not success then
-					material.Banner({Text = "Attempt to save UI config has failed: Unable to encode UI data.\n\nInfo:\n"..encoded});
-					return
-				end
-				local success, f = pcall(function()
-					writefile('KE_Config.mp5', encoded)
-				end)
-				if not success then
-					material.Banner({Text = "Attempt to save UI config has failed: Unable to write to file.\n\nInfo:\n"..encoded});
-					return
-				end
-			end;
-		});
+if not missing["file storage"] then
+	if isfile("KateEngine/config.png") then -- Load the settings if they exist
+		local data = game:GetService("HttpService"):JSONDecode(readfile("KateEngine/config.png"));
+		KateEngine.Settings = data;
 	end
-	maintab.Label({
-		Text = "-- MOD TOGGLES --";
-	})
-	ManiaCounter = maintab.Toggle({
-		Text = "Mania Combo Counter";
-		Callback = function(bool)
-			uidata.ManiaCounter = bool
-		end;
-		Enabled = true;
-	});
-	WorldCombo = maintab.Toggle({
-		Text = "3D Combo Counter";
-		Callback = function(bool)
-			uidata.WorldCombo = bool
-		end;
-		Enabled = true;
-	});
-	SongProgress = maintab.Toggle({
-		Text = "Song Progress Bar";
-		Callback = function(bool)
-			uidata.SongProgress = bool
-		end;
-		Enabled = true;
-	});
-	SoloGamemodes = maintab.Toggle({
-		Text = "Solo Gamemodes";
-		Callback = function(bool)
-			uidata.SoloGamemodes = bool
-		end;
-		Enabled = true;
-	});
-	Health = maintab.Toggle({
-		Text = "Solo Healthbar";
-		Callback = function(bool)
-			uidata.Health = bool;
-			if inSolo then
-				hpback.Visible = bool;
-			else
-				hpback.Visible = false;
-			end
-			localhealth = 40; -- reset
-		end;
-		Enabled = true;
-	});
-	if setclipboard then
-		maintab.Button({
-			Text = "Copy Song ID";
-			Callback = function()
-				if framework:GetKEValue("SongID") == nil then
-					return material.Banner({Text = "Song ID is not available."});
-				end
-				setclipboard(framework:GetKEValue("SongID"));
-				return material.Banner({Text = "The Song ID (".. framework:GetKEValue("SongID") ..") has been copied to clipboard."});
+end
+
+-- Create the UI
+for category, v in pairs(KateEngine.MenuBuild) do
+	local tab = material.New({Title = category});
+	for _, data in ipairs(v) do
+
+		if data.Requirement and missing[data.Requirement] then -- Skip if the requirement is missing
+			continue;
+		end
+
+		-- Check which type of UI element to create
+		local datatype = data.Type;
+
+		if datatype == "Label" then
+			tab.Label({
+				Text = data.Text;
+			});
+		elseif datatype == "Button" then
+			tab.Button({
+				Text = data.Text;
+				Callback = function()
+					if data.Callback then
+						data.Callback();
+					end
+				end;
+			});
+		elseif datatype == "Boolean" then
+			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
+			tab.Toggle({
+				Text = data.Text;
+				Callback = function(bool)
+					if data.Callback then
+						data.Callback(bool);
+					end
+					KateEngine.Settings[data.Key] = bool;
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+				end;
+				Enabled = KateEngine.Settings[data.Key] or data.Default;
+			});
+		elseif datatype == "Slider" then
+			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
+			tab.Slider({
+				Text = data.Text;
+				Callback = function(value)
+					if data.Callback then
+						data.Callback(value);
+					end
+					KateEngine.Settings[data.Key] = value;
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+				end;
+				Min = data.Minimum;
+				Max = data.Maximum;
+				Def = KateEngine.Settings[data.Key] or data.Default;
+			});
+		elseif datatype == "Multichoice" then
+			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
+			local dropdown = tab.Dropdown({
+				Text = data.Text;
+				Callback = function(value)
+					if data.Callback then
+						data.Callback(value);
+					end
+					KateEngine.Settings[data.Key] = value;
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+				end;
+				Options = data.Options;
+				Default = KateEngine.Settings[data.Key] or data.Default;
+			});
+		elseif datatype == "Color3" then
+			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
+			tab.ColorPicker({
+				Text = data.Text;
+				Callback = function(value)
+					if data.Callback then
+						data.Callback(value);
+					end
+					KateEngine.Settings[data.Key] = KateEngine.ColorJSON.Encode(value);
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+				end;
+				Default = KateEngine.ColorJSON.Decode(KateEngine.Settings[data.Key] or data.Default);
+			});
+
+			if data.Callback then
+				data.Callback(KateEngine.ColorJSON.Decode(KateEngine.Settings[data.Key] or data.Default));
 			end;
-		});
-	end;
-end;
-
-local displaymodstab = material.New({Title = "Display Mods"}) do
-	displaymodstab.Label({
-		Text = "-- MANIA --";
-	});
-	displaymodstab.Label({
-		Text = "Mania is a combo counter that displays the current combo in a mania-like fashion.";
-	});
-	Mania_FCIndicator = displaymodstab.Toggle({
-		Text = "FC Indicator";
-		Callback = function(bool)
-			uidata.Mania_FCIndicator = bool
-		end;
-		Enabled = true;
-	});
-	Mania_SimpleRatings = displaymodstab.Toggle({
-		Text = "Simple Ratings";
-		Callback = function(bool)
-			uidata.Mania_SimpleRatings = bool
-		end;
-		Enabled = false;
-	});
-	Mania_DynamicIncrements = displaymodstab.Toggle({
-		Text = "Dynamic Font Increments";
-		Callback = function(bool)
-			uidata.Mania_DynamicIncrements = bool
-		end;
-		Enabled = true;
-	});
-	Mania_Milestone = displaymodstab.Dropdown({
-		Text = "Combo Milestones";
-		Callback = function(option)
-			uidata.Mania_Milestone = tonumber(option)
-		end;
-		Options = {"20","25","50","100"};
-	});
-	Mania_0Combo = displaymodstab.ColorPicker({
-		Text = "Mania 0 Combo";
-		Callback = function(color)
-			uidata.Mania_0Combo = color
-		end;
-		Default = Color3.new(1,1,1);
-	});
-	Mania_100Combo = displaymodstab.ColorPicker({
-		Text = "Mania 100 Combo";
-		Callback = function(color)
-			uidata.Mania_100Combo = color
-		end;
-		Default = Color3.new(1,1,0.75);
-	});
-	Mania_200Combo = displaymodstab.ColorPicker({
-		Text = "Mania 200 Combo";
-		Callback = function(color)
-			uidata.Mania_200Combo = color
-		end;
-		Default = Color3.new(1,1,0.5);
-	});
-	Mania_300Combo = displaymodstab.ColorPicker({
-		Text = "Mania 300 Combo";
-		Callback = function(color)
-			uidata.Mania_300Combo = color
-		end;
-		Default = Color3.new(1,1,0.25);
-	});
-	Mania_400Combo = displaymodstab.ColorPicker({
-		Text = "Mania 400 Combo";
-		Callback = function(color)
-			uidata.Mania_400Combo = color
-		end;
-		Default = Color3.new(1,1,0);
-	});
-	
-end;
-
-local modstab = material.New({Title = "Gameplay Mods"}) do
-	modstab.Label({
-		Text = "<b>Everything in this tab is affecting <i>solo-play</i> rounds only!</b>";
-	});
-	modstab.Label({
-		Text = "-- GAMEMODES --";
-	});
-	modstab.Label({
-		Text = "These are the gamemodes that can be toggled on and off.";
-	});
-	Modes_NoMiss = modstab.Toggle({
-		Text = "No-Miss Mode Button";
-		Callback = function(bool)
-			uidata.Modes_NoMiss = bool
-		end;
-		Enabled = true;
-	});
-	Modes_SicksOnly = modstab.Toggle({
-		Text = "Sicks-Only Mode Button";
-		Callback = function(bool)
-			uidata.Modes_SicksOnly = bool
-		end;
-		Enabled = true;
-	});
-	modstab.Label({
-		Text = "-- HEALTHBAR --";
-	});
-	modstab.Label({
-		Text = "The healthbar indicates how much health you have. Hit notes to gain health, miss notes to lose health.";
-	});
-	Health_MissingColor = modstab.ColorPicker({
-		Text = "Missing Health Color";
-		Callback = function(color)
-			uidata.Health_MissingColor = color
-			hplower.BackgroundColor3 = color
-		end;
-		Default = Color3.new(1,0,0);
-	});
-	Health_RemainingColor = modstab.ColorPicker({
-		Text = "Remaining Health Color";
-		Callback = function(color)
-			uidata.Health_RemainingColor = color
-			hpupper.BackgroundColor3 = color
-		end;
-		Default = Color3.new(0,1,0);
-	});
-	Health_HitGain = modstab.Slider({
-		Text = "Note Hit Gain";
-		Callback = function(num)
-			uidata.Health_HitGain = num
-		end;
-		Min = 1;
-		Max = 50;
-		Def = 3;
-	});
-	Health_MissLoss = modstab.Slider({
-		Text = "Note Miss Loss";
-		Callback = function(color)
-			uidata.Health_MissLoss = color
-		end;
-		Min = 1;
-		Max = 50;
-		Def = 15;
-	});
-	modstab.Label({
-		Text = "-- BOT OPPONENT --";
-	});
-	modstab.Label({
-		Text = "This setting affect how the bot opponent plays. (Difficulty)";
-	});
-	modstab.Dropdown({
-        Text = "Bot Opponent";
-        Callback = function(option)
-            uidata.Bot_AILevel = option
-        end;
-        Options = {"Noob_At_3AM","Easy","Normal","Hard","Insane","Impossible"};
-    });
-end;
-
---[[
-local healthtab = material.New({Title = "Health"}) do
-	healthtab.Label({
-		Text = "-- HEALTHBAR SETTINGS --";
-	});
-	Health_MissingColor = healthtab.ColorPicker({
-		Text = "Missing Health Color";
-		Callback = function(color)
-			uidata.Health_MissingColor = color
-			hplower.BackgroundColor3 = color
-		end;
-		Default = Color3.new(1,0,0);
-	});
-	Health_RemainingColor = healthtab.ColorPicker({
-		Text = "Remaining Health Color";
-		Callback = function(color)
-			uidata.Health_RemainingColor = color
-			hpupper.BackgroundColor3 = color
-		end;
-		Default = Color3.new(0,1,0);
-	});
-	Health_HitGain = healthtab.Slider({
-		Text = "Note Hit Gain";
-		Callback = function(num)
-			uidata.Health_HitGain = num
-		end;
-		Min = 1;
-		Max = 50;
-		Def = 3;
-	});
-	Health_MissLoss = healthtab.Slider({
-		Text = "Note Miss Loss";
-		Callback = function(color)
-			uidata.Health_MissLoss = color
-		end;
-		Min = 1;
-		Max = 50;
-		Def = 15;
-	});
-end;
-
-local botplaytab = material.New({Title = "Bot"}) do
-    botplaytab.Label({
-        Text = "-- BOT OPPONENT SETTINGS --";
-    });
-    botplaytab.Dropdown({
-        Text = "Bot Opponent";
-        Callback = function(option)
-            uidata.Bot_AILevel = option
-        end;
-        Options = {"Noob_At_3AM","Easy","Normal","Hard","Insane","Impossible"};
-    });
+		end
+	end
 end
-]]
-
-local gamefixestab = material.New({Title = "Gameplay Fixes"}) do
-    gamefixestab.Label({
-        Text = "-- BETTER MISS SETTINGS --";
-    });
-    gamefixestab.Label({
-        Text = "This will make the sounds only play when you actually miss a note.";
-    });
-    gamefixestab.Toggle({
-        Text = "Enabled";
-        Callback = function(bool)
-            uidata.BetterMiss_Enabled = bool
-            if framework then
-                framework.Settings.MissedSound.Value = not bool;
-            end
-        end;
-        Enabled = true;
-    });
-    gamefixestab.Slider({
-        Text = "Volume";
-        Callback = function(num)
-            uidata.BetterMiss_Volume = num/100
-        end;
-        Min = 0;
-        Max = 100;
-        Def = 50;
-    });
-	gamefixestab.Label({
-		Text = "-- BPM FIX --";
-	});
-	gamefixestab.Label({
-		Text = "This will fix the BPM of the song to match the camera. (Scrapped code?)";
-	});
-	gamefixestab.Toggle({
-		Text = "Enabled";
-		Callback = function(bool)
-			uidata.BPMFix_Enabled = bool
-		end;
-		Enabled = true;
-	});
-end
-
-local crtab = material.New({Title = "Credits"}) do
-	crtab.Label({
-		Text = "-- CREDITS --";
-	});
-	crtab.Label({
-		Text = "<font color=\"#ff00a6\">Sezei</font> - Script";
-	});
-	crtab.Label({
-		Text = "<font color=\"#00ff00\">Wally</font> - Framework Detection";
-	});
-	crtab.Label({
-		Text = "Kinlei(?) - UI Library";
-	});
-	crtab.Toggle({
-		Text = "Disable Watermark";
-		Callback = function(bool)
-			watermark.Visible = not bool; -- we doin' some trolling :troll:
-		end;
-		Enabled = false;
-	});
-end;
-
-local keyCodeMap = {}
-for _, enum in next, Enum.KeyCode:GetEnumItems() do
-	keyCodeMap[enum.Value] = enum
-end
-
-local heldkeys = {};
-
-shared.threads = {}
-shared.callbacks = {}
-
-shared._id = httpservice:GenerateGUID(false)
-
-local chances = {
-    Noob_At_3AM = {Sick = 0.1, Good = 0.2, Ok = 0.3, Bad = 0.4},
-    Easy = {Sick = 0.6, Good = 0.3, Ok = 0.09, Bad = 0.01},
-    Normal = {Sick = 0.8, Good = 0.15, Ok = 0.05, Bad = 0},
-    Hard = {Sick = 0.9, Good = 0.1, Ok = 0, Bad = 0},
-    Insane = {Sick = 0.97, Good = 0.03, Ok = 0, Bad = 0},
-    Impossible = {Sick = 1, Good = 0, Ok = 0, Bad = 0}
-}
-local accuracystuff = {
-    Sick = 100,
-    Good = 94,
-    Ok = 86,
-    Bad = 79,
-}
-
-game:GetService("RunService"):BindToRenderStep(shared._id, 1, function()
-    task.wait(uidata.Bot_Delay)
-    local chances = chances[uidata.Bot_AILevel];
-        
-    -- Make a random number that will be used to compare with the chances
-    local arandom = math.random(1, 100) / 100;
-
-    -- Store the current checked value
-    local checked = 0;
-    local hit = "Bad";
-
-    -- If the number is less than the chance, then it's a hit
-    if arandom <= chances.Sick then
-        hit = "Sick";
-    else
-        checked += chances.Sick;
-    end
-
-    if arandom <= chances.Good + checked then
-        hit = "Good";
-    else
-        checked += chances.Good;
-    end
-
-    if arandom <= chances.Ok + checked then
-        hit = "Ok";
-    end
-
-    if hit == "Bad" then
-        hit = "Bad";
-    end
-
-    -- Get the accuracy
-    local newaccuracy = accuracystuff[hit];
-
-    -- Send the event to change the accuracy
-    framework.Settings.BotPlayAccuracy.Value = newaccuracy;
-end)
 
 UIS.InputBegan:Connect(function(info)
 	if UIS:GetFocusedTextBox() then return end -- Ignore if textbox is focused
 	if info.UserInputType == Enum.UserInputType.Keyboard then
-		if info.KeyCode == Enum.KeyCode.Semicolon then
+		if info.KeyCode == Enum.KeyCode.Home then
 			material.Self.Enabled = not material.Self.Enabled
 		end
 	end
@@ -706,8 +712,8 @@ end)
 
 local function CalcDifficultyRating(lenght)
     local diff = 0;
-    repeat task.wait() until (framework.SongPlayer.CurrentSongData and #framework.SongPlayer.CurrentSongData > 0);
-    local notes = #framework.SongPlayer.CurrentSongData;
+    repeat task.wait() until (Framework.SongPlayer.CurrentSongData and #Framework.SongPlayer.CurrentSongData > 0);
+    local notes = #Framework.SongPlayer.CurrentSongData;
     local avgnps = notes / lenght; -- Average notes per second
 
     diff += lenght/60;
@@ -717,73 +723,74 @@ local function CalcDifficultyRating(lenght)
     -- Make the difficulty a float number with 2 decimals
     diff = math.floor(diff * 100) / 100;
 
+	KateEngine.Cache["CurrentChart"] = Framework.SongPlayer.CurrentSongData; -- unbelievable
+
     return diff;
 end
 
-local function CalcRating(one,two)
-	if not uidata.Mania_SimpleRatings then
-		if one == 100 then
-			return "P"
-		elseif one == 99 then
-			if two >= 98 then
-				return "S++"
-			elseif two >= 95 then
-				return "S+"
-			elseif two >= 90 then
-				return "S"
-			elseif two >= 85 then
-				return "AAA"
-			elseif two >= 70 then
-				return "AA+"
-			elseif two >= 60 then
-				return "AA:"
-			elseif two >= 50 then
-				return "AA."
-			elseif two >= 40 then
-				return "AA"
-			elseif two >= 30 then
-				return "A+"
-			elseif two >= 20 then
-				return "A:"
-			elseif two >= 10 then
-				return "A."
-			end
-			return "A"
-		elseif one >= 97 then
-			return "A-"
-		elseif one >= 95 then
-			return "B+"
-		elseif one >= 90 then
-			return "B"
-		elseif one >= 85 then
-			return "C+"
-		elseif one >= 80 then
-			return "C"
-		elseif one >= 75 then
-			return "D+"
-		elseif one >= 70 then
-			return "D"
-		else
-			return "F"
-		end
-	else
-		if one == 100 then
-			return "P";
-		elseif one >= 99 then
-			return "S";
-		elseif one >= 95 then
-			return "A";
-		elseif one >= 90 then
-			return "B";
-		elseif one >= 80 then
-			return "C";
-		elseif one >= 60 then
-			return "D";
-		else
-			return "F";
-		end
+local Ratings = {
+	Simple = {
+		[100] = "P";
+		[99] = "S";
+		[95] = "A";
+		[90] = "B";
+		[80] = "C";
+		[50] = "D";
+	};
+	Regular = {
+		[100] = "P";
+		[99.98] = "S++";
+		[99.95] = "S+";
+		[99.9] = "S";
+		[99.8] = "AAA";
+		[99.7] = "AA+";
+		[99.6] = "AA:";
+		[99.5] = "AA.";
+		[99.4] = "AA";
+		[99.3] = "A+";
+		[99.2] = "A:";
+		[99.1] = "A.";
+		[99] = "A";
+		[97] = "A-";
+		[95] = "B+";
+		[80] = "B";
+		[70] = "C";
+		[60] = "D";
+		[50] = "F+";
+	};
+}
+
+local function UpdateHealth() -- To be fired every time health is added/reduced
+	-- If healthbar is disabled, set health to 40 (starting value) and return.
+	if not KateEngine.InSolo then KateEngine.Health.Current = 40; return end;
+	if not KateEngine.Settings.Healthbar then KateEngine.Health.Current = 40; return end;
+
+	-- Otherwise, clamp the health between 0 and 100 and update the healthbar.
+	KateEngine.Health.Current = math.clamp(KateEngine.Health.Current,0,100);
+	HBFront.Size = UDim2.new(KateEngine.Health.Current/100,0,1,0);
+	if KateEngine.Health.Current == 0 and KateEngine.Settings.Healthbar_DeathOnZero then
+		game.Players.LocalPlayer.Character.Humanoid.Health = -100;
 	end
 end
+
+local function CalcRating(one,two)
+	local combinedrating = one + (two/100); -- Combine the two ratings
+	local highestrank = {0,"F"};
+	if not KateEngine.Settings.Mania_SimpleRatings then
+		for i,v in pairs(Ratings.Regular) do
+			if combinedrating >= i and i > highestrank[1] then
+				highestrank = {i,v};
+			end
+		end
+	else
+		for i,v in pairs(Ratings.Simple) do
+			if combinedrating >= i and i > highestrank[1] then
+				highestrank = {i,v};
+			end
+		end
+	end
+	return highestrank[2];
+end;
 
 local dynFont = 50;
 local function DynamicFont()
@@ -800,8 +807,8 @@ local prevmiss = 0;
 local function updateCombo(combo,acc,miss)
 	if not miss then miss = 0 end -- bandaid for some reason
 
-	globaldata.combo = combo;
-	globaldata.totalnotes = globaldata.totalnotes + 1;
+	KateEngine.Mania.Combo = combo;
+	KateEngine.Mania.TotalNotes += 1;
 
 	local result1 = string.split(game.Players.LocalPlayer.PlayerGui.GameUI.Arrows.Stats.Text,"\n")
 	local res = {};
@@ -809,80 +816,75 @@ local function updateCombo(combo,acc,miss)
 		res[k] = tonumber(string.split(f," ")[2]);
 	end
 
-	if uidata.Mania_FCIndicator then
+	if KateEngine.Settings.Mania_FCIndicator then
+		local totalnonmiss = res[2] + res[3] + res[4];
 		if res[2] == 0 and res[3] == 0 and res[4] == 0 and miss== 0 then
-			secondary.Text = (SicksOnly and "PERFECT" or "PFC")
+			ManiaRating.Text = "PFC"
 		elseif res[2] == 1 and res[3] == 0 and res[4] == 0 and miss== 0 then -- good
-			secondary.Text = "G-FLAG"
+			ManiaRating.Text = "G-FLAG"
 		elseif res[2] == 0 and res[3] == 1 and res[4] == 0 and miss == 0 then -- OK
-			secondary.Text = "O-FLAG"
+			ManiaRating.Text = "O-FLAG"
 		elseif res[2] == 0 and res[3] == 0 and res[4] == 1 and miss == 0 then -- bad
-			secondary.Text = "B-FLAG"
+			ManiaRating.Text = "B-FLAG"
 		elseif res[2] == 0 and res[3] == 0 and res[4] == 0 and miss == 1 then -- one miss but no goods, bads nor oks
-			secondary.Text = "M-FLAG"
+			ManiaRating.Text = "M-FLAG"
 		elseif res[3] == 0 and res[4] == 0 and miss == 0 then
-			secondary.Text = "GFC"
+			ManiaRating.Text = "GFC"
+		elseif totalnonmiss < 10 and miss == 0 then
+			ManiaRating.Text = "SUB ("..totalnonmiss..")"
 		elseif res[2] < 10 and miss == 0 then
-			secondary.Text = "SDG ("..res[2]..")"
-		elseif inNoMiss and miss == 0 then
-			secondary.Text = "NO-MISS"
+			ManiaRating.Text = "SDG ("..res[2]..")"
 		elseif miss == 0 then
-			secondary.Text = "FC"
-		elseif combo > 19 then
-			if miss == 1 then
-				secondary.Text = "MIN1"
-			elseif miss <= 9 then
-				secondary.Text = "SDCB (-"..miss..")"
-			else
-				secondary.Text = "(-"..miss..")"
-			end
+			ManiaRating.Text = "FC"
+		elseif miss == 1 and totalnonmiss < 10 then
+			ManiaRating.Text = "SUB-1 ("..totalnonmiss..")"
+		elseif miss == 1 then
+			ManiaRating.Text = "MIN1"
+		elseif miss <= 9 then
+			ManiaRating.Text = "SDCB (-"..miss..")"
 		else
-			secondary.Text = ""
+			ManiaRating.Text = "Clear (-"..miss..")"
+		end
+
+		if combo < 20 then
+			ManiaRating.Text = ""
 		end
 	else
-		secondary.Text = ""
+		ManiaRating.Text = ""
 	end
 
 	local accur = string.split(acc,".")
 	local num = string.gsub(accur[2], "%D", "")
 
-	if secondary.Text == "" or not uidata.Mania_FCIndicator then
-		secondary.Text = CalcRating(tonumber(accur[1]),tonumber(num))
+	if ManiaRating.Text == "" or not KateEngine.Settings.Mania_FCIndicator then
+		ManiaRating.Text = CalcRating(tonumber(accur[1]),tonumber(num))
 	else
-		secondary.Text..= " | "..CalcRating(tonumber(accur[1]),tonumber(num))
+		ManiaRating.Text..= " | "..CalcRating(tonumber(accur[1]),tonumber(num))
 	end
 
-	if autoplayActive then
-		secondary.Text = "AUTOPLAY"
-	end
-
-	if uidata.Health then
-		if inSolo then
-			hpback.Visible = uidata.Health;
+	if KateEngine.Settings.Healthbar then
+		if KateEngine.InSolo then
+			Healthbar.Visible = KateEngine.Settings.Healthbar;
 
 			if miss > prevmiss then
-				localhealth -= uidata.Health_MissLoss;
+				KateEngine.Health.Current -= KateEngine.Settings.Healthbar_HealthLoss;
 			else
-				localhealth += uidata.Health_HitGain;
+				KateEngine.Health.Current += KateEngine.Settings.Healthbar_HealthGain;
 			end
-			localhealth = math.clamp(localhealth,0,100);
-			hpupper.Size = UDim2.new(localhealth/100,0,1,0);
-
-			if localhealth == 0 then
-				game.Players.LocalPlayer.Character.Humanoid.Health = -100;
-			end
+			
+			UpdateHealth();
 		else
-			hpback.Visible = false;
-			localhealth = 40;
+			Healthbar.Visible = false;
+			KateEngine.Health.Current = 40;
 		end
 	end
 
 	prevmiss = miss;
 
-	if prevcombo >= 20 and combo < 20 then
+	if KateEngine.Mania.PreviousCombo >= 20 and combo < 20 then
 		-- Combo Break
-		tweenservice:Create(
-			funny,
+		TweenService:Create(
+			ManiaComboCounter,
 			TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 			{
 				TextColor3 = Color3.new(1, 0, 0)
@@ -891,16 +893,16 @@ local function updateCombo(combo,acc,miss)
 		task.spawn(
 			function()
 				task.wait(0.3)
-				tweenservice:Create(
-					funny,
+				TweenService:Create(
+					ManiaComboCounter,
 					TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 					{
 						TextTransparency = 1
 					}
 				):Play()
 				task.wait(0.3)
-				funny.Visible = false
-				funny.TextTransparency = 0
+				ManiaComboCounter.Visible = false
+				ManiaComboCounter.TextTransparency = 0
 			end
 		)
 	end
@@ -908,48 +910,48 @@ local function updateCombo(combo,acc,miss)
 		if combo == 0 then
 			task.wait(0.2)
 		end
-		prevcombo = combo
+		KateEngine.Mania.PreviousCombo = combo
 	end)
 
-	if not uidata.ManiaCounter then funny.Visible = false return end;
+	if not KateEngine.Settings.ManiaCounter then ManiaComboCounter.Visible = false return end;
 
 	if combo < 20 then
 		return
 	else
-		funny.Visible = true
+		ManiaComboCounter.Visible = true
 	end
 
 	if combo >= 400 then
-		funny.TextColor3 = uidata.Mania_400Combo
+		ManiaComboCounter.TextColor3 = KateEngine.ColorJSON.Decode(KateEngine.Settings.Mania_400Combo)
 	elseif combo >= 300 then
-		funny.TextColor3 = uidata.Mania_300Combo
+		ManiaComboCounter.TextColor3 = KateEngine.ColorJSON.Decode(KateEngine.Settings.Mania_300Combo)
 	elseif combo >= 200 then
-		funny.TextColor3 = uidata.Mania_200Combo
+		ManiaComboCounter.TextColor3 = KateEngine.ColorJSON.Decode(KateEngine.Settings.Mania_200Combo)
 	elseif combo >= 100 then
-		funny.TextColor3 = uidata.Mania_100Combo
+		ManiaComboCounter.TextColor3 = KateEngine.ColorJSON.Decode(KateEngine.Settings.Mania_100Combo)
 	else
-		funny.TextColor3 = uidata.Mania_0Combo
+		ManiaComboCounter.TextColor3 = KateEngine.ColorJSON.Decode(KateEngine.Settings.Mania_0Combo)
 	end
-	funny.Text = combo
-	if uidata.Mania_DynamicIncrements then
-		funny.TextSize = DynamicFont();
+	ManiaComboCounter.Text = combo
+	if KateEngine.Settings.Mania_DynamicIncrements then
+		ManiaComboCounter.TextSize = DynamicFont();
 	else
-		funny.TextSize = (combo >= 200 and 75 or combo >= 100 and 65 or 55);
+		ManiaComboCounter.TextSize = (combo >= 200 and 75 or combo >= 100 and 65 or 55);
 	end
-	tweenservice:Create(
-		funny,
+	TweenService:Create(
+		ManiaComboCounter,
 		TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 		{
 			TextSize = 50
 		}
 	):Play()
 
-	if combo % tonumber(uidata.Mania_Milestone) == 0 then
-		tween.TextTransparency = 0
-		tween.TextSize = 70
-		tween.Text = combo
-		tweenservice:Create(
-			tween,
+	if combo % tonumber(KateEngine.Settings.Mania_Milestone) == 0 then
+		ManiaComboCounterTween.TextTransparency = 0
+		ManiaComboCounterTween.TextSize = 70
+		ManiaComboCounterTween.Text = combo
+		TweenService:Create(
+			ManiaComboCounterTween,
 			TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 			{
 				TextSize = 100,
@@ -959,41 +961,29 @@ local function updateCombo(combo,acc,miss)
 	end
 end
 
-local function SendPlay(var)
-	inSolo = true;
-	if var == "nomiss" then
-		inNoMiss = true;
-	elseif var == "sicksonly" then
-		SicksOnly = true;
-	elseif var == "autoplay" then
-		--autoplayActive = true;
-	end
-
-	if var ~= "normal" then
-		event:FireServer({"Server","StageManager","PlaySolo"},{});
-	end
+local function SendPlay()
+	KateEngine.InSolo = true;
 end
 
 local lastmiss = 0;
 
-gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
-	local t = gameUi.Arrows.InfoBar.Text
+GameUI.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
+	local t = GameUI.Arrows.InfoBar.Text
 	local tt = string.split(t, " ")
 	local num;
-	local prevcombo = prevcombo -- i dont even remember why it's here...
 	local isReset = false;
 
 	if tt[2] == "0.00%" and tt[5] == "0" then
 		isReset = true;
 	end
 
-    if uidata.BetterMiss_Enabled and not isReset then
+    if not isReset then
         if tonumber(tt[5]) > lastmiss then
             -- Play the miss sound if the miss count is higher than the last miss count
             local sound = Instance.new("Sound")
-            sound.SoundId = framework.Assets.Sounds:FindFirstChild("MissedNotes"):GetChildren()[math.random(#framework.Assets.Sounds:FindFirstChild("MissedNotes"):GetChildren())].SoundId
-            sound.Volume = uidata.BetterMiss_Volume
-            sound.Parent = gameUi
+            sound.SoundId = Framework.Assets.Sounds:FindFirstChild("MissedNotes"):GetChildren()[math.random(#Framework.Assets.Sounds:FindFirstChild("MissedNotes"):GetChildren())].SoundId
+            sound.Volume = 0.35
+            sound.Parent = GameUI
             sound:Play();
             task.spawn(function()
                 task.wait(2);
@@ -1013,7 +1003,7 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 
 	if tonumber(num) >= 10 then -- if the combo is 10 or higher
 		-- check if worldcombo is enabled
-		if uidata.WorldCombo then
+		if KateEngine.Settings.WorldCombo then
 			-- check the direction of the player's head; Add +5 studs to the direction of the player's head
 			local head = game.Players.LocalPlayer.Character.Head
 			local direction = head.CFrame.lookVector
@@ -1051,7 +1041,7 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 			label.Parent = billboard
 
 			-- tween the billboard gui up and fade it out
-			tweenservice:Create(
+			TweenService:Create(
 				billboard,
 				TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 				{
@@ -1059,7 +1049,7 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 				}
 			):Play()
 
-			tweenservice:Create(
+			TweenService:Create(
 				label,
 				TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 				{
@@ -1077,170 +1067,97 @@ gameUi.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 		end
 	end
 
-	if inNoMiss then
-		if tonumber(tt[5]) and tonumber(tt[5]) >= 1 then
-			game.Players.LocalPlayer.Character.Humanoid.Health = -100;
-			inNoMiss = false;
-			inSolo = false;
-			task.wait(0.1)
-			topb.Text = '<font color="#ff5555">No-Miss failed at a combo of '..tostring(prevcombo)..'!</font>'
-			task.wait(5)
-			if topb.Text == '<font color="#ff5555">No-Miss failed at a combo of '..tostring(prevcombo)..'!</font>' then -- in case a different message appeared
-				topb.Text = ''
-			end
-		end
-		if tt[10] then
-			gameUi.Arrows.InfoBar.Text = tt[1].." "..tt[2].." | NO-MISS MODE "..(tt[10])
-		end
-	elseif SicksOnly then
-		if tt[2] ~= "ONLY" and tt[2] ~= "100.00%" and tt[2] ~= "0.00%" and tonumber(tt[5]) >= 1 then
-			game.Players.LocalPlayer.Character.Humanoid.Health = -100;
-			SicksOnly = false;
-			inSolo = false;
-			task.wait(0.1)
-			topb.Text = '<font color="#ff5555">Sicks-Only failed at a combo of '..tostring(prevcombo)..'!</font>'
-			task.wait(5)
-			if topb.Text == '<font color="#ff5555">Sicks-Only failed at a combo of '..tostring(prevcombo)..'!</font>' then -- in case a different message appeared
-				topb.Text = ''
-			end
-		else
-			gameUi.Arrows.InfoBar.Text = "SICKS ONLY MODE "..(tt[10])
-		end
-	end
-
 	isReset = false;
 end)
 
-gameUi.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
-	if gameUi.Arrows.Visible == false then
-		funny.Visible = false
-		inNoMiss = false;
-		SicksOnly = false;
-		autoplayActive = false;
-		origintime = 0;
-		localhealth = 40;
-        songdifficulty = 0;
-		inSolo = false;
-		globaldata.combo = 0;
-		globaldata.totalnotes = 0;
+GameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
+	if GameUI.Arrows.Visible == false then
+		ManiaComboCounter.Visible = false
+		KateEngine.Topbar.OriginTime = 0;
+		KateEngine.Topbar.SongDifficulty = 0;
+		KateEngine.Health.Current = 40;
+		KateEngine.InSolo = false;
+		KateEngine.Mania.Combo = 0;
+		KateEngine.Mania.TotalNotes = 0;
+		KateEngine.Mania.Perfects = 0;
 	else
-		if inSolo then
-			localhealth = 40;
-			hpupper.Size = UDim2.new(0.4,0,1,0);
-			hpupper.Visible = uidata.Health;
+		if KateEngine.InSolo then
+			KateEngine.Health.Current = 40;
+			Healthbar.Visible = KateEngine.Settings.Healthbar;
+			UpdateHealth();
 		else
-			hpupper.Visible = false;
+			Healthbar.Visible = false;
 		end
 	end
 end)
 
 
-gameUi.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
-	local newtxt = gameUi.TopbarLabel.Text;
-	topb.Text = newtxt
+GameUI.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
+	local newtxt = GameUI.TopbarLabel.Text;
+	Topbar.Text = newtxt
 	local txttable = string.split(newtxt,"\n")
 	if txttable[3] then
 		local tim = string.split(txttable[3],":");
 		local seconds = tonumber(tim[1])*60 + tonumber(tim[2])
-		if origintime == 0 then
-			origintime = seconds
-            songdifficulty = CalcDifficultyRating(seconds);
+		if KateEngine.Topbar.OriginTime == 0 then
+			KateEngine.Topbar.OriginTime = seconds
+            KateEngine.Topbar.SongDifficulty = CalcDifficultyRating(seconds);
 		end
 
-        newtxt = newtxt.." | [⭐ "..songdifficulty.."]"
+        newtxt = newtxt.." | [⭐ "..KateEngine.Topbar.SongDifficulty.."]"
 
-		if uidata.SongProgress then
-			local function handler()
-				local m = math.floor((seconds/origintime)*75)
-				local s = string.split(txttable[1],">")[1]..'>'
-				for i=1,math.abs(m-75) do 
-					s ..= '|'
-				end
-				s ..= '</font>'
-				for i=1,m do 
-					s = s..'|'
-				end
-				return s
+		local function handler()
+			local m = math.floor((seconds/KateEngine.Topbar.OriginTime)*75)
+			local s = string.split(txttable[1],">")[1]..'>'
+			for i=1,math.abs(m-75) do 
+				s ..= '|'
 			end
-
-			topb.Text = newtxt.."\n["..handler().."]"
+			s ..= '</font>'
+			for i=1,m do 
+				s = s..'|'
+			end
+			return s
 		end
+
+		Topbar.Text = newtxt.."\n["..handler().."]"
 	end
 end)
 
-framework.Settings.MissedSound.Value = false;
+Framework.Settings.MissedSound.Value = false;
+if KateEngine.Settings.CamManipulation then
+	Framework.Settings.CameraDirectionMovement.Value = false;
+end
 
-gameUi.TopbarLabel:GetPropertyChangedSignal("TextColor3"):Connect(function()
-    topb.TextColor3 = gameUi.TopbarLabel.TextColor3
+GameUI.TopbarLabel:GetPropertyChangedSignal("TextColor3"):Connect(function()
+    Topbar.TextColor3 = GameUI.TopbarLabel.TextColor3
 end)
 
-gameUi.TopbarLabel:GetPropertyChangedSignal("Visible"):Connect(function()
-	gameUi.TopbarLabel.Visible = false;  
+GameUI.TopbarLabel:GetPropertyChangedSignal("Visible"):Connect(function()
+	GameUI.TopbarLabel.Visible = false;  
 end)
 
--- Old location; kept for compatibility just in-case
---gameUi.SongSelector.Frame.Body.Settings.MultiStage.Visible = false;
---gameUi.SongSelector.Frame.Body.Settings.Solo.SoloInfoLabel.Visible = false;
---gameUi.SongSelector.Frame.Body.Settings.Solo.SoloPlay.Size = UDim2.new(1,0,1,0)
---gameUi.SongSelector.Frame.Body.Settings.Solo.Size = UDim2.new(0,220,1,0)
-local newloc = gameUi.SongSelector.Frame.Start
+local newloc = GameUI.SongSelector.Frame.Start
 newloc.Toggle.Visible = false;
 newloc = newloc.Start
 local buttontemplate = newloc.StartButton;
-
---local ULL = Instance.new("UIListLayout");
---ULL.Padding = UDim.new(0,10);
---ULL.FillDirection = Enum.FillDirection.Horizontal;
---ULL.Parent = gameUi.SongSelector.Frame.Body.Settings;
 
 buttontemplate.MouseButton1Click:Connect(function()
 	SendPlay("normal");
 end)
 
-local NoMiss = buttontemplate:Clone(); -- NoMiss
-NoMiss.Parent = newloc
-NoMiss.Name = "StartNoMiss"
-NoMiss.Label.Text = "No Misses";
-NoMiss.Label.BackgroundColor3 = Color3.new(0.4,1,0.4);
-NoMiss.MouseButton1Click:Connect(function()
-	if NoMiss.Visible and buttontemplate.BackgroundColor3.R >= buttontemplate.BackgroundColor3.G then
-		SendPlay("nomiss")
-	end
-end)
-
-local SicksOnlyB = buttontemplate:Clone(); -- SicksOnly
-SicksOnlyB.Parent = newloc
-SicksOnlyB.Name = "StartSicksOnly"
-SicksOnlyB.Label.Text = "Sicks Only";
-SicksOnlyB.Label.BackgroundColor3 = Color3.new(0.4,0.4,1);
-SicksOnlyB.MouseButton1Click:Connect(function()
-	if SicksOnlyB.Visible and buttontemplate.BackgroundColor3.R >= buttontemplate.BackgroundColor3.G then
-		SendPlay("sicksonly")
-	end
-end)
-
-buttontemplate:GetPropertyChangedSignal("Visible"):Connect(function() -- Don't let the people press the no-miss if it's not solo
-	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and buttontemplate.Visible;
-	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and buttontemplate.Visible;
-end)
-buttontemplate:GetPropertyChangedSignal("BackgroundColor3"):Connect(function() -- Oopsie!
-	NoMiss.Visible = uidata.SoloGamemodes and uidata.Modes_NoMiss and (buttontemplate.BackgroundColor3.R > buttontemplate.BackgroundColor3.G);
-	SicksOnlyB.Visible = uidata.SoloGamemodes and uidata.Modes_SicksOnly and (buttontemplate.BackgroundColor3.R > buttontemplate.BackgroundColor3.G);
-end)
-
 -- Stats UI clone
-local statgui = gameUi.Arrows.Stats:Clone()
+local statgui = GameUI.Arrows.Stats:Clone()
 statgui.RichText = true; -- Force rich text on the stats
-statgui.Parent = gameUi.Arrows
+statgui.Parent = GameUI.Arrows
 
-gameUi.Arrows.Stats:GetPropertyChangedSignal("Visible"):Connect(function()
-	if gameUi.Arrows.Stats.Visible then
-		gameUi.Arrows.Stats.Visible = false;
+GameUI.Arrows.Stats:GetPropertyChangedSignal("Visible"):Connect(function()
+	if GameUI.Arrows.Stats.Visible then
+		GameUI.Arrows.Stats.Visible = false;
 	end
 end)
 
-gameUi.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This function should show any 'shadow' stats
-	gameUi.Arrows.Stats.Visible = false;
+GameUI.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This function should show any 'shadow' stats
+	GameUI.Arrows.Stats.Visible = false;
 	local result1 = string.split(game.Players.LocalPlayer.PlayerGui.GameUI.Arrows.Stats.Text,"\n")
 	local res = 0;
 	local stats = {};
@@ -1257,27 +1174,19 @@ gameUi.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This 
 
 	local showtotalnotes = true;
 
-	if inNoMiss then
-		statgui.Text = "Sick: "..stats.sick.."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad
-	elseif SicksOnly then
-		statgui.Text = "Hits: "..stats.sick
-		showtotalnotes = false;
-	else
-		statgui.Text = "Sick: "..stats.sick.."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad.."\nMissed: "..stats.missed
-	end
+	statgui.Text = "Sick: "..tostring(tonumber(stats.sick)-KateEngine.Mania.Perfects) .."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad.."\nMissed: "..stats.missed
 
-	if res ~= globaldata.totalnotes then
-		statgui.Text = "Sick: "..stats.sick.."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad .. " <font color='#AAAAAA'>(+"..globaldata.totalnotes - res..")</font>".."\nMissed: "..stats.missed
+	if res ~= KateEngine.Mania.TotalNotes then
+		statgui.Text = "Sick: "..stats.sick.."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad .. " <font color='#AAAAAA'>(+"..KateEngine.Mania.TotalNotes - res..")</font>".."\nMissed: "..stats.missed
 		showtotalnotes = true;
 	end
-	if showtotalnotes then
-		statgui.Text = statgui.Text.."\n<font color='#FFFF77'>Total Notes: "..globaldata.totalnotes.."</font>"
+
+	if KateEngine.Mania.Perfects > 0 then
+		statgui.Text = "<font color='#ff0090'>Perfect</font>: "..KateEngine.Mania.Perfects.."\n"..statgui.Text
 	end
 
-	if SicksOnly then
-		if stats.sick ~= globaldata.totalnotes then
-			game.Players.LocalPlayer.Character.Humanoid.Health = -100;
-		end
+	if showtotalnotes then
+		statgui.Text = statgui.Text.."\n<font color='#FFFF77'>Total Notes: "..KateEngine.Mania.TotalNotes.."</font>"
 	end
 end)
 
@@ -1288,22 +1197,27 @@ local id = 0;
 local connectedevent = nil;
 local CurrentStep = 0;
 local CurrentBeat = 0;
+local CurrentSection = 0;
 
 local debugtext = "";
 
-local SoundEvent = framework:GetEvent("SoundEvent");
+local LanePressed = Framework:GetEvent("LanePressed") -- This is the event that is fired whenever you press a strum; @param {table {Direction : number<0-3>, Position : ?}}
+local SceneLoaded = Framework:GetEvent("SceneLoaded"); -- This is the event that gets fired when a scene is loaded; @param {string? = scenename, folder? = sceneinstance | nil = scene unloading}
+local SoundEvent = Framework:GetEvent("SoundEvent"); -- This is the event that gets fired when a song starts or ends; @param {boolean = songstarted/songended}
+local NoteMiss = Framework:GetEvent("NoteMissed"); -- This is the event that gets fired when a note is missed, used for modcharts; 
+local NoteHit = Framework:GetEvent("NoteHitBegan"); -- NoteHitEnded is also available, but we need the NoteHit part because it contains the ms; @param: {table {HitAccuracy:number<0-100>, MS:float?, Note:table {NoteData}, HitTime:float<tick()>}, table {?}}
 
 ModchartSystem = {
 	-- Camera zooming thing
 	CameraZoom = function()
 		-- Tween the camera
 		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
-		Camera.FieldOfView = FOV;
-		local camtween = tweenservice:Create(Camera, tweenInfo, {FieldOfView = FOV+1});
-		secondary.TextSize = 35;
-		local txttween = tweenservice:Create(secondary, tweenInfo, {TextSize = 30});
-		lyricstext.TextSize = 45;
-		local txttween2 = tweenservice:Create(lyricstext, tweenInfo, {TextSize = 35});
+		Camera.FieldOfView = FOV-1;
+		local camtween = TweenService:Create(Camera, tweenInfo, {FieldOfView = FOV});
+		ManiaRating.TextSize = 35;
+		local txttween = TweenService:Create(ManiaRating, tweenInfo, {TextSize = 30});
+		LyricsLabel.TextSize = 45;
+		local txttween2 = TweenService:Create(LyricsLabel, tweenInfo, {TextSize = 35});
 		camtween:Play();
 		txttween:Play();
 		task.spawn(function()
@@ -1315,51 +1229,511 @@ ModchartSystem = {
 	end;
 
 	SetArrowStyle = function(Key, Style)
-		framework.ArrowData["4Key"].Arrows[Key].Style = Style;
-		framework:GetEvent("ArrowDataChanged"):Fire();
+		Framework.ArrowData["4Key"].Arrows[Key].Style = Style;
+		Framework:GetEvent("ArrowDataChanged"):Fire();
 	end;
 
 	SetAllArrows = function(Style)
-		for _,v in pairs(framework.ArrowData["4Key"].Arrows) do
+		for _,v in pairs(Framework.ArrowData["4Key"].Arrows) do
 			v.Style = Style;
 		end;
-		framework:GetEvent("ArrowDataChanged"):Fire();
+		Framework:GetEvent("ArrowDataChanged"):Fire();
 	end;
 
 	SaveArrowsStyle = function()
 		local Arrows = {};
-		for i,v in pairs(framework.ArrowData["4Key"].Arrows) do
+		for i,v in pairs(Framework.ArrowData["4Key"].Arrows) do
 			Arrows[i] = v.Style;
 		end
-		framework:SetKEValue("SavedArrowsStyle", Arrows);
+		Framework:SetKEValue("SavedArrowsStyle", Arrows);
 	end;
 
 	LoadArrowsStyle = function()
-		local Arrows = framework:GetKEValue("SavedArrowsStyle");
+		if not Framework:GetKEValue("SavedArrowsStyle") then return end -- If there's no saved arrows style, don't do anything (likely there's no need to do anything in the first place)
+		local Arrows = Framework:GetKEValue("SavedArrowsStyle");
 		for i,v in pairs(Arrows) do
-			framework.ArrowData["4Key"].Arrows[i].Style = v;
+			Framework.ArrowData["4Key"].Arrows[i].Style = v;
 		end
-		framework:GetEvent("ArrowDataChanged"):Fire();
+		Framework:GetEvent("ArrowDataChanged"):Fire();
 	end;
 
 	SetLyrics = function(Text)
 		if Text == "" then
-			lyricstext.Text = "";
-			lyricstext.Visible = false;
+			LyricsLabel.Text = "";
+			LyricsLabel.Visible = false;
 			return;
 		end
-		lyricstext.Text = Text;
-		lyricstext.Visible = true;
+		LyricsLabel.Text = Text;
+		LyricsLabel.Visible = true;
 	end;
+
+	Sprite = function(SpriteID, Position, Size, ZIndex, AnchorPoint)
+		local Sprite = Instance.new("ImageLabel");
+		Sprite.Image = SpriteID;
+		Sprite.BackgroundTransparency = 1;
+		Sprite.Size = Size or UDim2.new(0, 100, 0, 100);
+		Sprite.Position = Position or UDim2.new(0.5, 0, 0.5, 0);
+		Sprite.ZIndex = ZIndex or 1;
+		Sprite.Parent = GameUI;
+		Sprite.AnchorPoint = AnchorPoint or Vector2.new(0.5, 0.5);
+		table.insert(KateEngine.Assets, Sprite);
+		return Sprite;
+	end;
+
+	Sound = function(SoundID, Volume, Pitch)
+		if not SoundID then return end
+		local Sound = Instance.new("Sound");
+		Sound.SoundId = SoundID;
+		Sound.Volume = Volume or 1;
+		Sound.Pitch = Pitch or 1;
+		Sound.Parent = GameUI;
+		table.insert(KateEngine.Assets, Sound);
+		Sound:Play();
+		task.spawn(function()
+			Sound.Ended:Wait();
+			Sound:Destroy();
+		end);
+		return Sound;
+	end;
+
+	IncrementHealth = function(Amount)
+		KateEngine.Health.Current += Amount;
+		UpdateHealth();
+	end;
+
+	DecrementHealth = function(Amount)
+		KateEngine.Health.Current -= Amount;
+		UpdateHealth();
+	end;
+
+	SetHealth = function(Amount)
+		KateEngine.Health.Current = Amount;
+		UpdateHealth();
+	end;
+
+	-- Note Controls; It is recommended to only call this exact function once, rather than calling it on every step/hit/whatever. heck, use the Variables table for that.
+	Note = function(NoteKey) -- TODO
+		local Note = Framework.UI.Arrows.Receptors[tostring(NoteKey)];
+
+		-- In order to avoid errors due to a NIL, we'll send a table regardless of if the note exists or not; However, all functions will return instantly if the note doesn't exist.
+		return {
+			TweenXPosition = function(PositionChange, Time, Enum_EasingStyle, Enum_EasingDirection)
+				if not Note then return end;
+
+				local AbsSize = GameUI.Arrows.AbsoluteSize;
+
+				-- Tween the note
+				local IntValue = Instance.new("NumberValue");
+				IntValue.Value = Note.InnerFrame.Position.Y.Offset / (AbsSize.Y / 720);
+
+				if not KateEngine.Cache["DefaultNotePosX"..tostring(NoteKey)] then
+					KateEngine.Cache["DefaultNotePosX"..tostring(NoteKey)] = IntValue.Value;
+				end;
+
+				if not PositionChange then
+					PositionChange = 0;
+				end;
+
+				if not Time then
+					Time = 0; -- Instant?
+				end;
+
+				if not Enum_EasingStyle then
+					Enum_EasingStyle = Enum.EasingStyle.Linear;
+				end;
+
+				if not Enum_EasingDirection then
+					Enum_EasingDirection = Enum.EasingDirection.In;
+				end;
+
+				local TweenCompleteEvent = IntValue.Changed:Connect(function()
+					Note.InnerFrame.Position = UDim2.new(UDim.new(0, IntValue.Value * (AbsSize.X / 1280)), Note.InnerFrame.Position.Y);
+				end);
+
+				if Time > 0 then
+					local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum_EasingStyle, Enum_EasingDirection), {Value = PositionChange});
+
+					Tween:Play();
+					Tween.Completed:Once(function()
+						TweenCompleteEvent:Disconnect();
+						Tween:Destroy();
+					end);
+				else
+					IntValue.Value = PositionChange;
+				end;
+
+				IntValue:Destroy();
+			end;
+
+			TweenYPosition = function(PositionChange, Time, Enum_EasingStyle, Enum_EasingDirection)
+				if not Note then return end;
+
+				local AbsSize = GameUI.Arrows.AbsoluteSize;
+
+				-- Tween the note
+				local IntValue = Instance.new("NumberValue");
+				IntValue.Value = Note.InnerFrame.Position.X.Offset / (AbsSize.X / 1280);
+
+				if not KateEngine.Cache["DefaultNotePosY"..tostring(NoteKey)] then
+					KateEngine.Cache["DefaultNotePosY"..tostring(NoteKey)] = IntValue.Value;
+				end;
+
+				if not PositionChange then
+					PositionChange = 0;
+				end;
+
+				if not Time then
+					Time = 0;
+				end;
+
+				if not Enum_EasingStyle then
+					Enum_EasingStyle = Enum.EasingStyle.Linear;
+				end;
+
+				if not Enum_EasingDirection then
+					Enum_EasingDirection = Enum.EasingDirection.In;
+				end;
+
+				local TweenCompleteEvent = IntValue.Changed:Connect(function()
+					Note.InnerFrame.Position = UDim2.new(Note.InnerFrame.Position.X, UDim.new(0, IntValue.Value * (AbsSize.Y / 720)));
+				end);
+
+				if Time > 0 then
+					local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum_EasingStyle, Enum_EasingDirection), {Value = PositionChange});
+
+					Tween:Play();
+					Tween.Completed:Once(function()
+						TweenCompleteEvent:Disconnect();
+						Tween:Destroy();
+					end);
+				else
+					IntValue.Value = PositionChange;
+				end;
+
+				IntValue:Destroy();
+			end;
+
+			TweenAngle = function(AngleChange, Time)
+				if not Note then return end;
+
+				-- Tween the note rotation value
+				local IntValue = Instance.new("NumberValue");
+				IntValue.Value = Note.InnerFrame.Rotation;
+
+				if not KateEngine.Cache["DefaultNoteAngle"..tostring(NoteKey)] then
+					KateEngine.Cache["DefaultNoteAngle"..tostring(NoteKey)] = IntValue.Value;
+				end;
+
+				if not AngleChange then
+					AngleChange = 0;
+				end;
+
+				if not Time then
+					Time = 0;
+				end;
+
+				local TweenCompleteEvent = IntValue.Changed:Connect(function()
+					Note.InnerFrame.Rotation = IntValue.Value;
+				end);
+
+				if Time > 0 then
+					local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Value = AngleChange});
+
+					Tween:Play();
+					Tween.Completed:Once(function()
+						TweenCompleteEvent:Disconnect();
+						Tween:Destroy();
+					end);
+				else
+					IntValue.Value = AngleChange;
+				end;
+
+				IntValue:Destroy();
+			end;
+
+			TweenAlpha = function(NewAlpha, Time)
+				if not Note then return end;
+
+				-- Tween the note transparency (Uses the receptor's UpdateTransparency function, apparently)
+				local IntValue = Instance.new("NumberValue");
+				IntValue.Value = KateEngine.Cache["CurrentNoteAlpha"..tostring(NoteKey)] or 0; -- Assuming the alpha range is 0-255 = 0 is opaque, 255 is transparent;
+
+				if not NewAlpha then
+					NewAlpha = 0;
+				end;
+
+				if not Time then
+					Time = 0;
+				end;
+
+				local TweenCompleteEvent = IntValue.Changed:Connect(function()
+					Note:UpdateTransparency(IntValue.Value / 255);
+				end);
+
+				if Time > 0 then
+					local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Value = NewAlpha});
+
+					Tween:Play();
+					Tween.Completed:Once(function()
+						TweenCompleteEvent:Disconnect();
+						Tween:Destroy();
+					end);
+				else
+					IntValue.Value = NewAlpha;
+				end;
+
+				IntValue:Destroy();
+			end;
+		}
+	end;
+
+	AllNotes = {
+		SetAlpha = function(NewAlpha)
+			if not NewAlpha then
+				NewAlpha = 0;
+			end;
+
+			for _, Note in pairs(Framework.UI.Arrows.Receptors) do
+				Note:UpdateTransparency(NewAlpha / 255);
+			end;
+		end;
+
+		TweenAlpha = function(NewAlpha, Time)
+			if not NewAlpha then
+				NewAlpha = 0;
+			end;
+
+			if not Time then
+				Time = 0;
+			end;
+
+			local IntValue = Instance.new("NumberValue");
+			IntValue.Value = 0; -- Assuming the alpha range is 0-255 = 0 is opaque, 255 is transparent;
+
+			local TweenCompleteEvent = IntValue.Changed:Connect(function()
+				for _, Note in pairs(Framework.UI.Arrows.Receptors) do
+					Note:UpdateTransparency(IntValue.Value / 255);
+				end;
+			end);
+
+			if Time > 0 then
+				local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Value = NewAlpha});
+
+				Tween:Play();
+				Tween.Completed:Once(function()
+					TweenCompleteEvent:Disconnect();
+					Tween:Destroy();
+				end);
+			else
+				IntValue.Value = NewAlpha;
+			end;
+
+			IntValue:Destroy();
+		end;
+	};
+
+	Lane = function(LaneKey) -- TODO
+
+	end;
+
+	CamHUD = {
+		SetAngle = function(Angle)
+			Framework.GameUI.Arrows.Rotation = Angle;
+		end;
+
+		GetAngle = function()
+			return Framework.GameUI.Arrows.Rotation;
+		end;
+
+        TweenAngle = function(Angle, Time)
+            if not Angle then
+                Angle = 0;
+            end;
+
+            if not Time then
+                Time = 0;
+            end;
+
+            if Time > 0 then
+                local Tween = TweenService:Create(Framework.GameUI.Arrows, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Rotation = Angle});
+
+                Tween:Play();
+                Tween.Completed:Once(function()
+                    Tween:Destroy();
+                end);
+            else
+                Framework.GameUI.Arrows.Rotation = Angle;
+            end;
+        end;
+	}
 };
 
-framework.KEMS = ModchartSystem;
-Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))()
+KateEngine.Modcharter = ModchartSystem;
+
+if not missing["file storage"] then
+	-- Check if KateEngine/Modcharts.lua exists;
+	-- If yes, we can load it instead of the default modcharts from github;
+
+	if isfile("KateEngine/Modcharts.lua") then
+		local ModchartFile = readfile("KateEngine/Modcharts.lua");
+		-- Attempt to load the modcharts file
+		local Success, ModchartStuff = pcall(loadstring, ModchartFile);
+		if Success then
+			Modcharts = ModchartStuff();
+
+			function KateEngine.ReloadModcharts()
+				local ModchartFile = readfile("KateEngine/Modcharts.lua");
+				local Success, ModchartStuff = pcall(loadstring, ModchartFile);
+				if Success then
+					Modcharts = ModchartStuff();
+				end
+			end
+		else
+			-- If it fails, we can't load it
+			-- So we load the default modcharts from github
+			Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+		end
+	else
+		Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+	end
+else
+	Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+end
+
+SceneLoaded:Connect(function(SceneID, Scene)
+	--@param {string? = scenename, folder? = sceneinstance | nil = scene unloading}
+	if not SceneID then
+		-- Scene is unloading
+		-- Do stuff here
+		-- Like disconnecting events
+		Framework:SetKEValue("SceneID", nil);
+		Framework:SetKEValue("SceneInstance", nil);
+		return;
+	end
+
+	-- Scene is loaded; Set KE values
+	Framework:SetKEValue("SceneID", SceneID);
+	Framework:SetKEValue("SceneInstance", Scene);
+
+	-- Can't do anything with modcharts due to the fact that the song hasn't started yet, hence no songID can be grabbed!
+	-- If the modcharters want to do something with the scene, they could theoretically use the SongStart event and use the KE values above to do the stuff they want to do.
+end);
+
+local NoteHitTween = nil;
+NoteHit:Connect(function(NoteHitData, Note)
+	-- @param: {table {HitAccuracy:number<0-100>, MS:float?, Note:NoteData, HitTime:float<tick()>}, table {?}}
+	-- NoteHitData.HitAccuracy is the accuracy of the note hit
+	-- NoteHitData.MS is the ms of the note hit
+	-- NoteHitData.HitTime is the tick() of the note hit
+
+	local Modchart = Framework:GetKEValue("CurrentModchart")
+	
+	if Modchart and Modchart.NoteHit then
+		Modchart.NoteHit(NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
+	end;
+
+	if Note and Note.NoteDataConfigs and (Note.NoteDataConfigs.Type == "Poison" or Note.NoteDataConfigs.Type == "LividLycanthrope") and Note.Side and Note.Side == Framework.UI.CurrentSide then
+		-- This only affects the player if they are in solo anyways.
+		ModchartSystem.DecrementHealth(20);
+	end;
+
+	if not Note then
+		-- This is a fake note hit, so we don't want to do anything with it
+		return;
+	end
+
+	if math.abs(tonumber(NoteHitData.MS) or 999) <= 0.5 and Note and Note.Side and (Note.Side == Framework.UI.CurrentSide) then
+		KateEngine.Mania.Perfects += 1;
+	end;
+
+    if KateEngine.Settings.Mania_JudgementOverlays then
+        if Note and Note.Side and not (Note.Side == Framework.UI.CurrentSide) then return end;
+
+		if KateEngine.Settings.Mania_NonPerfectOverlays then
+			-- Show the overlay only if the note was not perfect
+			if ((NoteHitData.HitAccuracy > 95) and not (math.abs(tonumber(NoteHitData.MS)) <= 0.5)) then
+				return;
+			end
+		end
+
+		ManiaJudgementOverlay.Visible = true;
+
+		if NoteHitData.HitAccuracy >= 95 then
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(0, 255, 255);
+        elseif NoteHitData.HitAccuracy >= 90 then
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(0, 255, 0);
+        elseif NoteHitData.HitAccuracy >= 85 then
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 187, 0);
+        else
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 71, 71);
+        end;
+
+		if math.abs(tonumber(NoteHitData.MS)) <= 0.5 then -- PERFECT HIT!!
+			ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 0, 140);
+		end;
+
+        ManiaJudgementOverlay.ImageTransparency = 0;
+
+        if NoteHitTween then
+            NoteHitTween:Cancel();
+        end;
+
+        NoteHitTween = TweenService:Create(ManiaJudgementOverlay, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1});
+        NoteHitTween:Play();
+
+        NoteHitTween.Completed:Once(function()
+            NoteHitTween = nil;
+        end);
+    else
+        ManiaJudgementOverlay.Visible = false;
+    end
+end);
+
+NoteMiss:Connect(function(v1, v2)
+	-- @param: {Unknown; Returns 2 tables?}
+
+	local Modchart = Framework:GetKEValue("CurrentModchart")
+	
+	if Modchart and Modchart.NoteMiss then
+		Modchart.NoteMiss(v1, v2);
+	end
+end);
+
+local curPos = nil
+
+LanePressed:Connect(function(direction, isActive)
+	-- Here we are with the strumLine stuffs!
+	-- @param: {direction:table {Direction : number<0-3>, Position : ?}}
+	-- The paramater isActive signifies when the lane is currently being held or not
+
+	local cameraDisplace : number = KateEngine.Settings.CamDisplace / 10;
+	local cameraManipulationTable = {
+		["0"] = CFrame.new(-cameraDisplace, 0, 0),
+		["1"] = CFrame.new(0, -cameraDisplace, 0),
+		["2"] = CFrame.new(0, cameraDisplace, 0),
+		["3"] = CFrame.new(cameraDisplace, 0, 0)
+	}
+-- We check to see if we can go ahead with the camera displacement
+	if Framework.SongPlayer and Framework.SongPlayer.CurrentlyPlaying and direction.Side == Framework.UI.CurrentSide then
+		if isActive then
+			curPos = direction.Direction or direction.Position
+			Framework.StageCam:SetOffset("Direction", cameraManipulationTable[tostring(curPos)])
+			return;
+		end
+		if direction.Direction == curPos then
+			Framework.StageCam:SetOffset("Direction", nil);
+		end
+	end
+end)
 
 SoundEvent:Connect(function(Active)
 	if Active == false then
-		connectedevent:Disconnect();
-		connectedevent = nil;
+		if connectedevent then -- Avoid an error (💀)
+			connectedevent:Disconnect();
+			connectedevent = nil;
+		end;
+		ModchartSystem.SetLyrics(""); -- Clear out the lyrics (how did i miss that)
+		Framework:SetKEValue("CurrentModchart", nil);
 		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
 	end
 	id = id + 1;
@@ -1369,11 +1743,11 @@ SoundEvent:Connect(function(Active)
 		ModchartSystem.SaveArrowsStyle();
 		local defaultbumping = true;
 		local songmodchart = nil;
-		local songid = framework.SongPlayer.CurrentlyPlaying and framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
+		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
 		-- Should come out as just the ID number of the song
 		-- Like this; rbxassetid://12345 => 12345
 
-		framework:SetKEValue("SongID", songid);
+		Framework:SetKEValue("SongID", songid);
 		print("SongID: "..songid)
 
 		-- Check if the song has a modchart
@@ -1384,21 +1758,22 @@ SoundEvent:Connect(function(Active)
 
 			if Modcharts[songid].Variables then
 				for i,v in pairs(Modcharts[songid].Variables) do
-					framework:SetKEValue(i, v);
+					Framework:SetKEValue(i, v);
 				end
 			end
 
 			if Modcharts[songid].SongStart then
-				Modcharts[songid].SongStart(framework);
+				Modcharts[songid].SongStart(Framework);
 			end
 
+			Framework:SetKEValue("CurrentModchart", Modcharts[songid]);
 			songmodchart = Modcharts[songid];
 		end;
 
-		local Zone = framework.StageZone and framework.StageZone.CurrentZone;
+		local Zone = Framework.StageZone and Framework.StageZone.CurrentZone;
 		local Stage = Zone and (Zone.Parent.Name:match("Stage") and Zone.Parent);
 		if Stage then
-			local BPM = Stage:GetAttribute("BPM");
+			local BPM = (Modcharts[songid] and Modcharts[songid].SetBPM) or Stage:GetAttribute("BPM");
 			local OFFSET = Stage:GetAttribute("Offset");
 			if BPM then
 				local BPS = BPM / 60; -- BPS (Beats per second)
@@ -1412,7 +1787,7 @@ SoundEvent:Connect(function(Active)
 				CurrentSection = 0;
 				local laststepcheck = 0;
 				connectedevent = game:GetService("RunService").RenderStepped:Connect(function() -- Use this to more accurately time the steps
-					if id ~= assigned or not uidata.BPMFix_Enabled then
+					if id ~= assigned or not KateEngine.Settings.Modcharts then
 						return;
 					end;
 
@@ -1427,7 +1802,7 @@ SoundEvent:Connect(function(Active)
 					if (laststepcheck + SPS) > (songstart + (SPS * CurrentStep)) then
 						CurrentStep = CurrentStep + 1;
 						if songmodchart and songmodchart.OnStep then
-							songmodchart.OnStep(framework, CurrentStep-1);
+							songmodchart.OnStep(Framework, CurrentStep-1);
 						end
 
 						if songmodchart and songmodchart.Lyrics and songmodchart.Lyrics[CurrentStep-1] then
@@ -1435,18 +1810,18 @@ SoundEvent:Connect(function(Active)
 						end
 					else
 						debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
-						debugstuff.Text = debugtext;
+						BPMSheet.Text = debugtext;
 						return;
 					end;
 
 					if CurrentStep % 4 == 2 then -- Every 4 steps is a beat
 						CurrentBeat = CurrentBeat + 1;
 						if songmodchart and songmodchart.OnBeat then
-							songmodchart.OnBeat(framework, CurrentBeat);
+							songmodchart.OnBeat(Framework, CurrentBeat);
 						end
 					else
 						debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
-						debugstuff.Text = debugtext;
+						BPMSheet.Text = debugtext;
 						return;
 					end;
 
@@ -1457,16 +1832,23 @@ SoundEvent:Connect(function(Active)
 							ModchartSystem.CameraZoom();
 						end
 						if songmodchart and songmodchart.OnSection then
-							songmodchart.OnSection(framework, CurrentSection);
+							songmodchart.OnSection(Framework, CurrentSection);
 						end;
 					end;
 
 					debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
-					debugstuff.Text = debugtext;
+					BPMSheet.Text = debugtext;
+				end);
+			else
+				-- There was no BPM set for the stage?
+				task.spawn(function()
+					ModchartSystem.SetLyrics("<font color='#ff3333'>No BPM was set for this song!</font>");
+					task.wait(3);
+					ModchartSystem.SetLyrics("");
 				end);
 			end;
 		end;
 	end;
 end);
 
-return framework;
+return Framework;
