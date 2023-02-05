@@ -501,11 +501,11 @@ HBFront.BackgroundColor3 = Color3.new(0,1,0);
 HBFront.ZIndex = 2;
 HBFront.Name = "Front";
 
-material.Banner({Text = "Rewrote Kate Engine to be more readable. All of the mods are now disabled by default. You can enable them in the settings menu.\n\n- Removed Gamemodes."});
+material.Banner({Text = "Remade the storage stuff. Apologies if you lost data!"});
 
 if not missing["file storage"] then
-	if isfile("KateEngine.mp5") then -- Load the settings if they exist
-		local data = game:GetService("HttpService"):JSONDecode(readfile("KateEngine.mp5"));
+	if isfile("KateEngine/config.png") then -- Load the settings if they exist
+		local data = game:GetService("HttpService"):JSONDecode(readfile("KateEngine/config.png"));
 		KateEngine.Settings = data;
 	end
 end
@@ -544,7 +544,7 @@ for category, v in pairs(KateEngine.MenuBuild) do
 						data.Callback(bool);
 					end
 					KateEngine.Settings[data.Key] = bool;
-					writefile("KateEngine.mp5", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
 				end;
 				Enabled = KateEngine.Settings[data.Key] or data.Default;
 			});
@@ -557,7 +557,7 @@ for category, v in pairs(KateEngine.MenuBuild) do
 						data.Callback(value);
 					end
 					KateEngine.Settings[data.Key] = value;
-					writefile("KateEngine.mp5", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
 				end;
 				Min = data.Minimum;
 				Max = data.Maximum;
@@ -572,7 +572,7 @@ for category, v in pairs(KateEngine.MenuBuild) do
 						data.Callback(value);
 					end
 					KateEngine.Settings[data.Key] = value;
-					writefile("KateEngine.mp5", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
 				end;
 				Options = data.Options;
 				Default = KateEngine.Settings[data.Key] or data.Default;
@@ -586,7 +586,7 @@ for category, v in pairs(KateEngine.MenuBuild) do
 						data.Callback(value);
 					end
 					KateEngine.Settings[data.Key] = KateEngine.ColorJSON.Encode(value);
-					writefile("KateEngine.mp5", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
 				end;
 				Default = KateEngine.ColorJSON.Decode(KateEngine.Settings[data.Key] or data.Default);
 			});
@@ -1134,6 +1134,7 @@ ModchartSystem = {
 	end;
 
 	LoadArrowsStyle = function()
+		if not Framework:GetKEValue("SavedArrowsStyle") then return end -- If there's no saved arrows style, don't do anything (likely there's no need to do anything in the first place)
 		local Arrows = Framework:GetKEValue("SavedArrowsStyle");
 		for i,v in pairs(Arrows) do
 			Framework.ArrowData["4Key"].Arrows[i].Style = v;
@@ -1432,7 +1433,28 @@ ModchartSystem = {
 };
 
 KateEngine.Modcharter = ModchartSystem;
-Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+
+if not missing["file storage"] then
+	-- Check if KateEngine/Modcharts.lua exists;
+	-- If yes, we can load it instead of the default modcharts from github;
+
+	if isfile("KateEngine/Modcharts.lua") then
+		local ModchartFile = readfile("KateEngine/Modcharts.lua");
+		-- Attempt to load the modcharts file
+		local Success, Modcharts = pcall(loadstring, ModchartFile);
+		if Success then
+			Modcharts = Modcharts();
+		else
+			-- If it fails, we can't load it
+			-- So we load the default modcharts from github
+			Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+		end
+	else
+		Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+	end
+else
+	Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+end
 
 SceneLoaded:Connect(function(SceneID, Scene)
 	--@param {string? = scenename, folder? = sceneinstance | nil = scene unloading}
