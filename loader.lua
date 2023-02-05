@@ -29,11 +29,18 @@ end
 
 local ColorJSON = {
 	Encode = function(Color)
-		return string.format("%s,%s,%s", Color.r, Color.g, Color.b);
+		if typeof(Color) == "Color3" then
+			return string.format("%s,%s,%s", Color.r, Color.g, Color.b);
+		end;
 	end;
 	Decode = function(Color)
-		local RGB = string.split(Color, ",");
-		return Color3.new(RGB[1], RGB[2], RGB[3]);
+		if typeof(Color) == "Color3" then
+			-- It's already a color, so just return it.
+			return Color;
+		elseif typeof(Color) == "string" then
+			local RGB = string.split(Color, ",");
+			return Color3.new(RGB[1], RGB[2], RGB[3]);
+		end;
 	end;
 };
 
@@ -583,6 +590,10 @@ for category, v in pairs(KateEngine.MenuBuild) do
 				end;
 				Default = KateEngine.ColorJSON.Decode(KateEngine.Settings[data.Key] or data.Default);
 			});
+
+			if data.Callback then
+				data.Callback(KateEngine.ColorJSON.Decode(KateEngine.Settings[data.Key] or data.Default));
+			end;
 		end
 	end
 end
@@ -1359,6 +1370,14 @@ ModchartSystem = {
 			end;
 		}
 	end;
+
+	AllNotes = {
+		SetAlpha = function(NewAlpha)
+			for _, Note in pairs(Framework.UI.Arrows.Receptors) do
+				Note:UpdateTransparency(NewAlpha / 255);
+			end;
+		end;
+	};
 
 	Lane = function(LaneKey) -- TODO
 

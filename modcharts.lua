@@ -98,10 +98,9 @@ return {
 		};
 	};
 
-	--[[[Uncanny Valley] = {
+	["9462575360"] = { -- Hotline 024 - Uncanny Valley
 		SetBPM = 171;
-		DisableDefault = true;
-	};--]]
+	};
 
 	["9103346396"] = { -- Vs. Kapi: Arcade Showdown - Sanctuary
 		OnStep = function(Framework, Step) -- Need precise timing for these ones xd!
@@ -147,14 +146,6 @@ return {
 			[800] = "Your father for you will never grieve!";
 			[835] = "";
 			[897] = "Minds unravel at the seams...";
-			--[[
-				Allowing me to haunt their dreams!
-				Surеly now, you must know
-				That it is time for you to go!
-				
-				Oh little Girlfriend, you weren't clever...
-				RESISTING ME ONLY MAKES ME BITTER!
-			]]
 			[928] = "Allowing me to haunt their dreams!";
 			[960] = "Surely now, you must know...";
 			[991] = "That it is time for you to go!";
@@ -179,6 +170,13 @@ return {
 				return;
 			end;
 			Framework.KateEngine.Modcharter.CameraZoom();
+		end;
+		OnStep = function(Framework, Step)
+			if Step == 0 or Step == 421 or Step == 1002 then
+				Framework.KateEngine.Modcharter.AllNotes.SetAlpha(127);
+			elseif Step == 101 or Step == 452 or Step == 1026 then
+				Framework.KateEngine.Modcharter.AllNotes.SetAlpha(0);
+			end;
 		end;
 		Lyrics = {
 			[4] = "[[Attention customers,";
