@@ -12,6 +12,9 @@ end;
 
 if not writefile or not readfile or not isfile then
 	missing["file storage"] = true;
+	missing["custom modchart"] = true;
+elseif readfile("KateEngine/Modcharts.lua") then
+	missing["custom modchart"] = true;
 end;
 
 if not setclipboard then
@@ -103,6 +106,22 @@ KateEngine = {
 				Text = "Copy Song ID";
 				Callback = function()
 					setclipboard(Framework:GetKEValue("SongID"));
+				end;
+			};
+			{
+				Requirement = "file storage";
+				Type = "Button";
+				Text = "Force Save Settings";
+				Callback = function()
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+				end;
+			};
+			{
+				Requirement = "custom modchart";
+				Type = "Button";
+				Text = "Reload Modcharts";
+				Callback = function()
+					KateEngine.ReloadModcharts();
 				end;
 			};
 		};
@@ -1444,6 +1463,14 @@ if not missing["file storage"] then
 		local Success, Modcharts = pcall(loadstring, ModchartFile);
 		if Success then
 			Modcharts = Modcharts();
+
+			function KateEngine.ReloadModcharts()
+				local ModchartFile = readfile("KateEngine/Modcharts.lua");
+				local Success, Modcharts = pcall(loadstring, ModchartFile);
+				if Success then
+					Modcharts = Modcharts();
+				end
+			end
 		else
 			-- If it fails, we can't load it
 			-- So we load the default modcharts from github
