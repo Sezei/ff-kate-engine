@@ -98,6 +98,10 @@ return {
 		};
 	};
 
+	["9106848224"] = { -- Neon - Transgression
+		SetBPM = 206;
+	};
+
 	["9462575360"] = { -- Hotline 024 - Uncanny Valley
 		SetBPM = 170;
 	};
@@ -121,6 +125,10 @@ return {
 				end);
 			end;
 		end;
+	};
+
+	["9104474200"] = { -- Vs. Bob - Run
+		SetBPM = 200;
 	};
 
 	["9103362495"] = { -- Hypno's Lullaby - Safety Lullaby

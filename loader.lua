@@ -54,7 +54,7 @@ local ColorJSON = {
 
 local Framework = getGameFramework();
 
-local Version = "v0.10";
+local Version = "b0.11";
 
 -- Create the KateEngine table
 KateEngine = {
@@ -267,7 +267,7 @@ KateEngine = {
 			};
 			{
 				Type = "Label";
-				Text = "This section contains settings for the bot opponent. <font color='#ff7700'><b>Temporarily Disabled for Optimization.</b></font>";
+				Text = "This section contains settings for the bot opponent.";
 			};
 			{
 				Type = "Multichoice";
@@ -606,6 +606,12 @@ HBFront.Name = "Front";
 
 material.Banner({Text = "Remade the storage stuff. Apologies if you lost data!"});
 
+-- Prepare the default GameUI stuff for the hud zoom
+GameUI.Arrows.AnchorPoint = Vector2.new(0.5, 0.5);
+GameUI.Arrows.Position = UDim2.new(0.5, 0, 0.5, 0);
+GameUI.Arrows.Size = UDim2.fromScale(1, 1);
+
+
 if not missing["file storage"] then
 	if isfile("KateEngine/config.png") then -- Load the settings if they exist
 		local data = game:GetService("HttpService"):JSONDecode(readfile("KateEngine/config.png"));
@@ -726,6 +732,72 @@ local function CalcDifficultyRating(lenght)
 	KateEngine.Cache["CurrentChart"] = Framework.SongPlayer.CurrentSongData; -- unbelievable
 
     return diff;
+end
+
+function ReselectBotAccuracy()
+	-- Get the difficulty from KateEngine.Settings.BotDifficulty
+	local diff = KateEngine.Settings.BotDifficulty;
+	local Difficulties = {
+		["Average Blimey (Insane) Player"] = {
+			Sick = 10;
+			Good = 15;
+			OK = 15;
+			Bad = 60;
+		};
+		["Easy"] = {
+			Sick = 70;
+			Good = 15;
+			OK = 10;
+			Bad = 5;
+		};
+		["Normal"] = {
+			Sick = 85;
+			Good = 10;
+			OK = 5;
+			Bad = 0;
+		};
+		["Hard"] = {
+			Sick = 97;
+			Good = 2;
+			OK = 1;
+			Bad = 0;
+		};
+		["Insane"] = {
+			Sick = 99;
+			Good = 1;
+			OK = 0;
+			Bad = 0;
+		};
+		["PFC"] = {
+			Sick = 100;
+			Good = 0;
+			OK = 0;
+			Bad = 0;
+		};
+	};
+	local NoteAccuracy = {
+		Sick = 100;
+		Good = 94;
+		OK = 87;
+		Bad = 0; -- Considered as a miss but meh
+	};
+
+	-- Select a random accuracy from the difficulty; The numbers represent the percentage of chance of getting that accuracy
+	local Notes = Difficulties[diff];
+	local Total = {};
+
+	for i,v in pairs(Notes) do
+		for i2 = 1, v do
+			table.insert(Total, i);
+		end
+	end;
+
+	local Selected = Total[math.random(1, #Total)];
+
+	-- Get the accuracy from the note accuracy table
+	local Accuracy = NoteAccuracy[Selected];
+
+	Framework.Settings.BotPlayAccuracy.Value = Accuracy;
 end
 
 local Ratings = {
@@ -1174,10 +1246,10 @@ GameUI.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This 
 
 	local showtotalnotes = true;
 
-	statgui.Text = "Sick: "..tostring(tonumber(stats.sick)-KateEngine.Mania.Perfects) .."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad.."\nMissed: "..stats.missed
+	statgui.Text = "<font color='#50C5FF'>Sick</font>: "..tostring(tonumber(stats.sick)-KateEngine.Mania.Perfects) .."\n<font color='#8AFF50'>Good</font>: "..stats.good.."\n<font color='#FFC550'>OK</font>: "..stats.ok.."\n<font color='#FF5050'>Bad</font>: "..stats.bad.."\n<font color='#888888'>Missed</font>: "..stats.missed
 
 	if res ~= KateEngine.Mania.TotalNotes then
-		statgui.Text = "Sick: "..stats.sick.."\nGood: "..stats.good.."\nOk: "..stats.ok.."\nBad: "..stats.bad .. " <font color='#AAAAAA'>(+"..KateEngine.Mania.TotalNotes - res..")</font>".."\nMissed: "..stats.missed
+		statgui.Text = "<font color='#50C5FF'>Sick</font>: "..stats.sick.."\n<font color='#8AFF50'>Good</font>: "..stats.good.."\n<font color='#FFC550'>OK</font>: "..stats.ok.."\n<font color='#FF5050'>Bad</font>: "..stats.bad .. " <font color='#AAAAAA'>(+"..KateEngine.Mania.TotalNotes - res..")</font>".."\n<font color='#888888'>Missed</font>: "..stats.missed
 		showtotalnotes = true;
 	end
 
@@ -1216,15 +1288,16 @@ ModchartSystem = {
 		local camtween = TweenService:Create(Camera, tweenInfo, {FieldOfView = FOV});
 		ManiaRating.TextSize = 35;
 		local txttween = TweenService:Create(ManiaRating, tweenInfo, {TextSize = 30});
-		LyricsLabel.TextSize = 45;
-		local txttween2 = TweenService:Create(LyricsLabel, tweenInfo, {TextSize = 35});
+		GameUI.Arrows.Size = UDim2.fromScale(1.02, 1.02);
+		local hudtween = TweenService:Create(GameUI.Arrows, tweenInfo, {Size = UDim2.fromScale(1, 1)});
 		camtween:Play();
 		txttween:Play();
+		hudtween:Play();
 		task.spawn(function()
 			camtween.Completed:Wait();
 			camtween:Destroy();
 			txttween:Destroy();
-			txttween2:Destroy();
+			hudtween:Destroy();
 		end);
 	end;
 
@@ -1627,6 +1700,8 @@ NoteHit:Connect(function(NoteHitData, Note)
 	-- NoteHitData.HitTime is the tick() of the note hit
 
 	local Modchart = Framework:GetKEValue("CurrentModchart")
+
+	ReselectBotAccuracy();
 	
 	if Modchart and Modchart.NoteHit then
 		Modchart.NoteHit(NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
@@ -1659,13 +1734,13 @@ NoteHit:Connect(function(NoteHitData, Note)
 		ManiaJudgementOverlay.Visible = true;
 
 		if NoteHitData.HitAccuracy >= 95 then
-            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(0, 255, 255);
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(80, 197, 255);
         elseif NoteHitData.HitAccuracy >= 90 then
-            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(0, 255, 0);
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(138, 255, 80);
         elseif NoteHitData.HitAccuracy >= 85 then
-            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 187, 0);
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 197, 80);
         else
-            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 71, 71);
+            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 80, 80);
         end;
 
 		if math.abs(tonumber(NoteHitData.MS)) <= 0.5 then -- PERFECT HIT!!

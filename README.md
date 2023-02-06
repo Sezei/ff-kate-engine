@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/latest%20version-0.10-7300a8?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/latest%20version-0.11-7300a8?style=for-the-badge" />
 </p>
 
 <p align="center">
@@ -33,10 +33,11 @@ The 'mods' so far are the following;
 - Solo Healthbar
 
 ![image](https://user-images.githubusercontent.com/49373598/169907335-2f8e8313-231c-4419-8a52-ad20eceb9e5b.png)
-
 - Count total notes.
 
-- See how many notes you didn't hold long enough. (Marked as ghost notes)
+- Perfect Rating (gl getting 'em :trollface:)
+
+- See how many notes you didn't hold long enough. (Marked as that (+n) in the bads counter)
 
 - Dynamic bot difficulty (yes this means you can make the bot suck worse than you lmao)
 
@@ -46,7 +47,7 @@ The 'mods' so far are the following;
 
 - Better miss-sound handling than the original.. somehow lol
 
-- M o d c h a r t s, such as [Hyperlink](https://www.youtube.com/watch?v=1AxvBATQDAQ), [Means of Destruction](https://www.youtube.com/watch?v=CSoFgLZSp_8) or even [Mother](https://www.youtube.com/watch?v=mGKn6BV_Zkc)
+- Full modcharting support, allowing for stuff such as [Hyperlink](https://www.youtube.com/watch?v=1AxvBATQDAQ), [Means of Destruction](https://www.youtube.com/watch?v=CSoFgLZSp_8) or even [Mother (lol)](https://www.youtube.com/watch?v=mGKn6BV_Zkc) ((Footage from beta 0.9))
 
 # How to load (correctly)
 I will not elaborate how to get the script into the game and stuff, but it's here;
