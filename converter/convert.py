@@ -2,7 +2,7 @@ from threading import Thread
 from os import name, system
 from time import sleep
 
-# This is our dictionary that helps us decide
+# This is our dictionary that helps us decide how we should parse.
 taskResults = {}
 
 # Main function/thread
@@ -11,7 +11,6 @@ def startConvert():
     # Create a new key that defines wether or not we want an osu chart.
     taskResults["isFNF"] = FunkyChart
     clear()
-    print(taskResults) 
 
 # This yields the main thread until the task at hand is finished
 def createNewTask(task):
