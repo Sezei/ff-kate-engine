@@ -1492,29 +1492,27 @@ ModchartSystem = {
 
 	-- Note Controls; It is recommended to only call this exact function once, rather than calling it on every step/hit/whatever. heck, use the Variables table for that.
 	Note = function(NoteKey) -- TODO
-		local Note = Framework.UI.Arrows.Receptors[tostring(NoteKey)];
+		if NoteKey > 7 or NoteKey < 0 then error("Key invalid - Modcharting abilities are only allowed for 4Key songs.") end -- If the note key is invalid, error out.
+
+		-- Find which side the note is; 0 to 3 = Left, 4 to 7 = Right
+		local NoteKey = tonumber(NoteKey);
+		local Side = NoteKey < 4 and "Left" or "Right";
+		local Number = NoteKey < 4 and NoteKey or NoteKey - 4;
+
+		-- Attempt to find the note
+		local Note = GameUI.Arrows[Side].Arrows['Arrow'..tostring(Number)];
 
 		-- In order to avoid errors due to a NIL, we'll send a table regardless of if the note exists or not; However, all functions will return instantly if the note doesn't exist.
 		return {
 			TweenXPosition = function(PositionChange, Time, Enum_EasingStyle, Enum_EasingDirection)
 				if not Note then return end;
 
-				local AbsSize = GameUI.Arrows.AbsoluteSize;
-
-				-- Tween the note
-				local IntValue = Instance.new("NumberValue");
-				IntValue.Value = Note.InnerFrame.Position.Y.Offset / (AbsSize.Y / 720);
-
-				if not KateEngine.Cache["DefaultNotePosX"..tostring(NoteKey)] then
-					KateEngine.Cache["DefaultNotePosX"..tostring(NoteKey)] = IntValue.Value;
-				end;
-
-				if not PositionChange then
-					PositionChange = 0;
+				if not PositionChange then 
+					return;
 				end;
 
 				if not Time then
-					Time = 0; -- Instant?
+					Time = 0.5;
 				end;
 
 				if not Enum_EasingStyle then
@@ -1522,47 +1520,30 @@ ModchartSystem = {
 				end;
 
 				if not Enum_EasingDirection then
-					Enum_EasingDirection = Enum.EasingDirection.In;
+					Enum_EasingDirection = Enum.EasingDirection.InOut;
 				end;
 
-				local TweenCompleteEvent = IntValue.Changed:Connect(function()
-					Note.InnerFrame.Position = UDim2.new(UDim.new(0, IntValue.Value * (AbsSize.X / 1280)), Note.InnerFrame.Position.Y);
-				end);
+				-- Attempt to calculate how much the note would move if it would've been on a 1280x720 screen
+				local AbsSize = GameUI.Arrows.AbsoluteSize;
 
-				if Time > 0 then
-					local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum_EasingStyle, Enum_EasingDirection), {Value = PositionChange});
+				local NoteX = Note.InnerFrame.Position.X.Offset;
+				local NoteY = Note.InnerFrame.Position.Y.Offset;
+				local NotePercentX = NoteX / (AbsSize.X / 1280);
+				local NotePercentY = NoteY / (AbsSize.Y / 720);
 
-					Tween:Play();
-					Tween.Completed:Once(function()
-						TweenCompleteEvent:Disconnect();
-						Tween:Destroy();
-					end);
-				else
-					IntValue.Value = PositionChange;
-				end;
-
-				IntValue:Destroy();
+				-- Tween the note
+				Note.InnerFrame:TweenPosition(UDim2.fromScale(NotePercentX + PositionChange, NotePercentY), Enum_EasingDirection, Enum_EasingStyle, Time, true);
 			end;
 
 			TweenYPosition = function(PositionChange, Time, Enum_EasingStyle, Enum_EasingDirection)
 				if not Note then return end;
 
-				local AbsSize = GameUI.Arrows.AbsoluteSize;
-
-				-- Tween the note
-				local IntValue = Instance.new("NumberValue");
-				IntValue.Value = Note.InnerFrame.Position.X.Offset / (AbsSize.X / 1280);
-
-				if not KateEngine.Cache["DefaultNotePosY"..tostring(NoteKey)] then
-					KateEngine.Cache["DefaultNotePosY"..tostring(NoteKey)] = IntValue.Value;
-				end;
-
-				if not PositionChange then
-					PositionChange = 0;
+				if not PositionChange then 
+					return;
 				end;
 
 				if not Time then
-					Time = 0;
+					Time = 0.5;
 				end;
 
 				if not Enum_EasingStyle then
@@ -1570,64 +1551,41 @@ ModchartSystem = {
 				end;
 
 				if not Enum_EasingDirection then
-					Enum_EasingDirection = Enum.EasingDirection.In;
+					Enum_EasingDirection = Enum.EasingDirection.InOut;
 				end;
 
-				local TweenCompleteEvent = IntValue.Changed:Connect(function()
-					Note.InnerFrame.Position = UDim2.new(Note.InnerFrame.Position.X, UDim.new(0, IntValue.Value * (AbsSize.Y / 720)));
-				end);
+				-- Attempt to calculate how much the note would move if it would've been on a 1280x720 screen
+				local AbsSize = GameUI.Arrows.AbsoluteSize;
 
-				if Time > 0 then
-					local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum_EasingStyle, Enum_EasingDirection), {Value = PositionChange});
+				local NoteX = Note.InnerFrame.Position.X.Offset;
+				local NoteY = Note.InnerFrame.Position.Y.Offset;
+				local NotePercentX = NoteX / (AbsSize.X / 1280);
+				local NotePercentY = NoteY / (AbsSize.Y / 720);
 
-					Tween:Play();
-					Tween.Completed:Once(function()
-						TweenCompleteEvent:Disconnect();
-						Tween:Destroy();
-					end);
-				else
-					IntValue.Value = PositionChange;
-				end;
-
-				IntValue:Destroy();
+				-- Tween the note
+				Note.InnerFrame:TweenPosition(UDim2.fromScale(NotePercentX, NotePercentY + PositionChange), Enum_EasingDirection, Enum_EasingStyle, Time, true);
 			end;
 
 			TweenAngle = function(AngleChange, Time)
 				if not Note then return end;
 
-				-- Tween the note rotation value
-				local IntValue = Instance.new("NumberValue");
-				IntValue.Value = Note.InnerFrame.Rotation;
-
-				if not KateEngine.Cache["DefaultNoteAngle"..tostring(NoteKey)] then
-					KateEngine.Cache["DefaultNoteAngle"..tostring(NoteKey)] = IntValue.Value;
-				end;
-
-				if not AngleChange then
-					AngleChange = 0;
+				if not AngleChange then 
+					return;
 				end;
 
 				if not Time then
-					Time = 0;
+					Time = 0.5;
 				end;
 
-				local TweenCompleteEvent = IntValue.Changed:Connect(function()
-					Note.InnerFrame.Rotation = IntValue.Value;
+				-- Create a tween
+				local Tween = TweenService:Create(Note.InnerFrame[Number], TweenInfo.new(Time), {Rotation = AngleChange});
+
+				-- Start the tween
+				Tween:Play();
+
+				Tween.Completed:Once(function()
+					Tween:Destroy();
 				end);
-
-				if Time > 0 then
-					local Tween = TweenService:Create(IntValue, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Value = AngleChange});
-
-					Tween:Play();
-					Tween.Completed:Once(function()
-						TweenCompleteEvent:Disconnect();
-						Tween:Destroy();
-					end);
-				else
-					IntValue.Value = AngleChange;
-				end;
-
-				IntValue:Destroy();
 			end;
 
 			TweenAlpha = function(NewAlpha, Time)
