@@ -1504,6 +1504,10 @@ ModchartSystem = {
 
 		-- In order to avoid errors due to a NIL, we'll send a table regardless of if the note exists or not; However, all functions will return instantly if the note doesn't exist.
 		return {
+			Fetch = function() -- Returns the note object itself, or nil if one wasn't found.
+				return Note;
+			end;
+
 			TweenXPosition = function(PositionChange, Time, Enum_EasingStyle, Enum_EasingDirection)
 				if not Note then return end;
 
