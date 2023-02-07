@@ -1442,20 +1442,53 @@ ModchartSystem = {
 		return Sound;
 	end;
 
-	IncrementHealth = function(Amount)
-		KateEngine.Health.Current += Amount;
-		UpdateHealth();
-	end;
+	Health = {
+		IncreaseMax = function(Amount)
+			KateEngine.Health.Max += Amount;
+			UpdateHealth();
+		end;
 
-	DecrementHealth = function(Amount)
-		KateEngine.Health.Current -= Amount;
-		UpdateHealth();
-	end;
+		DecreaseMax = function(Amount)
+			KateEngine.Health.Max -= Amount;
+			UpdateHealth();
+		end;
 
-	SetHealth = function(Amount)
-		KateEngine.Health.Current = Amount;
-		UpdateHealth();
-	end;
+		SetMax = function(Amount)
+			KateEngine.Health.Max = Amount;
+			UpdateHealth();
+		end;
+
+		Increase = function(Amount)
+			KateEngine.Health.Current += Amount;
+			UpdateHealth();
+		end;
+
+		Decrease = function(Amount)
+			KateEngine.Health.Current -= Amount;
+			UpdateHealth();
+		end;
+
+		Set = function(Amount)
+			KateEngine.Health.Current = Amount;
+			UpdateHealth();
+		end;
+
+		Hurt = function(Amount, MinimumHealth) -- Amount is the amount of health to take away, MinimumHealth is the minimum amount of health to leave the player with (if the player has less than this, this will do nothing)
+			if not MinimumHealth then MinimumHealth = 0 end
+			if KateEngine.Health.Current <= MinimumHealth then return end
+
+			KateEngine.Health.Current -= Amount;
+			if KateEngine.Health.Current < MinimumHealth then KateEngine.Health.Current = MinimumHealth end
+
+			UpdateHealth();
+		end;
+
+		Reset = function()
+			KateEngine.Health.Max = 100;
+			KateEngine.Health.Current = 40;
+			UpdateHealth();
+		end;
+	};
 
 	-- Note Controls; It is recommended to only call this exact function once, rather than calling it on every step/hit/whatever. heck, use the Variables table for that.
 	Note = function(NoteKey) -- TODO
