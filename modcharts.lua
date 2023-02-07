@@ -171,6 +171,31 @@ return {
 		};
 	};
 
+	["10575657222"] = { -- Seek's Cool Deltarune Mod - In My Way
+		SetBPM = 155;
+		Lyrics = {
+			["Method"] = "Clock";
+			[694] = "[Laugher]";
+			[718] = "";
+			[1340] = "STOP SINGING!";
+			[1365] = "";
+			[1846] = "SHUT UP!";
+			[1860] = "";
+		};
+		Clock = function(Framework, Tick)
+			if Framework.UI.CurrentSide == "Left" then return end;
+			if Tick == 1412 or Tick == 1419 or Tick == 1490 or Tick == 1520 or Tick == 1550 then
+				Framework.KateEngine.Modcharter.Health.Hurt(10, 30); -- Damage, Minimum Health
+			elseif Tick == 1645 or Tick == 1675 or Tick == 1705 or Tick == 1735 then
+				Framework.KateEngine.Modcharter.Health.Hurt(15, 30); -- Damage, Minimum Health
+			elseif Tick == 1770 or Tick == 1860 or Tick == 1880 or Tick == 1890 or Tick == 1920 then
+				Framework.KateEngine.Modcharter.Health.Hurt(20, 30); -- Damage, Minimum Health
+			elseif Tick == 1950 or Tick == 2045 or Tick == 2090 or Tick == 2100 then
+				Framework.KateEngine.Modcharter.Health.Hurt(30, 30); -- Damage, Minimum Health
+			end;
+		end;
+	};
+
 	["10575656167"] = { -- Seek's Cool Deltarune Mod - HYPERLINK
 		DisableDefault = true;
 		OnSection = function(Framework, Section)

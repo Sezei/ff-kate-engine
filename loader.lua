@@ -1958,7 +1958,7 @@ SoundEvent:Connect(function(Active)
 							songmodchart.Clock(Framework, EventClock);
 						end
 
-						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Clock" or false) and songmodchart.Lyrics[EventClock] then
+						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Clock") and songmodchart.Lyrics[EventClock] then
 							ModchartSystem.SetLyrics(songmodchart.Lyrics[EventClock]);
 						end
 					end;
@@ -1969,7 +1969,7 @@ SoundEvent:Connect(function(Active)
 							songmodchart.OnStep(Framework, CurrentStep-1);
 						end
 
-						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Step" or true) and songmodchart.Lyrics[CurrentStep-1] then
+						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Step") and songmodchart.Lyrics[CurrentStep-1] then
 							ModchartSystem.SetLyrics(songmodchart.Lyrics[CurrentStep-1]);
 						end
 					else
