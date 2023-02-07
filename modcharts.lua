@@ -85,6 +85,7 @@ return {
 	
 	["9103779046"] = { -- Secret Histories - Confrontation
 		Lyrics = {
+			["Method"] = "Step";
 			[1624] = "They were impostors, Sonic!";
 			[1654] = "They didn't love you";
 			[1675] = "I loved you!";
@@ -133,6 +134,7 @@ return {
 
 	["9103362495"] = { -- Hypno's Lullaby - Safety Lullaby
 		Lyrics = {
+			["Method"] = "Step";
 			[65] = "Come little Girlfriend, come with me!";
 			[96] = "Boyfriend is waiting, steadily!";
 			[128] = "";
@@ -179,14 +181,12 @@ return {
 			end;
 			Framework.KateEngine.Modcharter.CameraZoom();
 		end;
-		OnStep = function(Framework, Step)
-			if Step == 3 or Step == 421 or Step == 1002 then
-				Framework.KateEngine.Modcharter.AllNotes.TweenAlpha(127, 0.2);
-			elseif Step == 101 or Step == 452 or Step == 1026 then
-				Framework.KateEngine.Modcharter.AllNotes.TweenAlpha(0, 0.2);
-			end;
+		SongStart = function(Framework)
+			Framework.KateEngine.Modcharter.SetString("ScoreL", "kromer: <Score>");
+			Framework.KateEngine.Modcharter.SetString("ScoreR", "kromer: <Score>");
 		end;
 		Lyrics = {
+			["Method"] = "Step";
 			[4] = "[[Attention customers,";
 			[14] = "clean up on aisle 3]]";
 			[26] = "SOMEONE LEFT THEIR";

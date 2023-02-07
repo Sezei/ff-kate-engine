@@ -63,6 +63,24 @@ KateEngine = {
 	Cache = {};
 	InSolo = false;
 
+	DefaultStrings = {
+		ScoreL = "Score: <Score>";
+		ScoreR = "Score: <Score>";
+		Accuracy = "Accuracy: <Accuracy>";
+		Misses = "Misses: <Misses>";
+		Combo = "Combo: <Combo>";
+		FullCombo = "Full Combo (<Combo>)";
+	};
+
+	Strings = {
+		ScoreL = "Score: <Score>";
+		ScoreR = "Score: <Score>";
+		Accuracy = "Accuracy: <Accuracy>";
+		Misses = "Misses: <Misses>";
+		Combo = "Combo: <Combo>";
+		FullCombo = "Full Combo (<Combo>)";
+	};
+
 	-- Game Modifications
 	Health = {
 		Current = 40;
@@ -444,6 +462,16 @@ function Framework:GetKEValue(key)
 	return self.KEValues[key];
 end
 
+function Format(Original,ReplacementData)
+    local s:string = tostring(Original);
+
+    for old,new in pairs(ReplacementData) do
+        s = s:gsub("<"..old..">",tostring(new));
+    end
+
+    return s;
+end
+
 -- Services and Variables
 local HttpService = game:GetService("HttpService");
 local TweenService = game:GetService("TweenService");
@@ -509,7 +537,7 @@ KateEngine.Assets.ManiaJudgementOverlay = ManiaJudgementOverlay;
 local LyricsLabel = Instance.new("TextLabel");
 LyricsLabel.AnchorPoint = Vector2.new(0.5, 0.75);
 LyricsLabel.Position = UDim2.fromScale(0.5, 0.75);
-LyricsLabel.Parent = GameUI;
+LyricsLabel.Parent = GameUI.Arrows;
 LyricsLabel.BackgroundTransparency = 1;
 LyricsLabel.TextColor3 = Color3.new(1, 1, 1);
 LyricsLabel.TextStrokeColor3 = Color3.new(0, 0, 0);
@@ -572,7 +600,7 @@ Watermark.Parent = GameUI;
 
 -- Topbar clone
 local Topbar = GameUI.TopbarLabel:Clone();
-Topbar.Parent = GameUI;
+Topbar.Parent = GameUI.Arrows;
 Topbar.Visible = true;
 Topbar.Name = "KE_Topbar";
 KateEngine.Assets.Topbar = Topbar;
@@ -611,6 +639,36 @@ GameUI.Arrows.AnchorPoint = Vector2.new(0.5, 0.5);
 GameUI.Arrows.Position = UDim2.new(0.5, 0, 0.5, 0);
 GameUI.Arrows.Size = UDim2.fromScale(1, 1);
 
+-- Clone the Score labels
+local ScoreLabelLeft = GameUI.Score:FindFirstChild("Left"):Clone();
+ScoreLabelLeft.Parent = GameUI.Arrows;
+ScoreLabelLeft.Visible = true;
+ScoreLabelLeft.Name = "KE_ScoreLabelLeft";
+GameUI.Score.Left.Visible = false;
+KateEngine.Assets.ScoreLabelLeft = ScoreLabelLeft;
+GameUI.Score:FindFirstChild("Left"):GetPropertyChangedSignal("Text"):Connect(function()
+	local ScoreSplit = GameUI.Score:FindFirstChild("Left").Text:split(" ");
+	ScoreLabelLeft.Text = Format(KateEngine.Strings.ScoreL, {["Score"] = ScoreSplit[2]});
+end);
+GameUI.Score:FindFirstChild("Left"):GetPropertyChangedSignal("Visible"):Connect(function()
+	ScoreLabelLeft.Visible = true;
+	GameUI.Score:FindFirstChild("Left").Visible = false;
+end);
+
+local ScoreLabelRight = GameUI.Score:FindFirstChild("Right"):Clone();
+ScoreLabelRight.Parent = GameUI.Arrows;
+ScoreLabelRight.Visible = true;
+ScoreLabelRight.Name = "KE_ScoreLabelRight";
+GameUI.Score.Right.Visible = false;
+KateEngine.Assets.ScoreLabelRight = ScoreLabelRight;
+GameUI.Score:FindFirstChild("Right"):GetPropertyChangedSignal("Text"):Connect(function()
+	local ScoreSplit = GameUI.Score:FindFirstChild("Right").Text:split(" ");
+	ScoreLabelRight.Text = Format(KateEngine.Strings.ScoreR, {["Score"] = ScoreSplit[2]});
+end);
+GameUI.Score:FindFirstChild("Right"):GetPropertyChangedSignal("Visible"):Connect(function()
+	ScoreLabelRight.Visible = true;
+	GameUI.Score:FindFirstChild("Right").Visible = false;
+end);
 
 if not missing["file storage"] then
 	if isfile("KateEngine/config.png") then -- Load the settings if they exist
@@ -1270,6 +1328,7 @@ local connectedevent = nil;
 local CurrentStep = 0;
 local CurrentBeat = 0;
 local CurrentSection = 0;
+local EventClock = 0;
 
 local debugtext = "";
 
@@ -1288,7 +1347,7 @@ ModchartSystem = {
 		local camtween = TweenService:Create(Camera, tweenInfo, {FieldOfView = FOV});
 		ManiaRating.TextSize = 35;
 		local txttween = TweenService:Create(ManiaRating, tweenInfo, {TextSize = 30});
-		GameUI.Arrows.Size = UDim2.fromScale(1.02, 1.02);
+		GameUI.Arrows.Size = UDim2.fromScale(1.025, 1.025);
 		local hudtween = TweenService:Create(GameUI.Arrows, tweenInfo, {Size = UDim2.fromScale(1, 1)});
 		camtween:Play();
 		txttween:Play();
@@ -1298,6 +1357,20 @@ ModchartSystem = {
 			camtween:Destroy();
 			txttween:Destroy();
 			hudtween:Destroy();
+		end);
+	end;
+
+	SetString = function(Key, NewString)
+		KateEngine.Strings[Key] = NewString;
+
+		-- Check the key and update accordingly
+		task.spawn(function()
+			task.wait(); -- Wait a single heartbeat; Enough time for the string to realize it's changed
+			if Key == "ScoreL" then
+				GameUI.Score.Left.Text = "lol "..GameUI.Score.Left.Text:split(" ")[2];
+			elseif Key == "ScoreR" then
+				GameUI.Score.Right.Text = "lol "..GameUI.Score.Right.Text:split(" ")[2];
+			end;
 		end);
 	end;
 
@@ -1810,6 +1883,11 @@ SoundEvent:Connect(function(Active)
 		ModchartSystem.SetLyrics(""); -- Clear out the lyrics (how did i miss that)
 		Framework:SetKEValue("CurrentModchart", nil);
 		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
+		
+		-- Reset the strings to the default ones
+		for key, default in pairs(KateEngine.DefaultStrings) do
+			ModchartSystem.SetString(key, default);
+		end;
 	end
 	id = id + 1;
 	local assigned = id;
@@ -1857,10 +1935,12 @@ SoundEvent:Connect(function(Active)
 				if OFFSET then
 					task.wait(OFFSET % SPB);
 				end;
+				EventClock = 0;
 				CurrentStep = 0;
 				CurrentBeat = 0;
 				CurrentSection = 0;
 				local laststepcheck = 0;
+				local lastclockcheck = 0;
 				connectedevent = game:GetService("RunService").RenderStepped:Connect(function() -- Use this to more accurately time the steps
 					if id ~= assigned or not KateEngine.Settings.Modcharts then
 						return;
@@ -1870,9 +1950,23 @@ SoundEvent:Connect(function(Active)
 						CurrentStep = 1;
 						CurrentBeat = 1;
 						CurrentSection = 1;
+						EventClock = 1;
 					end;
 
 					laststepcheck = os.clock();
+					lastclockcheck = os.clock();
+
+					-- An EventClock is used to tick every 1/20th of a second, regardless of the song's BPM; Made in order to accurately time events regardless of the song's BPM
+					if (lastclockcheck + 0.05) > (songstart + (EventClock/20)) then
+						EventClock = EventClock + 1;
+						if songmodchart and songmodchart.Clock then
+							songmodchart.Clock(Framework, EventClock);
+						end
+
+						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Clock" or false) and songmodchart.Lyrics[EventClock] then
+							ModchartSystem.SetLyrics(songmodchart.Lyrics[EventClock]);
+						end
+					end;
 
 					if (laststepcheck + SPS) > (songstart + (SPS * CurrentStep)) then
 						CurrentStep = CurrentStep + 1;
@@ -1880,11 +1974,11 @@ SoundEvent:Connect(function(Active)
 							songmodchart.OnStep(Framework, CurrentStep-1);
 						end
 
-						if songmodchart and songmodchart.Lyrics and songmodchart.Lyrics[CurrentStep-1] then
+						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Step" or true) and songmodchart.Lyrics[CurrentStep-1] then
 							ModchartSystem.SetLyrics(songmodchart.Lyrics[CurrentStep-1]);
 						end
 					else
-						debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
+						debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
 						BPMSheet.Text = debugtext;
 						return;
 					end;
@@ -1895,7 +1989,7 @@ SoundEvent:Connect(function(Active)
 							songmodchart.OnBeat(Framework, CurrentBeat);
 						end
 					else
-						debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
+						debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
 						BPMSheet.Text = debugtext;
 						return;
 					end;
@@ -1911,7 +2005,7 @@ SoundEvent:Connect(function(Active)
 						end;
 					end;
 
-					debugtext = "BPM: "..BPM.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
+					debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
 					BPMSheet.Text = debugtext;
 				end);
 			else
