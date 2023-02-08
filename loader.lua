@@ -1340,14 +1340,18 @@ local NoteHit = Framework:GetEvent("NoteHitBegan"); -- NoteHitEnded is also avai
 
 ModchartSystem = {
 	-- Camera zooming thing
-	CameraZoom = function()
+	CameraZoom = function(Strength)
+		if not Strength then
+			Strength = 1;
+		end;
+
 		-- Tween the camera
 		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
-		Camera.FieldOfView = FOV-1;
+		Camera.FieldOfView = FOV-(1*Strength);
 		local camtween = TweenService:Create(Camera, tweenInfo, {FieldOfView = FOV});
-		ManiaRating.TextSize = 35;
+		ManiaRating.TextSize = 30+(5*Strength);
 		local txttween = TweenService:Create(ManiaRating, tweenInfo, {TextSize = 30});
-		GameUI.Arrows.Size = UDim2.fromScale(1.025, 1.025);
+		GameUI.Arrows.Size = UDim2.fromScale(1+(0.02 * Strength), 1+(0.02 * Strength));
 		local hudtween = TweenService:Create(GameUI.Arrows, tweenInfo, {Size = UDim2.fromScale(1, 1)});
 		camtween:Play();
 		txttween:Play();

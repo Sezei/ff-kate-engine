@@ -35,6 +35,8 @@ The 'mods' so far are the following;
 ![image](https://user-images.githubusercontent.com/49373598/169907335-2f8e8313-231c-4419-8a52-ad20eceb9e5b.png)
 - Count total notes.
 
+- Fixed BPMs for certain songs.
+
 - Perfect Rating (gl getting 'em :trollface:)
 
 - See how many notes you didn't hold long enough. (Marked as that (+n) in the bads counter)
@@ -47,7 +49,7 @@ The 'mods' so far are the following;
 
 - Better miss-sound handling than the original.. somehow lol
 
-- Full modcharting support, allowing for stuff such as [Hyperlink](https://www.youtube.com/watch?v=1AxvBATQDAQ), [Means of Destruction](https://www.youtube.com/watch?v=CSoFgLZSp_8) or even [Mother (lol)](https://www.youtube.com/watch?v=mGKn6BV_Zkc) ((Footage from beta 0.9))
+- Full modcharting support, allowing for stuff such as [Hyperlink](https://www.youtube.com/watch?v=1AxvBATQDAQ), [Means of Destruction](https://www.youtube.com/watch?v=CSoFgLZSp_8) or even [Mother (lol)](https://www.youtube.com/watch?v=mGKn6BV_Zkc) ((Footage from beta 0.9)); All the way to even [In My Way](https://youtube.com/watch?v=OLHNoE3abtI&si=EnSIkaIECMiOmarE&t=68) ((Footage from beta 0.11))))
 
 # How to load (correctly)
 I will not elaborate how to get the script into the game and stuff, but it's here;

@@ -1,51 +1,7 @@
 local TweenService = game:GetService("TweenService");
 
 return {
-	-- Modcharts go by [SongId] = {OnBeat, OnSection, ...}
-
-	--[[
-		Event Functions; (Called when the event happens)
-
-		void SongStart {Framework}
-		    - Called when the song starts.
-			- Framework is the Framework object.
-
-		void OnStep {Framework, Step}
-		    - Called when a step is reached.
-			- A step happens every 1/4th beat.
-			- Step is the step number.
-
-		void OnBeat {Framework, Beat}
-		    - Called when a beat is reached.
-			- A beat is happening at the rate of the BPM; For example, if the BPM is 120, then a beat happens every 0.5 seconds.
-
-		void OnSection {Framework, Section}
-		    - Called when a section is reached.
-			- A section happens every 4th beat.
-
-
-		Variables;
-
-		boolean DisableDefault
-		    - Disables the default modchart.
-			- This disables the default camera zooming (one-per-section).
-			- This is false by default.
-
-		table Lyrics
-		    - Sets the lyrics for the song.
-			- The table is formatted as [Step] = "Lyric";
-			- Setting the lyric to an empty string ("") will set the lyrictext's visibility to false.
-
-		table Variables
-		    - Sets KE variables.
-			- Usable for doing Framework:GetKEValue("VariableName");
-
-
-		How to get the Song ID?
-
-		While there are 2 mains to do it, the officially endorsed way is to use the "Get Song ID" button in mod menu's main page.
-		Alternatively, you could use Framework:GetKEValue("SongID") to get the song ID, but doesn't paste it to the clipboard.
-	]]
+	-- The full documentation will be open soon on the github wiki, but for now you'll have to do with the examples below I guess.
 
 	["9134422683"] = { -- FNF - Mother
 		DisableDefault = true;
@@ -82,7 +38,7 @@ return {
 			end
 		end;
 	};
-	
+
 	["9103779046"] = { -- Secret Histories - Confrontation
 		Lyrics = {
 			["Method"] = "Step";
@@ -103,8 +59,20 @@ return {
 		SetBPM = 206;
 	};
 
+	["9103069682"] = { -- Hex - Glitcher
+		SetBPM = 175;
+	};
+
 	["9462575360"] = { -- Hotline 024 - Uncanny Valley
 		SetBPM = 170;
+	};
+
+	["9462566270"] = { -- Hotline 024 - Fun Is Infinite (Majin)
+		SetBPM = 129;
+	};
+
+	["9462578694"] = { -- Hotline 024 - Casette Girl Megamix
+		SetBPM = 85;
 	};
 
 	["9103346396"] = { -- Vs. Kapi: Arcade Showdown - Sanctuary
@@ -130,6 +98,18 @@ return {
 
 	["9104474200"] = { -- Vs. Bob - Run
 		SetBPM = 200;
+	};
+
+	["9398363530"] = { -- Below the Depths - Sink
+		SetBPM = 140;
+		DisableDefault = true;
+		OnSection = function(Framework, Section)
+			if Section >= 76 and Section <= 91 or Section == 106 then
+				return;
+			end;
+
+			Framework.KateEngine.Modcharter.CameraZoom();
+		end;
 	};
 
 	["9103362495"] = { -- Hypno's Lullaby - Safety Lullaby
@@ -184,15 +164,41 @@ return {
 		};
 		Clock = function(Framework, Tick)
 			if Framework.UI.CurrentSide == "Left" then return end;
-			if Tick == 1412 or Tick == 1419 or Tick == 1490 or Tick == 1520 or Tick == 1550 then
-				Framework.KateEngine.Modcharter.Health.Hurt(10, 30); -- Damage, Minimum Health
+
+			if Tick == 1086 or Tick == 1365 or Tick == 1412 or Tick == 1419 or Tick == 1488 or Tick == 1520 or Tick == 1550 then
+				Framework.KateEngine.Modcharter.Health.Hurt(15, 10); -- Damage, Minimum Health
+				Framework:GetKEValue("ScreenShake")();
+				Framework.KateEngine.Modcharter.CameraZoom(0.25);
 			elseif Tick == 1645 or Tick == 1675 or Tick == 1705 or Tick == 1735 then
-				Framework.KateEngine.Modcharter.Health.Hurt(15, 30); -- Damage, Minimum Health
-			elseif Tick == 1770 or Tick == 1860 or Tick == 1880 or Tick == 1890 or Tick == 1920 then
-				Framework.KateEngine.Modcharter.Health.Hurt(20, 30); -- Damage, Minimum Health
-			elseif Tick == 1950 or Tick == 2045 or Tick == 2090 or Tick == 2100 then
-				Framework.KateEngine.Modcharter.Health.Hurt(30, 30); -- Damage, Minimum Health
+				Framework.KateEngine.Modcharter.Health.Hurt(20, 10);
+				Framework:GetKEValue("ScreenShake")();
+				Framework.KateEngine.Modcharter.CameraZoom(0.5);
+			elseif Tick == 1770 or Tick == 1860 or Tick == 1876 or Tick == 1885 or Tick == 1890 or Tick == 1922 or Tick == 1984 then
+				Framework.KateEngine.Modcharter.Health.Hurt(25, 10);
+				Framework:GetKEValue("ScreenShake")();
+				Framework.KateEngine.Modcharter.CameraZoom(0.75);
+			elseif Tick == 2045 or Tick == 2090 or Tick == 2100 then
+				Framework.KateEngine.Modcharter.Health.Hurt(35, 10);
+				Framework:GetKEValue("ScreenShake")();
+				Framework.KateEngine.Modcharter.CameraZoom(1);
 			end;
+		end;
+		SongStart = function(Framework)
+			Framework:SetKEValue("ScreenShake", function()
+				for i = 4, 7 do
+					local note = Framework.KateEngine.Modcharter.Note(i);
+					if note then
+						-- Save the Note's location
+						local Frame = note.Fetch().InnerFrame;
+						local savedpos = Frame.Position;
+
+						task.spawn(function()
+							Frame.Position = UDim2.fromScale((math.random(-5,5)/10), (math.random(-5,5)/10));
+							Frame:TweenPosition(savedpos, "Out", "Quad", 0.25, true);
+						end);
+					end;
+				end;
+			end);
 		end;
 	};
 
@@ -207,8 +213,8 @@ return {
 			Framework.KateEngine.Modcharter.CameraZoom();
 		end;
 		SongStart = function(Framework)
-			Framework.KateEngine.Modcharter.SetString("ScoreL", "kromer: <Score>");
-			Framework.KateEngine.Modcharter.SetString("ScoreR", "kromer: <Score>");
+			Framework.KateEngine.Modcharter.SetString("ScoreL", "<Score> [[PIPIS]]");
+			Framework.KateEngine.Modcharter.SetString("ScoreR", "Kromer: <Score>");
 		end;
 		Lyrics = {
 			["Method"] = "Step";
