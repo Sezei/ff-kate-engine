@@ -55,6 +55,10 @@ return {
 		};
 	};
 
+	["11533694882"] = { -- D-Sides - Ridge
+		SetBPM = 148;
+	};
+
 	["9106848224"] = { -- Neon - Transgression
 		SetBPM = 206;
 	};

@@ -8,16 +8,18 @@ Modcharts Added;
 - Hotline 024 - Casette Girl Megamix | BPM fix only
 - Vs. Hex - Glitcher | BPM fix only
 - Below the Depths - Sink | BPM fix + No-Music sections
+- D-Sides - Ridge | BPM fix only
 
 Modcharts Changed;
 - Seek's Cool Deltarune Mod - HYPERLINK | Edited Score Strings
 - Seek's Cool Deltarune Mod - In My Way | Added Note movement + Fixed Clock events
 
 Modcharter Changes;
-- Function CameraZoom() now accepts an argument for how strong the zoom should be. (Default is 1)
+- Function CameraZoom() now accepts an argument for how strong the zoom should be. (Default is 1, if not changed in settings)
 
 Engine Changes;
-None
+- Added a new tab in the UI for modcharts, which decide on how modcharts could be played.
+- Added settings for the custom Perfect rating, which can manipulate how the perfect rating is calculated and/or even enabled. 
 
 # 07/02/2023
 ---

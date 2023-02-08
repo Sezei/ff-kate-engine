@@ -117,14 +117,6 @@ KateEngine = {
 				Stored = true;
 			};
 			{
-				Type = "Boolean";
-				Default = true;
-				Text = "Enable Modcharts";
-				Key = "Modcharts";
-
-				Stored = true;
-			};
-			{
 				Requirement = "clipboard";
 				Type = "Button";
 				Text = "Copy Song ID";
@@ -394,6 +386,61 @@ KateEngine = {
 				Key = "CamDisplace";
 				Minimum = 1;
 				Maximum = 30;
+
+				Stored = true;
+			};
+			{
+				Type = "Label";
+				Text = "-- PERFECT RATING --";
+			};
+			{
+				Type = "Label";
+				Text = "This section contains settings for the custom perfect rating.";
+			};
+			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Enabled";
+				Key = "PerfectRating";
+
+				Stored = true;
+			};
+			{
+				Type = "Slider";
+				Default = 1;
+				Text = "Perfect Timeframe (ms)";
+				Key = "PerfectTimeframe";
+				Minimum = 1;
+				Maximum = 20;
+
+				Stored = true;
+			};
+		};
+
+		["Modcharting"] = {
+			{
+				Type = "Label";
+				Text = "-- MODCHARTING --";
+			};
+			{
+				Type = "Label";
+				Text = "This section contains settings for modcharting.";
+			};
+			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Modcharting Enabled";
+				Key = "Modcharts";
+
+				Stored = true;
+			};
+			{
+				Type = "Slider";
+				Default = 5;
+				Text = "Default Camera Zoom Strength (x0.2)";
+				Key = "Modcharts_CameraStrength";
+				Minimum = 0;
+				Maximum = 10;
 
 				Stored = true;
 			};
@@ -1342,7 +1389,7 @@ ModchartSystem = {
 	-- Camera zooming thing
 	CameraZoom = function(Strength)
 		if not Strength then
-			Strength = 1;
+			Strength = (KateEngine.Settings.Modcharts_CameraStrength * 0.2);
 		end;
 
 		-- Tween the camera
@@ -1789,7 +1836,7 @@ NoteHit:Connect(function(NoteHitData, Note)
 		return;
 	end
 
-	if math.abs(tonumber(NoteHitData.MS) or 999) <= 0.5 and Note and Note.Side and (Note.Side == Framework.UI.CurrentSide) then
+	if math.abs(tonumber(NoteHitData.MS) or 999) <= (0.5 * KateEngine.Settings.PerfectTimeframe) and KateEngine.Settings.PerfectRating and Note and Note.Side and (Note.Side == Framework.UI.CurrentSide) then
 		KateEngine.Mania.Perfects += 1;
 	end;
 
