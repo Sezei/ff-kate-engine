@@ -1845,7 +1845,7 @@ NoteHit:Connect(function(NoteHitData, Note)
 
 		if KateEngine.Settings.Mania_NonPerfectOverlays then
 			-- Show the overlay only if the note was not perfect
-			if ((NoteHitData.HitAccuracy > 95) and not (math.abs(tonumber(NoteHitData.MS)) <= 0.5)) then
+			if ((NoteHitData.HitAccuracy > 95) and not (math.abs(tonumber(NoteHitData.MS)) <= (0.5 * KateEngine.Settings.PerfectTimeframe) and KateEngine.Settings.PerfectRating)) then
 				return;
 			end
 		end
@@ -1862,7 +1862,7 @@ NoteHit:Connect(function(NoteHitData, Note)
             ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 80, 80);
         end;
 
-		if math.abs(tonumber(NoteHitData.MS)) <= 0.5 then -- PERFECT HIT!!
+		if math.abs(tonumber(NoteHitData.MS)) <= (0.5 * KateEngine.Settings.PerfectTimeframe) and KateEngine.Settings.PerfectRating then -- PERFECT HIT!!
 			ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 0, 140);
 		end;
 
