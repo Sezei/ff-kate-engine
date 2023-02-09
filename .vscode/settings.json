@@ -6,6 +6,8 @@
         "makefolder",
         "writefile",
         "getgc",
-        "setclipboard"
+        "setclipboard",
+        "getsynasset",
+        "getcustomasset"
     ]
 }

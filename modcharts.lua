@@ -1,4 +1,24 @@
 local TweenService = game:GetService("TweenService");
+local LoadAsset = getsynasset or getcustomasset;
+local FetchAsset = function(Asset)
+	if isfolder('KateEngine/Assets') and isfile('KateEngine/Assets/'..Asset) then
+		return LoadAsset('KateEngine/Assets/'..Asset);
+	else
+		if not isfolder('KateEngine/Assets') then
+			makefolder('KateEngine/Assets');
+		end
+		writefile('KateEngine/Assets/'..Asset,game:HttpGet("https://github.com/Sezei/ff-kate-engine/blob/beta/modchart_material/"..Asset.."?raw=true"));
+		return LoadAsset('KateEngine/Assets/'..Asset);
+	end
+end;
+
+local PreRequisites = {
+	"metalpipe.mp3";
+};
+
+for _,v in pairs(PreRequisites) do
+	FetchAsset(v);
+end;
 
 return {
 	-- The full documentation will be open soon on the github wiki, but for now you'll have to do with the examples below I guess.
@@ -6,7 +26,7 @@ return {
 	["9134422683"] = { -- FNF - Mother
 		DisableDefault = true;
 		OnBeat = function(Framework, Beat)
-			if Beat >= 169 and Beat <= 200 then
+			if Beat >= 169 and Beat <= 201 then
 				Framework.KateEngine.Modcharter.CameraZoom();
 			end
 		end;
@@ -155,6 +175,32 @@ return {
 		};
 	};
 
+	["9105940727"] = { -- shitpost test (Vs. Camellia - First Town)
+		ShitpostChart = true; -- gotta make this a setting later lol
+		Name = "Camellia - Pipe Town";
+		Author = "Sezei";
+		NoteMiss = function(Framework, Note, _, MySide)
+			if MySide == true then
+				task.spawn(function()
+					local sprite = Framework.KateEngine.Modcharter.Sprite("rbxassetid://12427705637", UDim2.fromScale(0.5,0.5), UDim2.fromScale(1,1), 5, Vector2.new(0.5, 0.5));
+					sprite.ImageTransparency = 0.5;
+
+					local aspectratio = Instance.new("UIAspectRatioConstraint");
+					aspectratio.AspectRatio = 1;
+					aspectratio.Parent = sprite;
+
+					task.wait(0.2);
+					local tween = TweenService:Create(sprite, TweenInfo.new(0.3), {ImageTransparency = 1});
+					tween:Play();
+					tween.Completed:Wait();
+					sprite:Destroy();
+				end);
+
+				Framework.KateEngine.Modcharter.Sound(FetchAsset("metalpipe.mp3"), 1, 1);
+			end;
+		end;
+	};
+
 	["10575657222"] = { -- Seek's Cool Deltarune Mod - In My Way
 		SetBPM = 155;
 		Lyrics = {
@@ -217,8 +263,8 @@ return {
 			Framework.KateEngine.Modcharter.CameraZoom();
 		end;
 		SongStart = function(Framework)
-			Framework.KateEngine.Modcharter.SetString("ScoreL", "<Score> [[PIPIS]]");
-			Framework.KateEngine.Modcharter.SetString("ScoreR", "Kromer: <Score>");
+			Framework.KateEngine.Modcharter.SetString("ScoreR", "<Score> [[PIPIS]]");
+			Framework.KateEngine.Modcharter.SetString("ScoreL", "Kromer: <Score>");
 		end;
 		Lyrics = {
 			["Method"] = "Step";

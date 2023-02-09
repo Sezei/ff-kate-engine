@@ -123,7 +123,7 @@ KateEngine = {
 				Key = "DebugVisible";
 
 				Callback = function(Value)
-					Framework.Assets.Watermark.BPMSheet.Visible = Value;
+					Framework.KateEngine.Assets.Watermark.BPMSheet.Visible = Value;
 				end;
 
 				Stored = true;
@@ -323,6 +323,14 @@ KateEngine = {
 
 				Stored = true;
 			};
+			--[[{
+				Type = "Boolean";
+				Default = false;
+				Text = "Show Player Head (EXPERIMENTAL)";
+				Key = "Healthbar_ShowHead";
+
+				Stored = true;
+			};]]
 			{
 				Type = "Boolean";
 				Default = true;
@@ -693,8 +701,8 @@ local HBFront = Healthbar:Clone();
 HBFront.Visible = true;
 HBFront.Parent = Healthbar;
 HBFront.AnchorPoint = Vector2.new(1,0.5);
-HBFront.Size = UDim2.new(0.4,0,1,0);
-HBFront.Position = UDim2.new(1,0,0.5,0);
+HBFront.Size = UDim2.fromScale(0.4,1);
+HBFront.Position = UDim2.fromScale(1,0.5);
 HBFront.BackgroundColor3 = Color3.new(0,1,0);
 HBFront.ZIndex = 2;
 HBFront.Name = "Front";
@@ -1803,25 +1811,35 @@ if not missing["file storage"] then
 		-- Attempt to load the modcharts file
 		local Success, ModchartStuff = pcall(loadstring, ModchartFile);
 		if Success then
-			Modcharts = ModchartStuff();
+			local Test = ModchartStuff();
+			if type(Test) == "function" then
+				Modcharts = ModchartStuff()();
+			elseif type(Test) == "table" then
+				Modcharts = ModchartStuff();
+			end
 
 			function KateEngine.ReloadModcharts()
 				local ModchartFile = readfile("KateEngine/Modcharts.lua");
 				local Success, ModchartStuff = pcall(loadstring, ModchartFile);
 				if Success then
-					Modcharts = ModchartStuff();
+					local Test = ModchartStuff();
+					if type(Test) == "function" then
+						Modcharts = ModchartStuff()();
+					elseif type(Test) == "table" then
+						Modcharts = ModchartStuff();
+					end
 				end
 			end
 		else
 			-- If it fails, we can't load it
 			-- So we load the default modcharts from github
-			Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+			Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()();
 		end
 	else
-		Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+		Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()();
 	end
 else
-	Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()
+	Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()();
 end
 
 SceneLoaded:Connect(function(SceneID, Scene)
@@ -2048,6 +2066,10 @@ SoundEvent:Connect(function(Active)
 		local defaultbumping = true;
 		local songmodchart = nil;
 		local songmodcharttext = "";
+
+		KateEngine.Assets.Healthbar.Front.AnchorPoint = Vector2.new((Framework.CurrentSide == "Right" and 1 or 0), 0.5);
+		KateEngine.Assets.Healthbar.Front.Position = UDim2.new((Framework.CurrentSide == "Right" and 1 or 0), 0, 0.5, 0);
+
 		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
 		-- Should come out as just the ID number of the song
 		-- Like this; rbxassetid://12345 => 12345

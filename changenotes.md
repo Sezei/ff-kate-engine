@@ -4,19 +4,22 @@ Change Notes
 # 09/02/2023
 ---
 Modcharts Added;
-None
+- Vs. Camellia - First Town | Shitpost Chart (Pipe Town)
 
 Modcharts Changed;
-None
+- Seek's Cool Deltarune Mod - HYPERLINK | Swapped Score strings
+- Fixed lenght for FNF - Mother
 
 Modcharter Changes;
 - Remade the NoteHit and NoteMiss events to have the framework as the first argument.
 - Modcharts now have Name and Author properties, which can be used to display the name and author of the modchart in the Debug section.
 - You can now create shitpost charts with Modchart.ShitpostChart = true; They can be disabled in the Modcharting tab in the UI as well if unwanted.
+- The modcharter now downloads assets from github.
 
 Engine Changes;
 - Added a setting to change the debug visibility in the Main tab.
-- Slider/Booleans now fire the callback upon initiating the engine.
+- Slider/Booleans now fire the callback upon initiating the engine as well.
+- The healthbar now changes depending on which side you're on.
 
 # 08/02/2023
 ---
