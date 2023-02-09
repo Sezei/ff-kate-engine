@@ -54,7 +54,7 @@ local ColorJSON = {
 
 local Framework = getGameFramework();
 
-local Version = "b0.11";
+local Version = "v0.11";
 
 -- Create the KateEngine table
 KateEngine = {
@@ -1833,13 +1833,13 @@ if not missing["file storage"] then
 		else
 			-- If it fails, we can't load it
 			-- So we load the default modcharts from github
-			Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()();
+			Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))()();
 		end
 	else
-		Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()();
+		Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))()();
 	end
 else
-	Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/modcharts.lua",true))()();
+	Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))()();
 end
 
 SceneLoaded:Connect(function(SceneID, Scene)

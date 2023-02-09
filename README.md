@@ -62,11 +62,6 @@ or for the beta users;
 _G.Framework = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/loader.lua",true))()
 ```
 
-or for the beta users;
-```lua
-local engine = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/loader.lua",true))()
-```
-
 # Reporting bugs
 If you encounter a bug, please either report it in Issues (https://github.com/Sezei/ff-kate-engine/issues) or if you feel courageous enough to fix it yourself, you can open a pull request by forking the script and sending it in the appropriate place. (https://github.com/Sezei/ff-kate-engine/pulls)
 

@@ -7,7 +7,7 @@ local FetchAsset = function(Asset)
 		if not isfolder('KateEngine/Assets') then
 			makefolder('KateEngine/Assets');
 		end
-		writefile('KateEngine/Assets/'..Asset,game:HttpGet("https://github.com/Sezei/ff-kate-engine/blob/beta/modchart_material/"..Asset.."?raw=true"));
+		writefile('KateEngine/Assets/'..Asset,game:HttpGet("https://github.com/Sezei/ff-kate-engine/blob/main/modchart_material/"..Asset.."?raw=true"));
 		return LoadAsset('KateEngine/Assets/'..Asset);
 	end
 end;
