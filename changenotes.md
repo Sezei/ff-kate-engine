@@ -1,6 +1,22 @@
 Change Notes
 ===
 
+# 09/02/2023
+---
+Modcharts Added;
+None
+
+Modcharts Changed;
+None
+
+Modcharter Changes;
+- Remade the NoteHit and NoteMiss events to have the framework as the first argument;
+NoteHit(NoteData, Note) -> NoteHit(Framework, NoteData, Note)
+NoteMiss(?, ?) -> NoteMiss(Framework, NoteData, Receptor?, YourSide)
+
+Engine Changes;
+None
+
 # 08/02/2023
 ---
 Modcharts Added;

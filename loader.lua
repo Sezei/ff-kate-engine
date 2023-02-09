@@ -1813,7 +1813,7 @@ end);
 
 local NoteHitTween = nil;
 NoteHit:Connect(function(NoteHitData, Note)
-	-- @param: {table {HitAccuracy:number<0-100>, MS:float?, Note:NoteData, HitTime:float<tick()>}, table {?}}
+	-- @param: {table NoteClass, table {?}}
 	-- NoteHitData.HitAccuracy is the accuracy of the note hit
 	-- NoteHitData.MS is the ms of the note hit
 	-- NoteHitData.HitTime is the tick() of the note hit
@@ -1823,7 +1823,7 @@ NoteHit:Connect(function(NoteHitData, Note)
 	ReselectBotAccuracy();
 	
 	if Modchart and Modchart.NoteHit then
-		Modchart.NoteHit(NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
+		Modchart.NoteHit(Framework, NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
 	end;
 
 	if Note and Note.NoteDataConfigs and (Note.NoteDataConfigs.Type == "Poison" or Note.NoteDataConfigs.Type == "LividLycanthrope") and Note.Side and Note.Side == Framework.UI.CurrentSide then
@@ -1883,13 +1883,13 @@ NoteHit:Connect(function(NoteHitData, Note)
     end
 end);
 
-NoteMiss:Connect(function(v1, v2)
-	-- @param: {Unknown; Returns 2 tables?}
+NoteMiss:Connect(function(Note, Receptor)
+	-- @param: { table NoteClass, table Receptor(?) }
 
 	local Modchart = Framework:GetKEValue("CurrentModchart")
 	
 	if Modchart and Modchart.NoteMiss then
-		Modchart.NoteMiss(v1, v2);
+		Modchart.NoteMiss(Framework, Note, Receptor, Note.Side==Framework.UI.CurrentSide);
 	end
 end);
 
