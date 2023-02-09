@@ -2067,8 +2067,8 @@ SoundEvent:Connect(function(Active)
 		local songmodchart = nil;
 		local songmodcharttext = "";
 
-		KateEngine.Assets.Healthbar.Front.AnchorPoint = Vector2.new((Framework.CurrentSide == "Right" and 1 or 0), 0.5);
-		KateEngine.Assets.Healthbar.Front.Position = UDim2.new((Framework.CurrentSide == "Right" and 1 or 0), 0, 0.5, 0);
+		KateEngine.Assets.Healthbar.Front.AnchorPoint = Vector2.new((Framework.UI.CurrentSide == "Right" and 1 or 0), 0.5);
+		KateEngine.Assets.Healthbar.Front.Position = UDim2.new((Framework.UI.CurrentSide == "Right" and 1 or 0), 0, 0.5, 0);
 
 		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
 		-- Should come out as just the ID number of the song
