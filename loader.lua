@@ -117,6 +117,18 @@ KateEngine = {
 				Stored = true;
 			};
 			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Debug Visible";
+				Key = "DebugVisible";
+
+				Callback = function(Value)
+					Framework.Assets.Watermark.BPMSheet.Visible = Value;
+				end;
+
+				Stored = true;
+			};
+			{
 				Requirement = "clipboard";
 				Type = "Button";
 				Text = "Copy Song ID";
@@ -431,6 +443,14 @@ KateEngine = {
 				Default = true;
 				Text = "Modcharting Enabled";
 				Key = "Modcharts";
+
+				Stored = true;
+			};
+			{
+				Type = "Boolean";
+				Default = true;
+				Text = "Allow Shitpost Charts";
+				Key = "Modcharts_AllowShitposts";
 
 				Stored = true;
 			};
@@ -762,6 +782,10 @@ for category, v in pairs(KateEngine.MenuBuild) do
 				end;
 				Enabled = KateEngine.Settings[data.Key] or data.Default;
 			});
+
+			if data.Callback then
+				data.Callback(KateEngine.Settings[data.Key] or data.Default);
+			end
 		elseif datatype == "Slider" then
 			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
 			tab.Slider({
@@ -777,6 +801,10 @@ for category, v in pairs(KateEngine.MenuBuild) do
 				Max = data.Maximum;
 				Def = KateEngine.Settings[data.Key] or data.Default;
 			});
+
+			if data.Callback then
+				data.Callback(KateEngine.Settings[data.Key] or data.Default);
+			end
 		elseif datatype == "Multichoice" then
 			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
 			local dropdown = tab.Dropdown({
@@ -791,6 +819,10 @@ for category, v in pairs(KateEngine.MenuBuild) do
 				Options = data.Options;
 				Default = KateEngine.Settings[data.Key] or data.Default;
 			});
+
+			if data.Callback then
+				data.Callback(KateEngine.Settings[data.Key] or data.Default);
+			end
 		elseif datatype == "Color3" then
 			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
 			tab.ColorPicker({
@@ -1895,6 +1927,79 @@ end);
 
 local curPos = nil
 
+local function CreateModchartDebug(songmodchart)
+	local debugtext = "";
+
+	if songmodchart then
+		debugtext = debugtext.."\n\nModchart Loaded - "..(songmodchart.Name or "Unnamed Modchart");
+
+		if songmodchart.Author then
+			debugtext = debugtext.."\nAuthor: "..songmodchart.Author;
+		end
+
+		if songmodchart.Lyrics then
+			debugtext = debugtext.."\nLyrics: ";
+			local amount = 0;
+			for _ in pairs(songmodchart.Lyrics) do
+				amount += 1;
+			end;
+			debugtext = debugtext..amount;
+		end
+
+		if songmodchart.Events then
+			debugtext = debugtext.."\nEvents: ";
+			local amount = 0;
+			for _ in pairs(songmodchart.Events) do
+				amount += 1;
+			end;
+			debugtext = debugtext..amount;
+		end
+
+		if songmodchart.SetBPM then
+			debugtext = debugtext.."\nBPM Set: "..songmodchart.SetBPM;
+		end
+
+		do
+			debugtext ..= "\nListened Events: ";
+
+			local events = {};
+			if songmodchart.OnStep then
+				table.insert(events, "OnStep");
+			end
+			if songmodchart.OnBeat then
+				table.insert(events, "OnBeat");
+			end
+			if songmodchart.OnSection then
+				table.insert(events, "OnSection");
+			end
+			if songmodchart.Clock then
+				table.insert(events, "Event Clock");
+			end
+			if songmodchart.NoteHit then
+				table.insert(events, "NoteHit");
+			end
+			if songmodchart.NoteMiss then
+				table.insert(events, "NoteMiss");
+			end;
+			if songmodchart.SongStart then
+				table.insert(events, "SongStart");
+			end;
+
+			if #events == 0 then
+				debugtext = debugtext.."None";
+			else
+				debugtext = debugtext..table.concat(events, ", ");
+			end
+		end
+
+		if songmodchart.ShitpostChart then
+			debugtext = debugtext.."\n\n(Modchart marked as Shitpost)";
+		end
+	end
+
+	return debugtext;
+end;
+
 LanePressed:Connect(function(direction, isActive)
 	-- Here we are with the strumLine stuffs!
 	-- @param: {direction:table {Direction : number<0-3>, Position : ?}}
@@ -1942,6 +2047,7 @@ SoundEvent:Connect(function(Active)
 		ModchartSystem.SaveArrowsStyle();
 		local defaultbumping = true;
 		local songmodchart = nil;
+		local songmodcharttext = "";
 		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
 		-- Should come out as just the ID number of the song
 		-- Like this; rbxassetid://12345 => 12345
@@ -1951,22 +2057,25 @@ SoundEvent:Connect(function(Active)
 
 		-- Check if the song has a modchart
 		if Modcharts and Modcharts[songid] then
-			if Modcharts[songid].DisableDefault then
-				defaultbumping = false;
-			end
-
-			if Modcharts[songid].Variables then
-				for i,v in pairs(Modcharts[songid].Variables) do
-					Framework:SetKEValue(i, v);
+			if (Modcharts[songid].ShitpostChart and KateEngine.Settings.Modcharts_AllowShitposts) or (not Modcharts[songid].ShitpostChart) then
+				if Modcharts[songid].DisableDefault then
+					defaultbumping = false;
 				end
+	
+				if Modcharts[songid].Variables then
+					for i,v in pairs(Modcharts[songid].Variables) do
+						Framework:SetKEValue(i, v);
+					end
+				end
+	
+				if Modcharts[songid].SongStart then
+					Modcharts[songid].SongStart(Framework);
+				end
+	
+				Framework:SetKEValue("CurrentModchart", Modcharts[songid]);
+				songmodchart = Modcharts[songid];
+				songmodcharttext = CreateModchartDebug(Modcharts[songid]);
 			end
-
-			if Modcharts[songid].SongStart then
-				Modcharts[songid].SongStart(Framework);
-			end
-
-			Framework:SetKEValue("CurrentModchart", Modcharts[songid]);
-			songmodchart = Modcharts[songid];
 		end;
 
 		local Zone = Framework.StageZone and Framework.StageZone.CurrentZone;
@@ -2025,7 +2134,7 @@ SoundEvent:Connect(function(Active)
 						end
 					else
 						debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
-						BPMSheet.Text = debugtext;
+						BPMSheet.Text = debugtext..songmodcharttext;
 						return;
 					end;
 
@@ -2036,7 +2145,7 @@ SoundEvent:Connect(function(Active)
 						end
 					else
 						debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
-						BPMSheet.Text = debugtext;
+						BPMSheet.Text = debugtext..songmodcharttext;
 						return;
 					end;
 
@@ -2052,7 +2161,7 @@ SoundEvent:Connect(function(Active)
 					end;
 
 					debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
-					BPMSheet.Text = debugtext;
+					BPMSheet.Text = debugtext..songmodcharttext;
 				end);
 			else
 				-- There was no BPM set for the stage?

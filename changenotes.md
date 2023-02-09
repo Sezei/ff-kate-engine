@@ -10,12 +10,13 @@ Modcharts Changed;
 None
 
 Modcharter Changes;
-- Remade the NoteHit and NoteMiss events to have the framework as the first argument;
-NoteHit(NoteData, Note) -> NoteHit(Framework, NoteData, Note)
-NoteMiss(?, ?) -> NoteMiss(Framework, NoteData, Receptor?, YourSide)
+- Remade the NoteHit and NoteMiss events to have the framework as the first argument.
+- Modcharts now have Name and Author properties, which can be used to display the name and author of the modchart in the Debug section.
+- You can now create shitpost charts with Modchart.ShitpostChart = true; They can be disabled in the Modcharting tab in the UI as well if unwanted.
 
 Engine Changes;
-None
+- Added a setting to change the debug visibility in the Main tab.
+- Slider/Booleans now fire the callback upon initiating the engine.
 
 # 08/02/2023
 ---
