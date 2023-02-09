@@ -1,56 +1,32 @@
 local TweenService = game:GetService("TweenService");
+local LoadAsset = getsynasset or getcustomasset;
+local FetchAsset = function(Asset)
+	if isfolder('KateEngine/Assets') and isfile('KateEngine/Assets/'..Asset) then
+		return LoadAsset('KateEngine/Assets/'..Asset);
+	else
+		if not isfolder('KateEngine/Assets') then
+			makefolder('KateEngine/Assets');
+		end
+		writefile('KateEngine/Assets/'..Asset,game:HttpGet("https://github.com/Sezei/ff-kate-engine/blob/main/modchart_material/"..Asset.."?raw=true"));
+		return LoadAsset('KateEngine/Assets/'..Asset);
+	end
+end;
+
+local PreRequisites = {
+	"metalpipe.mp3";
+};
+
+for _,v in pairs(PreRequisites) do
+	FetchAsset(v);
+end;
 
 return {
-	-- Modcharts go by [SongId] = {OnBeat, OnSection, ...}
-
-	--[[
-		Event Functions; (Called when the event happens)
-
-		void SongStart {Framework}
-		    - Called when the song starts.
-			- Framework is the Framework object.
-
-		void OnStep {Framework, Step}
-		    - Called when a step is reached.
-			- A step happens every 1/4th beat.
-			- Step is the step number.
-
-		void OnBeat {Framework, Beat}
-		    - Called when a beat is reached.
-			- A beat is happening at the rate of the BPM; For example, if the BPM is 120, then a beat happens every 0.5 seconds.
-
-		void OnSection {Framework, Section}
-		    - Called when a section is reached.
-			- A section happens every 4th beat.
-
-
-		Variables;
-
-		boolean DisableDefault
-		    - Disables the default modchart.
-			- This disables the default camera zooming (one-per-section).
-			- This is false by default.
-
-		table Lyrics
-		    - Sets the lyrics for the song.
-			- The table is formatted as [Step] = "Lyric";
-			- Setting the lyric to an empty string ("") will set the lyrictext's visibility to false.
-
-		table Variables
-		    - Sets KE variables.
-			- Usable for doing Framework:GetKEValue("VariableName");
-
-
-		How to get the Song ID?
-
-		While there are 2 mains to do it, the officially endorsed way is to use the "Get Song ID" button in mod menu's main page.
-		Alternatively, you could use Framework:GetKEValue("SongID") to get the song ID, but doesn't paste it to the clipboard.
-	]]
+	-- The full documentation will be open soon on the github wiki, but for now you'll have to do with the examples below I guess.
 
 	["9134422683"] = { -- FNF - Mother
 		DisableDefault = true;
 		OnBeat = function(Framework, Beat)
-			if Beat >= 169 and Beat <= 200 then
+			if Beat >= 169 and Beat <= 201 then
 				Framework.KateEngine.Modcharter.CameraZoom();
 			end
 		end;
@@ -82,9 +58,10 @@ return {
 			end
 		end;
 	};
-	
+
 	["9103779046"] = { -- Secret Histories - Confrontation
 		Lyrics = {
+			["Method"] = "Step";
 			[1624] = "They were impostors, Sonic!";
 			[1654] = "They didn't love you";
 			[1675] = "I loved you!";
@@ -98,8 +75,28 @@ return {
 		};
 	};
 
+	["11533694882"] = { -- D-Sides - Ridge
+		SetBPM = 148;
+	};
+
+	["9106848224"] = { -- Neon - Transgression
+		SetBPM = 206;
+	};
+
+	["9103069682"] = { -- Hex - Glitcher
+		SetBPM = 175;
+	};
+
 	["9462575360"] = { -- Hotline 024 - Uncanny Valley
 		SetBPM = 170;
+	};
+
+	["9462566270"] = { -- Hotline 024 - Fun Is Infinite (Majin)
+		SetBPM = 129;
+	};
+
+	["9462578694"] = { -- Hotline 024 - Casette Girl Megamix
+		SetBPM = 85;
 	};
 
 	["9103346396"] = { -- Vs. Kapi: Arcade Showdown - Sanctuary
@@ -123,8 +120,25 @@ return {
 		end;
 	};
 
+	["9104474200"] = { -- Vs. Bob - Run
+		SetBPM = 200;
+	};
+
+	["9398363530"] = { -- Below the Depths - Sink
+		SetBPM = 140;
+		DisableDefault = true;
+		OnSection = function(Framework, Section)
+			if Section >= 76 and Section <= 91 or Section == 106 then
+				return;
+			end;
+
+			Framework.KateEngine.Modcharter.CameraZoom();
+		end;
+	};
+
 	["9103362495"] = { -- Hypno's Lullaby - Safety Lullaby
 		Lyrics = {
+			["Method"] = "Step";
 			[65] = "Come little Girlfriend, come with me!";
 			[96] = "Boyfriend is waiting, steadily!";
 			[128] = "";
@@ -161,6 +175,83 @@ return {
 		};
 	};
 
+	["9105940727"] = { -- shitpost test (Vs. Camellia - First Town)
+		ShitpostChart = true; -- gotta make this a setting later lol
+		Name = "Camellia - Pipe Town";
+		Author = "Sezei";
+		NoteMiss = function(Framework, Note, _, MySide)
+			if MySide == true then
+				task.spawn(function()
+					local sprite = Framework.KateEngine.Modcharter.Sprite("rbxassetid://12427705637", UDim2.fromScale(0.5,0.5), UDim2.fromScale(1,1), 5, Vector2.new(0.5, 0.5));
+					sprite.ImageTransparency = 0.5;
+
+					local aspectratio = Instance.new("UIAspectRatioConstraint");
+					aspectratio.AspectRatio = 1;
+					aspectratio.Parent = sprite;
+
+					task.wait(0.2);
+					local tween = TweenService:Create(sprite, TweenInfo.new(0.3), {ImageTransparency = 1});
+					tween:Play();
+					tween.Completed:Wait();
+					sprite:Destroy();
+				end);
+
+				Framework.KateEngine.Modcharter.Sound(FetchAsset("metalpipe.mp3"), 1, 1);
+			end;
+		end;
+	};
+
+	["10575657222"] = { -- Seek's Cool Deltarune Mod - In My Way
+		SetBPM = 155;
+		Lyrics = {
+			["Method"] = "Clock";
+			[694] = "[Laugher]";
+			[718] = "";
+			[1340] = "STOP SINGING!";
+			[1365] = "";
+			[1846] = "SHUT UP!";
+			[1860] = "";
+		};
+		Clock = function(Framework, Tick)
+			if Framework.UI.CurrentSide == "Left" then return end;
+
+			if Tick == 1086 or Tick == 1365 or Tick == 1412 or Tick == 1419 or Tick == 1488 or Tick == 1520 or Tick == 1550 then
+				Framework.KateEngine.Modcharter.Health.Hurt(15, 10); -- Damage, Minimum Health
+				Framework:GetKEValue("ScreenShake")();
+				Framework.KateEngine.Modcharter.CameraZoom(0.25);
+			elseif Tick == 1645 or Tick == 1675 or Tick == 1705 or Tick == 1735 then
+				Framework.KateEngine.Modcharter.Health.Hurt(20, 10);
+				Framework:GetKEValue("ScreenShake")();
+				Framework.KateEngine.Modcharter.CameraZoom(0.5);
+			elseif Tick == 1770 or Tick == 1860 or Tick == 1876 or Tick == 1885 or Tick == 1890 or Tick == 1922 or Tick == 1984 then
+				Framework.KateEngine.Modcharter.Health.Hurt(25, 10);
+				Framework:GetKEValue("ScreenShake")();
+				Framework.KateEngine.Modcharter.CameraZoom(0.75);
+			elseif Tick == 2045 or Tick == 2090 or Tick == 2100 then
+				Framework.KateEngine.Modcharter.Health.Hurt(35, 10);
+				Framework:GetKEValue("ScreenShake")();
+				Framework.KateEngine.Modcharter.CameraZoom(1);
+			end;
+		end;
+		SongStart = function(Framework)
+			Framework:SetKEValue("ScreenShake", function()
+				for i = 4, 7 do
+					local note = Framework.KateEngine.Modcharter.Note(i);
+					if note then
+						-- Save the Note's location
+						local Frame = note.Fetch().InnerFrame;
+						local savedpos = Frame.Position;
+
+						task.spawn(function()
+							Frame.Position = UDim2.fromScale((math.random(-5,5)/10), (math.random(-5,5)/10));
+							Frame:TweenPosition(savedpos, "Out", "Quad", 0.25, true);
+						end);
+					end;
+				end;
+			end);
+		end;
+	};
+
 	["10575656167"] = { -- Seek's Cool Deltarune Mod - HYPERLINK
 		DisableDefault = true;
 		OnSection = function(Framework, Section)
@@ -171,14 +262,12 @@ return {
 			end;
 			Framework.KateEngine.Modcharter.CameraZoom();
 		end;
-		OnStep = function(Framework, Step)
-			if Step == 3 or Step == 421 or Step == 1002 then
-				Framework.KateEngine.Modcharter.AllNotes.TweenAlpha(127, 0.2);
-			elseif Step == 101 or Step == 452 or Step == 1026 then
-				Framework.KateEngine.Modcharter.AllNotes.TweenAlpha(0, 0.2);
-			end;
+		SongStart = function(Framework)
+			Framework.KateEngine.Modcharter.SetString("ScoreR", "<Score> [[PIPIS]]");
+			Framework.KateEngine.Modcharter.SetString("ScoreL", "Kromer: <Score>");
 		end;
 		Lyrics = {
+			["Method"] = "Step";
 			[4] = "[[Attention customers,";
 			[14] = "clean up on aisle 3]]";
 			[26] = "SOMEONE LEFT THEIR";

@@ -1,0 +1,13 @@
+{
+    "robloxLsp.diagnostics.globals": [
+        "readfile",
+        "isfile",
+        "isfolder",
+        "makefolder",
+        "writefile",
+        "getgc",
+        "setclipboard",
+        "getsynasset",
+        "getcustomasset"
+    ]
+}
