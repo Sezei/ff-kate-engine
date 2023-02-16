@@ -54,7 +54,7 @@ local ColorJSON = {
 
 local Framework = getGameFramework();
 
-local Version = "v0.11";
+local Version = "v0.11a";
 
 -- Create the KateEngine table
 KateEngine = {
@@ -706,8 +706,6 @@ HBFront.Position = UDim2.fromScale(1,0.5);
 HBFront.BackgroundColor3 = Color3.new(0,1,0);
 HBFront.ZIndex = 2;
 HBFront.Name = "Front";
-
-material.Banner({Text = "Remade the storage stuff. Apologies if you lost data!"});
 
 -- Prepare the default GameUI stuff for the hud zoom
 GameUI.Arrows.AnchorPoint = Vector2.new(0.5, 0.5);
@@ -1833,13 +1831,13 @@ if not missing["file storage"] then
 		else
 			-- If it fails, we can't load it
 			-- So we load the default modcharts from github
-			Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))()();
+			Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))();
 		end
 	else
-		Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))()();
+		Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))();
 	end
 else
-	Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))()();
+	Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))();
 end
 
 SceneLoaded:Connect(function(SceneID, Scene)
