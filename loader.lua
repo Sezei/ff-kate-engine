@@ -223,22 +223,6 @@ KateEngine = {
 
 				Stored = true;
 			};
-            {
-                Type = "Boolean";
-                Default = false;
-                Text = "Show Judgement Overlays [EXPERIMENTAL]";
-                Key = "Mania_JudgementOverlays";
-
-                Stored = true;
-            };
-			{
-				Type = "Boolean";
-                Default = true; -- Less annoyance for the players (deserved tbh)
-                Text = "Non-Sick Overlays Only";
-                Key = "Mania_NonPerfectOverlays";
-
-                Stored = true;
-			};
 			{
 				Type = "Multichoice";
 				Default = 50;
@@ -287,6 +271,30 @@ KateEngine = {
 				Key = "Mania_400Combo";
 
 				Stored = true;
+			};
+			{
+				Type = "Label";
+				Text = "-- JUDGEMENT OVERLAY --";
+			};
+			{
+				Type = "Label";
+				Text = "Judgement overlays are displaying an overlay when you hit a note, depending on the rating.";
+			};
+			{
+                Type = "Boolean";
+                Default = false;
+                Text = "Show Judgement Overlays [EXPERIMENTAL]";
+                Key = "Mania_JudgementOverlays";
+
+                Stored = true;
+            };
+			{
+				Type = "Boolean";
+                Default = true; -- Less annoyance for the players (deserved tbh)
+                Text = "Non-Sick Overlays Only";
+                Key = "Mania_NonPerfectOverlays";
+
+                Stored = true;
 			};
 		};
 
@@ -417,6 +425,9 @@ KateEngine = {
 
 				Stored = true;
 			};
+		};
+
+		["Cosmetic"] = {
 			{
 				Type = "Label";
 				Text = "-- PERFECT RATING --";
@@ -440,6 +451,37 @@ KateEngine = {
 				Key = "PerfectTimeframe";
 				Minimum = 1;
 				Maximum = 20;
+
+				Stored = true;
+			};
+			{
+				Type = "Label";
+				Text = "-- DEATH TYPE --";
+			};
+			{
+				Type = "Label";
+				Text = "The effect that plays when you die from health loss. (NOT resetting)";
+			};
+			{
+				Type = "Multichoice";
+				Default = "None";
+				Text = "Death Effect";
+				Key = "DeathEffect";
+				Options = {
+					"None";
+					"Explosion";
+					"Burn";
+				};
+
+				Stored = true;
+			};
+			{
+				Type = "Slider";
+				Default = 1;
+				Text = "Explosion Effect: Strength";
+				Key = "DeathEffect_ExplosionStrength";
+				Minimum = 1;
+				Maximum = 10;
 
 				Stored = true;
 			};
@@ -565,7 +607,7 @@ local GameUI = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local RemoteEvent = game.ReplicatedStorage.RE;
 
 -- Material UI (Used for the menu)
-local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..Version;Theme = "Dark";SizeX = 500;})
+local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..Version;Theme = "Dark";SizeX = 550;})
 material.Self.Enabled = false;
 
 -- Build the UI
@@ -993,6 +1035,21 @@ local function UpdateHealth() -- To be fired every time health is added/reduced
 	HBFront.Size = UDim2.new(KateEngine.Health.Current/100,0,1,0);
 	if KateEngine.Health.Current == 0 and KateEngine.Settings.Healthbar_DeathOnZero then
 		game.Players.LocalPlayer.Character.Humanoid.Health = -100;
+
+		if KateEngine.Settings.DeathEffect == "Explosion" then
+			-- Spawn an explosion where the player is
+			local explosion = Instance.new("Explosion");
+			explosion.Position = game.Players.LocalPlayer.Character.HumanoidRootPart.Position;
+			explosion.BlastPressure = KateEngine.Settings.DeathEffect_ExplosionStrength * 10;
+			explosion.BlastRadius = 2;
+			explosion.Parent = workspace;
+		elseif KateEngine.Settings.DeathEffect == "Burn" then
+			-- Add fire to the player
+			local fire = Instance.new("Fire");
+			fire.Heat = 30;
+			fire.Size = 10;
+			fire.Parent = game.Players.LocalPlayer.Character.HumanoidRootPart;
+		end
 	end
 end
 
@@ -1624,16 +1681,8 @@ ModchartSystem = {
 					Enum_EasingDirection = Enum.EasingDirection.InOut;
 				end;
 
-				-- Attempt to calculate how much the note would move if it would've been on a 1280x720 screen
-				local AbsSize = GameUI.Arrows.AbsoluteSize;
-
-				local NoteX = Note.InnerFrame.Position.X.Offset;
-				local NoteY = Note.InnerFrame.Position.Y.Offset;
-				local NotePercentX = NoteX / (AbsSize.X / 1280);
-				local NotePercentY = NoteY / (AbsSize.Y / 720);
-
 				-- Tween the note
-				Note.InnerFrame:TweenPosition(UDim2.fromScale(NotePercentX + PositionChange, NotePercentY), Enum_EasingDirection, Enum_EasingStyle, Time, true);
+				Note.InnerFrame:TweenPosition(UDim2.fromScale(Note.InnerFrame.Position.X.Scale + PositionChange, Note.InnerFrame.Position.Y.Scale), Enum_EasingDirection, Enum_EasingStyle, Time, true);
 			end;
 
 			TweenYPosition = function(PositionChange, Time, Enum_EasingStyle, Enum_EasingDirection)
@@ -1655,16 +1704,8 @@ ModchartSystem = {
 					Enum_EasingDirection = Enum.EasingDirection.InOut;
 				end;
 
-				-- Attempt to calculate how much the note would move if it would've been on a 1280x720 screen
-				local AbsSize = GameUI.Arrows.AbsoluteSize;
-
-				local NoteX = Note.InnerFrame.Position.X.Offset;
-				local NoteY = Note.InnerFrame.Position.Y.Offset;
-				local NotePercentX = NoteX / (AbsSize.X / 1280);
-				local NotePercentY = NoteY / (AbsSize.Y / 720);
-
 				-- Tween the note
-				Note.InnerFrame:TweenPosition(UDim2.fromScale(NotePercentX, NotePercentY + PositionChange), Enum_EasingDirection, Enum_EasingStyle, Time, true);
+				Note.InnerFrame:TweenPosition(UDim2.fromScale(Note.InnerFrame.Position.X.Scale, Note.InnerFrame.Position.Y.Scale + PositionChange), Enum_EasingDirection, Enum_EasingStyle, Time, true);
 			end;
 
 			TweenAngle = function(AngleChange, Time)

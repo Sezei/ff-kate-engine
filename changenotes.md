@@ -15,6 +15,8 @@ None
 Engine Changes;
 - Added 'Copy Discord Link' button to the UI.
 - Fixed the modcharts not loading properly.
+- Added death effects to the UI.
+- Reorganized the UI; Added cosmetic tab for Perfect rating and the death effects.
 
 # 09/02/2023
 ---
