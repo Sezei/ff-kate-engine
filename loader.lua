@@ -137,6 +137,14 @@ KateEngine = {
 				end;
 			};
 			{
+				Requirement = "clipboard";
+				Type = "Button";
+				Text = "Copy Discord Invite";
+				Callback = function()
+					setclipboard("https://discord.gg/2Z3Z7Yj");
+				end;
+			};
+			{
 				Requirement = "file storage";
 				Type = "Button";
 				Text = "Export Chart";
