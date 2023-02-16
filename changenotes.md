@@ -1,6 +1,21 @@
 Change Notes
 ===
 
+# 16/02/2023
+---
+Modcharts Added;
+- Multiple Salty's Sunday Night songs | BPM fixes
+
+Modcharts Changed;
+- Seek's Cool Deltarune Mod - HYPERLINK | Added missing no-music section
+
+Modcharter Changes;
+None
+
+Engine Changes;
+- Added 'Copy Discord Link' button to the UI.
+- Fixed the modcharts not loading properly.
+
 # 09/02/2023
 ---
 Modcharts Added;

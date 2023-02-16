@@ -141,7 +141,7 @@ KateEngine = {
 				Type = "Button";
 				Text = "Copy Discord Invite";
 				Callback = function()
-					setclipboard("https://discord.gg/2Z3Z7Yj");
+					setclipboard("https://discord.gg/S5azXERwF7");
 				end;
 			};
 			{

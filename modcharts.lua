@@ -35,6 +35,30 @@ return {
 		end;
 	};
 
+	["9103750413"] = { -- Salty's Legacy - Best Girl
+		SetBPM = 190;
+	};
+
+	["9103763718"] = { -- Salty's Legacy - Sour n' Scary
+		SetBPM = 140;
+	};
+
+	["9103758137"] = { -- Salty's Legacy - Opheebop
+		SetBPM = 195;
+	};
+
+	["9103759493"] = { -- Salty's Legacy - Protect
+		SetBPM = 120;
+	};
+
+	["9103753373"] = { -- Salty's Legacy - Defend
+		SetBPM = 130;
+	};
+
+	["9103760328"] = { -- Salty's Legacy - Rising Star
+		SetBPM = 120;
+	};
+
 	["10729979967"] = { -- Vs. LSE - Means of Destruction
 		OnBeat = function(Framework, Beat)
 			if Beat == 140 then
@@ -257,7 +281,7 @@ return {
 		OnSection = function(Framework, Section)
 			if Section >= 28 and Section <= 30 then
 				return;
-			elseif Section == 65 or Section == 66 then
+			elseif Section == 65 or Section == 66 or Section == 85 then
 				return;
 			end;
 			Framework.KateEngine.Modcharter.CameraZoom();
