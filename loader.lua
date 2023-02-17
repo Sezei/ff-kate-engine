@@ -676,7 +676,7 @@ LyricsLabel.RichText = true;
 KateEngine.Assets.LyricsLabel = LyricsLabel;
 
 -- Watermark stuff
-local Watermark = Instance.new("ImageLabel");
+local Watermark = Instance.new("ImageButton");
 Watermark.Name = "KE_Watermark";
 Watermark.Image = "rbxassetid://12289530118";
 Watermark.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
@@ -907,7 +907,11 @@ UIS.InputBegan:Connect(function(info)
 			material.Self.Enabled = not material.Self.Enabled
 		end
 	end
-end)
+end);
+
+Watermark.MouseButton1Click:Connect(function()
+	material.Self.Enabled = not material.Self.Enabled
+end);
 
 local function CalcDifficultyRating(lenght)
     local diff = 0;
@@ -1996,11 +2000,17 @@ local function CreateModchartDebug(songmodchart)
 	local debugtext = "";
 
 	if songmodchart then
-		debugtext = debugtext.."\n\nModchart Loaded - "..(songmodchart.Name or "Unnamed Modchart");
+		if songmodchart.Name then
+			debugtext = debugtext.."\n\nModchart Loaded - "..(songmodchart.Name);
+		else
+			debugtext = debugtext.."\n\nModchart Loaded";
+		end;
 
 		if songmodchart.Author then
 			debugtext = debugtext.."\nAuthor: "..songmodchart.Author;
-		end
+		elseif songmodchart.PortedBy then
+			debugtext = debugtext.."\nPorted By: "..songmodchart.PortedBy;
+		end;
 
 		if songmodchart.Lyrics then
 			debugtext = debugtext.."\nLyrics: ";

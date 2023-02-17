@@ -1,7 +1,21 @@
 Change Notes
 ===
 
-# 16/02/2023
+# 17/02/2023
+---
+Modcharts Added;
+- Vs. Bob - Onslaught | Mostly-Accurate Port
+
+Modcharts Changed;
+None
+
+Modcharter Changes;
+- Added PortedBy for when you're porting a modchart rather than creating one.
+
+Engine Changes;
+- Clicking on the watermark will now toggle the KE menu.
+
+# 16/02/2023 (v0.11a)
 ---
 Modcharts Added;
 - Multiple Salty's Sunday Night songs | BPM fixes

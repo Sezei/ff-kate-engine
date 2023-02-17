@@ -14,6 +14,20 @@ end;
 
 local PreRequisites = {
 	"metalpipe.mp3";
+	"pop_up.mp3";
+	"Meow.mp3";
+	"woeM.mp3";
+	"popup1.png";
+	"popup2.png";
+	"popup3.png";
+	"popup4.png";
+	"popup5.png";
+	"popup6.png";
+	"popup7.png";
+	"popup8.png";
+	"popup9.png";
+	"popup10.png";
+	"popup11.png";
 };
 
 for _,v in pairs(PreRequisites) do
@@ -146,6 +160,83 @@ return {
 
 	["9104474200"] = { -- Vs. Bob - Run
 		SetBPM = 200;
+	};
+
+	["9104471276"] = { -- Vs. Bob - Onslaugh
+		PortedBy = "Sezei";
+		OnBeat = function(Framework, Beat)
+			-- Camera Zoom
+			if Beat < 64 then
+				Framework.KateEngine.Modcharter.CameraZoom();
+			end;
+
+			if Beat >= 130 and Beat <= 354 then
+				-- Roll a dice to show a popup
+				Framework:GetKEValue("FakeAd")();
+			end;
+
+			if Beat == 98 or Beat == 241 then
+				Framework:GetKEValue("ReceptorVisible")(false);
+			elseif Beat == 130 or Beat == 353 then
+				Framework:GetKEValue("ReceptorVisible")(true);
+			end;
+
+			if Beat == 130 then
+				Framework:GetKEValue("ROTATE")();
+			end;
+		end;
+		SongStart = function(Framework)
+			Framework:SetKEValue("FakeAd", function()
+				if Framework.UI.CurrentSide == "Left" then return end;
+
+				if math.random(1, 25) == 1 then
+					-- Sprite(image, position, size, zindex, anchorpoint)
+					local popup = Framework.KateEngine.Modcharter.Sprite(FetchAsset("popup"..math.random(1,11)..".png"), UDim2.fromScale(math.random(),math.random()), UDim2.fromOffset(505,298), 5, Vector2.new(0.5, 0.5));
+					popup.ImageTransparency = 0;
+
+					Framework.KateEngine.Modcharter.Sound(FetchAsset("pop_up.mp3"), 1, 1);
+
+					task.delay(3, function()
+						popup:Destroy();
+					end);
+				end;
+			end);
+			Framework:SetKEValue("ReceptorVisible", function(isVisible)
+				if Framework.UI.CurrentSide == "Left" then return end;
+
+				for i = 4, 7 do
+					local note = Framework.KateEngine.Modcharter.Note(i);
+					if note then
+						local Frame = note.Fetch().InnerFrame;
+						Frame:FindFirstChild(tostring(i-4)).Arrow.Layers.Visible = isVisible;
+
+						if isVisible then
+							Framework.KateEngine.Modcharter.Sound(FetchAsset("woeM.mp3"), 1, 1);
+						elseif not isVisible then
+							Framework.KateEngine.Modcharter.Sound(FetchAsset("Meow.mp3"), 1, 1);
+						end;
+					end;
+				end;
+			end);
+			Framework:SetKEValue("ROTATE", function()
+				if Framework.UI.CurrentSide == "Left" then return end;
+
+				for i = 4, 7 do
+					local note = Framework.KateEngine.Modcharter.Note(i);
+					if note then
+						local Frame = note.Fetch().InnerFrame;
+						local Arrow = Frame:FindFirstChild(tostring(i-4)).Arrow.Layers
+
+						Arrow.Rotation = 0;
+						TweenService:Create(Arrow, TweenInfo.new(
+							30,
+							Enum.EasingStyle.Quad,
+							Enum.EasingDirection.In
+						), {Rotation = 360*35}):Play();
+					end;
+				end;
+			end);
+		end;
 	};
 
 	["9398363530"] = { -- Below the Depths - Sink
