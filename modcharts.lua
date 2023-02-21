@@ -225,7 +225,7 @@ return {
 					local note = Framework.KateEngine.Modcharter.Note(i);
 					if note then
 						local Frame = note.Fetch().InnerFrame;
-						local Arrow = Frame:FindFirstChild(tostring(i-4)).Arrow.Layers
+						local Arrow = Frame:FindFirstChild(tostring(i-4)).Arrow.Layers;
 
 						Arrow.Rotation = 0;
 						TweenService:Create(Arrow, TweenInfo.new(

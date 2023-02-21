@@ -757,6 +757,21 @@ HBFront.BackgroundColor3 = Color3.new(0,1,0);
 HBFront.ZIndex = 2;
 HBFront.Name = "Front";
 
+---TODO---
+--[[ Create a Funky Chart category in the song selector
+local Category = GameUI.SongSelector.Categories:FindFirstChild("Favourites"):Clone();
+Category.Parent = GameUI.SongSelector.Categories;
+Category.Name = "Funky Chart";
+Category.TopLabel.Text = "<font color='#FF2080'>(Kate Engine)</font>";
+Category.Title.Text = "Funky Chart";
+Category.Icon.Image = ""; -- Unload the image
+
+Category.MouseButton1Click:Connect(function()
+	
+end);
+--]]
+---TODO---
+
 -- Prepare the default GameUI stuff for the hud zoom
 GameUI.Arrows.AnchorPoint = Vector2.new(0.5, 0.5);
 GameUI.Arrows.Position = UDim2.new(0.5, 0, 0.5, 0);
@@ -2059,6 +2074,9 @@ local function CreateModchartDebug(songmodchart)
 			if songmodchart.SongStart then
 				table.insert(events, "SongStart");
 			end;
+			if songmodchart.SongEnd then
+				table.insert(events, "SongEnd");
+			end;
 
 			if #events == 0 then
 				debugtext = debugtext.."None";
@@ -2106,6 +2124,11 @@ SoundEvent:Connect(function(Active)
 			connectedevent:Disconnect();
 			connectedevent = nil;
 		end;
+
+		if Framework:GetKEValue("CurrentModchart") and Framework:GetKEValue("CurrentModchart").SongEnd then
+			Framework:GetKEValue("CurrentModchart").SongEnd(Framework);
+		end;
+
 		ModchartSystem.SetLyrics(""); -- Clear out the lyrics (how did i miss that)
 		Framework:SetKEValue("CurrentModchart", nil);
 		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
