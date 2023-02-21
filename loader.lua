@@ -11,10 +11,7 @@ if not getgc then -- This one is required for the script to work, as it hooks in
 end;
 
 if not writefile or not readfile or not isfile or not isfolder or not makefolder then
-	missing["file storage"] = true;
-	missing["custom modchart"] = true;
-elseif not isfile("KateEngine/Modcharts.lua") then
-	missing["custom modchart"] = true;
+	return error("Your exploit is not supported by this script; Missing fs functions which are required by v0.11b+.")
 end;
 
 if not setclipboard then
@@ -23,7 +20,7 @@ end;
 
 -- 💀
 if not isfolder("KateEngine") then
-    makefolder("KateEngine");
+	makefolder("KateEngine");
 end;
 
 -- Function to get the Framework
@@ -51,6 +48,41 @@ local ColorJSON = {
 		end;
 	end;
 };
+
+local LoadAsset = getsynasset or getcustomasset;
+local FetchAsset = function(Asset)
+	if isfolder('KateEngine/Assets') and isfile('KateEngine/Assets/'..Asset) then
+		return LoadAsset('KateEngine/Assets/'..Asset);
+	else
+		if not isfolder('KateEngine/Assets') then
+			makefolder('KateEngine/Assets');
+		end
+		writefile('KateEngine/Assets/'..Asset,game:HttpGet("https://github.com/Sezei/ff-kate-engine/blob/main/modchart_material/"..Asset.."?raw=true"));
+		return LoadAsset('KateEngine/Assets/'..Asset);
+	end
+end;
+
+local PreRequisites = {
+	"metalpipe.mp3";
+	"pop_up.mp3";
+	"Meow.mp3";
+	"woeM.mp3";
+	"popup1.png";
+	"popup2.png";
+	"popup3.png";
+	"popup4.png";
+	"popup5.png";
+	"popup6.png";
+	"popup7.png";
+	"popup8.png";
+	"popup9.png";
+	"popup10.png";
+	"popup11.png";
+};
+
+for _,v in pairs(PreRequisites) do
+	FetchAsset(v);
+end;
 
 local Framework = getGameFramework();
 
@@ -145,7 +177,6 @@ KateEngine = {
 				end;
 			};
 			{
-				Requirement = "file storage";
 				Type = "Button";
 				Text = "Export Chart";
 				Callback = function()
@@ -165,7 +196,6 @@ KateEngine = {
 				end;
 			};
 			{
-				Requirement = "file storage";
 				Type = "Button";
 				Text = "Force Save Settings";
 				Callback = function()
@@ -281,20 +311,20 @@ KateEngine = {
 				Text = "Judgement overlays are displaying an overlay when you hit a note, depending on the rating.";
 			};
 			{
-                Type = "Boolean";
-                Default = false;
-                Text = "Show Judgement Overlays [EXPERIMENTAL]";
-                Key = "Mania_JudgementOverlays";
+				Type = "Boolean";
+				Default = false;
+				Text = "Show Judgement Overlays [EXPERIMENTAL]";
+				Key = "Mania_JudgementOverlays";
 
-                Stored = true;
-            };
+				Stored = true;
+			};
 			{
 				Type = "Boolean";
-                Default = true; -- Less annoyance for the players (deserved tbh)
-                Text = "Non-Sick Overlays Only";
-                Key = "Mania_NonPerfectOverlays";
+				Default = true; -- Less annoyance for the players (deserved tbh)
+				Text = "Non-Sick Overlays Only";
+				Key = "Mania_NonPerfectOverlays";
 
-                Stored = true;
+				Stored = true;
 			};
 		};
 
@@ -399,7 +429,7 @@ KateEngine = {
 
 				Stored = true;
 			};
-            {
+			{
 				Type = "Label";
 				Text = "-- CAMERA --"
 			};
@@ -472,16 +502,6 @@ KateEngine = {
 					"Explosion";
 					"Burn";
 				};
-
-				Stored = true;
-			};
-			{
-				Type = "Slider";
-				Default = 1;
-				Text = "Explosion Effect: Strength";
-				Key = "DeathEffect_ExplosionStrength";
-				Minimum = 1;
-				Maximum = 10;
 
 				Stored = true;
 			};
@@ -588,13 +608,13 @@ function Framework:GetKEValue(key)
 end
 
 function Format(Original,ReplacementData)
-    local s:string = tostring(Original);
+	local s:string = tostring(Original);
 
-    for old,new in pairs(ReplacementData) do
-        s = s:gsub("<"..old..">",tostring(new));
-    end
+	for old,new in pairs(ReplacementData) do
+		s = s:gsub("<"..old..">",tostring(new));
+	end
 
-    return s;
+	return s;
 end
 
 -- Services and Variables
@@ -808,11 +828,9 @@ GameUI.Score:FindFirstChild("Right"):GetPropertyChangedSignal("Visible"):Connect
 	GameUI.Score:FindFirstChild("Right").Visible = false;
 end);
 
-if not missing["file storage"] then
-	if isfile("KateEngine/config.png") then -- Load the settings if they exist
-		local data = game:GetService("HttpService"):JSONDecode(readfile("KateEngine/config.png"));
-		KateEngine.Settings = data;
-	end
+if isfile("KateEngine/config.png") then -- Load the settings if they exist
+	local data = game:GetService("HttpService"):JSONDecode(readfile("KateEngine/config.png"));
+	KateEngine.Settings = data;
 end
 
 -- Create the UI
@@ -929,21 +947,21 @@ Watermark.MouseButton1Click:Connect(function()
 end);
 
 local function CalcDifficultyRating(lenght)
-    local diff = 0;
-    repeat task.wait() until (Framework.SongPlayer.CurrentSongData and #Framework.SongPlayer.CurrentSongData > 0);
-    local notes = #Framework.SongPlayer.CurrentSongData;
-    local avgnps = notes / lenght; -- Average notes per second
+	local diff = 0;
+	repeat task.wait() until (Framework.SongPlayer.CurrentSongData and #Framework.SongPlayer.CurrentSongData > 0);
+	local notes = #Framework.SongPlayer.CurrentSongData;
+	local avgnps = notes / lenght; -- Average notes per second
 
-    diff += lenght/60;
-    diff += notes/300;
-    diff += avgnps*5;
+	diff += lenght/60;
+	diff += notes/300;
+	diff += avgnps*5;
 
-    -- Make the difficulty a float number with 2 decimals
-    diff = math.floor(diff * 100) / 100;
+	-- Make the difficulty a float number with 2 decimals
+	diff = math.floor(diff * 100) / 100;
 
 	KateEngine.Cache["CurrentChart"] = Framework.SongPlayer.CurrentSongData; -- unbelievable
 
-    return diff;
+	return diff;
 end
 
 function ReselectBotAccuracy()
@@ -1059,7 +1077,6 @@ local function UpdateHealth() -- To be fired every time health is added/reduced
 			-- Spawn an explosion where the player is
 			local explosion = Instance.new("Explosion");
 			explosion.Position = game.Players.LocalPlayer.Character.HumanoidRootPart.Position;
-			explosion.BlastPressure = KateEngine.Settings.DeathEffect_ExplosionStrength * 10;
 			explosion.BlastRadius = 2;
 			explosion.Parent = workspace;
 		elseif KateEngine.Settings.DeathEffect == "Burn" then
@@ -1068,6 +1085,24 @@ local function UpdateHealth() -- To be fired every time health is added/reduced
 			fire.Heat = 30;
 			fire.Size = 10;
 			fire.Parent = game.Players.LocalPlayer.Character.HumanoidRootPart;
+		elseif KateEngine.Settings.DeathEffect == "Pipe" then
+			-- Pipe'd lol
+			task.spawn(function()
+				local sprite = Framework.KateEngine.Modcharter.Sprite("rbxassetid://12427705637", UDim2.fromScale(0.5,0.5), UDim2.fromScale(1,1), 5, Vector2.new(0.5, 0.5));
+				sprite.ImageTransparency = 0.5;
+
+				local aspectratio = Instance.new("UIAspectRatioConstraint");
+				aspectratio.AspectRatio = 1;
+				aspectratio.Parent = sprite;
+
+				task.wait(0.2);
+				local tween = TweenService:Create(sprite, TweenInfo.new(0.3), {ImageTransparency = 1});
+				tween:Play();
+				tween.Completed:Wait();
+				sprite:Destroy();
+			end);
+
+			Framework.KateEngine.Modcharter.Sound(FetchAsset("metalpipe.mp3"), 1, 1);
 		end
 	end
 end
@@ -1170,7 +1205,7 @@ local function updateCombo(combo,acc,miss)
 			else
 				KateEngine.Health.Current += KateEngine.Settings.Healthbar_HealthGain;
 			end
-			
+
 			UpdateHealth();
 		else
 			Healthbar.Visible = false;
@@ -1276,21 +1311,21 @@ GameUI.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 		isReset = true;
 	end
 
-    if not isReset then
-        if tonumber(tt[5]) > lastmiss then
-            -- Play the miss sound if the miss count is higher than the last miss count
-            local sound = Instance.new("Sound")
-            sound.SoundId = Framework.Assets.Sounds:FindFirstChild("MissedNotes"):GetChildren()[math.random(#Framework.Assets.Sounds:FindFirstChild("MissedNotes"):GetChildren())].SoundId
-            sound.Volume = 0.35
-            sound.Parent = GameUI
-            sound:Play();
-            task.spawn(function()
-                task.wait(2);
-                sound:Destroy();
-            end) 
-        end
-        lastmiss = tonumber(tt[5]);
-    end
+	if not isReset then
+		if tonumber(tt[5]) > lastmiss then
+			-- Play the miss sound if the miss count is higher than the last miss count
+			local sound = Instance.new("Sound")
+			sound.SoundId = Framework.Assets.Sounds:FindFirstChild("MissedNotes"):GetChildren()[math.random(#Framework.Assets.Sounds:FindFirstChild("MissedNotes"):GetChildren())].SoundId
+			sound.Volume = 0.35
+			sound.Parent = GameUI
+			sound:Play();
+			task.spawn(function()
+				task.wait(2);
+				sound:Destroy();
+			end) 
+		end
+		lastmiss = tonumber(tt[5]);
+	end
 
 	if tt[10] then
 		num = string.gsub(tt[10], "%D", "")
@@ -1400,10 +1435,10 @@ GameUI.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
 		local seconds = tonumber(tim[1])*60 + tonumber(tim[2])
 		if KateEngine.Topbar.OriginTime == 0 then
 			KateEngine.Topbar.OriginTime = seconds
-            KateEngine.Topbar.SongDifficulty = CalcDifficultyRating(seconds);
+			KateEngine.Topbar.SongDifficulty = CalcDifficultyRating(seconds);
 		end
 
-        newtxt = newtxt.." | [⭐ "..KateEngine.Topbar.SongDifficulty.."]"
+		newtxt = newtxt.." | [⭐ "..KateEngine.Topbar.SongDifficulty.."]"
 
 		local function handler()
 			local m = math.floor((seconds/KateEngine.Topbar.OriginTime)*75)
@@ -1428,7 +1463,7 @@ if KateEngine.Settings.CamManipulation then
 end
 
 GameUI.TopbarLabel:GetPropertyChangedSignal("TextColor3"):Connect(function()
-    Topbar.TextColor3 = GameUI.TopbarLabel.TextColor3
+	Topbar.TextColor3 = GameUI.TopbarLabel.TextColor3
 end)
 
 GameUI.TopbarLabel:GetPropertyChangedSignal("Visible"):Connect(function()
@@ -1845,65 +1880,61 @@ ModchartSystem = {
 			return Framework.GameUI.Arrows.Rotation;
 		end;
 
-        TweenAngle = function(Angle, Time)
-            if not Angle then
-                Angle = 0;
-            end;
+		TweenAngle = function(Angle, Time)
+			if not Angle then
+				Angle = 0;
+			end;
 
-            if not Time then
-                Time = 0;
-            end;
+			if not Time then
+				Time = 0;
+			end;
 
-            if Time > 0 then
-                local Tween = TweenService:Create(Framework.GameUI.Arrows, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Rotation = Angle});
+			if Time > 0 then
+				local Tween = TweenService:Create(Framework.GameUI.Arrows, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Rotation = Angle});
 
-                Tween:Play();
-                Tween.Completed:Once(function()
-                    Tween:Destroy();
-                end);
-            else
-                Framework.GameUI.Arrows.Rotation = Angle;
-            end;
-        end;
+				Tween:Play();
+				Tween.Completed:Once(function()
+					Tween:Destroy();
+				end);
+			else
+				Framework.GameUI.Arrows.Rotation = Angle;
+			end;
+		end;
 	}
 };
 
 KateEngine.Modcharter = ModchartSystem;
 
-if not missing["file storage"] then
-	-- Check if KateEngine/Modcharts.lua exists;
-	-- If yes, we can load it instead of the default modcharts from github;
+-- Check if KateEngine/Modcharts.lua exists;
+-- If yes, we can load it instead of the default modcharts from github;
 
-	if isfile("KateEngine/Modcharts.lua") then
-		local ModchartFile = readfile("KateEngine/Modcharts.lua");
-		-- Attempt to load the modcharts file
-		local Success, ModchartStuff = pcall(loadstring, ModchartFile);
-		if Success then
-			local Test = ModchartStuff();
-			if type(Test) == "function" then
-				Modcharts = ModchartStuff()();
-			elseif type(Test) == "table" then
-				Modcharts = ModchartStuff();
-			end
+if isfile("KateEngine/Modcharts.lua") then
+	local ModchartFile = readfile("KateEngine/Modcharts.lua");
+	-- Attempt to load the modcharts file
+	local Success, ModchartStuff = pcall(loadstring, ModchartFile);
+	if Success then
+		local Test = ModchartStuff();
+		if type(Test) == "function" then
+			Modcharts = ModchartStuff()();
+		elseif type(Test) == "table" then
+			Modcharts = ModchartStuff();
+		end
 
-			function KateEngine.ReloadModcharts()
-				local ModchartFile = readfile("KateEngine/Modcharts.lua");
-				local Success, ModchartStuff = pcall(loadstring, ModchartFile);
-				if Success then
-					local Test = ModchartStuff();
-					if type(Test) == "function" then
-						Modcharts = ModchartStuff()();
-					elseif type(Test) == "table" then
-						Modcharts = ModchartStuff();
-					end
+		function KateEngine.ReloadModcharts()
+			local ModchartFile = readfile("KateEngine/Modcharts.lua");
+			local Success, ModchartStuff = pcall(loadstring, ModchartFile);
+			if Success then
+				local Test = ModchartStuff();
+				if type(Test) == "function" then
+					Modcharts = ModchartStuff()();
+				elseif type(Test) == "table" then
+					Modcharts = ModchartStuff();
 				end
 			end
-		else
-			-- If it fails, we can't load it
-			-- So we load the default modcharts from github
-			Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))();
 		end
 	else
+		-- If it fails, we can't load it
+		-- So we load the default modcharts from github
 		Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))();
 	end
 else
@@ -1939,7 +1970,7 @@ NoteHit:Connect(function(NoteHitData, Note)
 	local Modchart = Framework:GetKEValue("CurrentModchart")
 
 	ReselectBotAccuracy();
-	
+
 	if Modchart and Modchart.NoteHit then
 		Modchart.NoteHit(Framework, NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
 	end;
@@ -1958,8 +1989,8 @@ NoteHit:Connect(function(NoteHitData, Note)
 		KateEngine.Mania.Perfects += 1;
 	end;
 
-    if KateEngine.Settings.Mania_JudgementOverlays then
-        if Note and Note.Side and not (Note.Side == Framework.UI.CurrentSide) then return end;
+	if KateEngine.Settings.Mania_JudgementOverlays then
+		if Note and Note.Side and not (Note.Side == Framework.UI.CurrentSide) then return end;
 
 		if KateEngine.Settings.Mania_NonPerfectOverlays then
 			-- Show the overlay only if the note was not perfect
@@ -1971,41 +2002,41 @@ NoteHit:Connect(function(NoteHitData, Note)
 		ManiaJudgementOverlay.Visible = true;
 
 		if NoteHitData.HitAccuracy >= 95 then
-            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(80, 197, 255);
-        elseif NoteHitData.HitAccuracy >= 90 then
-            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(138, 255, 80);
-        elseif NoteHitData.HitAccuracy >= 85 then
-            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 197, 80);
-        else
-            ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 80, 80);
-        end;
+			ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(80, 197, 255);
+		elseif NoteHitData.HitAccuracy >= 90 then
+			ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(138, 255, 80);
+		elseif NoteHitData.HitAccuracy >= 85 then
+			ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 197, 80);
+		else
+			ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 80, 80);
+		end;
 
 		if math.abs(tonumber(NoteHitData.MS)) <= (0.5 * KateEngine.Settings.PerfectTimeframe) and KateEngine.Settings.PerfectRating then -- PERFECT HIT!!
 			ManiaJudgementOverlay.ImageColor3 = Color3.fromRGB(255, 0, 140);
 		end;
 
-        ManiaJudgementOverlay.ImageTransparency = 0;
+		ManiaJudgementOverlay.ImageTransparency = 0;
 
-        if NoteHitTween then
-            NoteHitTween:Cancel();
-        end;
+		if NoteHitTween then
+			NoteHitTween:Cancel();
+		end;
 
-        NoteHitTween = TweenService:Create(ManiaJudgementOverlay, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1});
-        NoteHitTween:Play();
+		NoteHitTween = TweenService:Create(ManiaJudgementOverlay, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1});
+		NoteHitTween:Play();
 
-        NoteHitTween.Completed:Once(function()
-            NoteHitTween = nil;
-        end);
-    else
-        ManiaJudgementOverlay.Visible = false;
-    end
+		NoteHitTween.Completed:Once(function()
+			NoteHitTween = nil;
+		end);
+	else
+		ManiaJudgementOverlay.Visible = false;
+	end
 end);
 
 NoteMiss:Connect(function(Note, Receptor)
 	-- @param: { table NoteClass, table Receptor(?) }
 
 	local Modchart = Framework:GetKEValue("CurrentModchart")
-	
+
 	if Modchart and Modchart.NoteMiss then
 		Modchart.NoteMiss(Framework, Note, Receptor, Note.Side==Framework.UI.CurrentSide);
 	end
@@ -2014,7 +2045,7 @@ end);
 NoteCreated:Connect(function(Note)
 	-- @param: { table NoteClass }
 	local Modchart = Framework:GetKEValue("CurrentModchart")
-	
+
 	if Modchart and Modchart.NoteCreated then
 		Modchart.NoteCreated(Framework, Note);
 	end
@@ -2128,7 +2159,7 @@ LanePressed:Connect(function(direction, isActive)
 		["2"] = CFrame.new(0, cameraDisplace, 0),
 		["3"] = CFrame.new(cameraDisplace, 0, 0)
 	}
--- We check to see if we can go ahead with the camera displacement
+	-- We check to see if we can go ahead with the camera displacement
 	if Framework.SongPlayer and Framework.SongPlayer.CurrentlyPlaying and direction.Side == Framework.UI.CurrentSide then
 		if isActive then
 			curPos = direction.Direction or direction.Position
@@ -2155,7 +2186,7 @@ SoundEvent:Connect(function(Active)
 		ModchartSystem.SetLyrics(""); -- Clear out the lyrics (how did i miss that)
 		Framework:SetKEValue("CurrentModchart", nil);
 		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
-		
+
 		-- Reset the strings to the default ones
 		for key, default in pairs(KateEngine.DefaultStrings) do
 			ModchartSystem.SetString(key, default);
@@ -2186,17 +2217,17 @@ SoundEvent:Connect(function(Active)
 				if Modcharts[songid].DisableDefault then
 					defaultbumping = false;
 				end
-	
+
 				if Modcharts[songid].Variables then
 					for i,v in pairs(Modcharts[songid].Variables) do
 						Framework:SetKEValue(i, v);
 					end
 				end
-	
+
 				if Modcharts[songid].SongStart then
 					Modcharts[songid].SongStart(Framework);
 				end
-	
+
 				Framework:SetKEValue("CurrentModchart", Modcharts[songid]);
 				songmodchart = Modcharts[songid];
 				songmodcharttext = CreateModchartDebug(Modcharts[songid]);
