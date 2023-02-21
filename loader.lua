@@ -54,7 +54,7 @@ local ColorJSON = {
 
 local Framework = getGameFramework();
 
-local Version = "v0.11a";
+local Version = "v0.11b";
 
 -- Create the KateEngine table
 KateEngine = {
@@ -2045,6 +2045,15 @@ local function CreateModchartDebug(songmodchart)
 			debugtext = debugtext..amount;
 		end
 
+		if songmodchart.EventDefinitions then
+			debugtext = debugtext.."\nEvent Definitions: ";
+			local amount = 0;
+			for _ in pairs(songmodchart.EventDefinitions) do
+				amount += 1;
+			end;
+			debugtext = debugtext..amount;
+		end
+
 		if songmodchart.SetBPM then
 			debugtext = debugtext.."\nBPM Set: "..songmodchart.SetBPM;
 		end
@@ -2198,6 +2207,16 @@ SoundEvent:Connect(function(Active)
 				CurrentSection = 0;
 				local laststepcheck = 0;
 				local lastclockcheck = 0;
+
+				-- Insert all event definitions into a table so we can use them in the song later
+				local eventdefinitions = {};
+
+				if songmodchart and songmodchart.EventDefinitions then
+					for i,v in pairs(songmodchart.EventDefinitions) do
+						eventdefinitions[i] = v;
+					end
+				end
+
 				connectedevent = game:GetService("RunService").RenderStepped:Connect(function() -- Use this to more accurately time the steps
 					if id ~= assigned or not KateEngine.Settings.Modcharts then
 						return;
@@ -2222,6 +2241,22 @@ SoundEvent:Connect(function(Active)
 
 						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Clock") and songmodchart.Lyrics[EventClock] then
 							ModchartSystem.SetLyrics(songmodchart.Lyrics[EventClock]);
+						end
+
+						if songmodchart and songmodchart.Events then
+							if songmodchart.Events[EventClock] then
+								-- An event is structured like this;
+								-- [EventClock] = {DefinedEvent, ... (Parameters)};
+								-- Example: [1] = {"SetBPM", 100};
+								if eventdefinitions[songmodchart.Events[EventClock][1]] then
+									eventdefinitions[songmodchart.Events[EventClock][1]](Framework, unpack(songmodchart.Events[EventClock], 2));
+								else
+									ModchartSystem.SetLyrics("<font color='#ff2020'>Event '"..songmodchart.Events[EventClock][1].."' is not defined!</font>");
+									task.delay(2, function()
+										ModchartSystem.SetLyrics("");
+									end);
+								end
+							end
 						end
 					end;
 

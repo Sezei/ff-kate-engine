@@ -73,6 +73,109 @@ return {
 		SetBPM = 120;
 	};
 
+	["10527124142"] = { -- Kreadian Funk - Rave 404
+		EventDefinitions = {
+			["Warning"] = function(Framework)
+				local sprite = Framework.KateEngine.Modcharter.Sprite(FetchAsset("KF_warning.png"),UDim2.fromScale(0.5,0.5), UDim2.fromScale(1,1), 0, Vector2.new(0.5, 0.5));
+				sprite.ImageTransparency = 0;
+				task.wait(0.2);
+				local tween = TweenService:Create(sprite, TweenInfo.new(0.3), {ImageTransparency = 1});
+				tween:Play();
+				tween.Completed:Wait();
+				sprite:Destroy();
+			end;
+		};
+		Events = {
+			-- Ticks/Stamps are taken from the 'events.lua' modchart in the mod.
+			[195*2] = {"Warning", nil};
+			[243*2] = {"Warning", nil};
+			[291*2] = {"Warning", nil};
+			[339*2] = {"Warning", nil};
+			[375*2] = {"Warning", nil};
+			[567*2] = {"Warning", nil};
+			[1539*2] = {"Warning", nil};
+			[1587*2] = {"Warning", nil};
+			[1635*2] = {"Warning", nil};
+			[1659*2] = {"Warning", nil};
+			[1683*2] = {"Warning", nil};
+			[1695*2] = {"Warning", nil};
+			[1704*2] = {"Warning", nil};
+			[1710*2] = {"Warning", nil};
+			[1716*2] = {"Warning", nil};
+			[1719*2] = {"Warning", nil};
+			[1722*2] = {"Warning", nil};
+			[1725*2] = {"Warning", nil};
+			[2115*2] = {"Warning", nil};
+			[2127*2] = {"Warning", nil};
+			[2139*2] = {"Warning", nil};
+			[2151*2] = {"Warning", nil};
+			[2163*2] = {"Warning", nil};
+			[2175*2] = {"Warning", nil};
+			[2187*2] = {"Warning", nil};
+			[2199*2] = {"Warning", nil};
+			[2211*2] = {"Warning", nil};
+			[2223*2] = {"Warning", nil};
+			[2235*2] = {"Warning", nil};
+			[2247*2] = {"Warning", nil};
+			[2259*2] = {"Warning", nil};
+			[2271*2] = {"Warning", nil};
+			[2283*2] = {"Warning", nil};
+			[2295*2] = {"Warning", nil};
+			[2307*2] = {"Warning", nil};
+			[2319*2] = {"Warning", nil};
+			[2331*2] = {"Warning", nil};
+			[2343*2] = {"Warning", nil};
+			[2355*2] = {"Warning", nil};
+			[2367*2] = {"Warning", nil};
+			[2379*2] = {"Warning", nil};
+			[2391*2] = {"Warning", nil};
+			[2403*2] = {"Warning", nil};
+			[2415*2] = {"Warning", nil};
+			[2427*2] = {"Warning", nil};
+			[2439*2] = {"Warning", nil};
+			[2451*2] = {"Warning", nil};
+			[2463*2] = {"Warning", nil};
+			[2475*2] = {"Warning", nil};
+			[2487*2] = {"Warning", nil};
+		};
+	};
+
+	["10482500352"] = { -- Playable Final Escape
+		Clock = function(Framework, Tick)
+			if Tick >= 375 then
+				Framework.KateEngine.Modcharter.Health.Hurt(0.125, 1);
+			end;
+		end;
+		NoteMiss = function(Framework, Note)
+			if not Note then return end;
+			if Note.Side == Framework.UI.CurrentSide then
+				-- Check if it's not a GOAL note
+				if Note.Type and table.find(Framework.UI.IgnoredNoteTypes, Note.Type) then return end; -- ignored note types = return
+				Framework:SetKEValue("Rings", Framework:GetKEValue("Rings") - 1);
+				Framework.KateEngine.Modcharter.SetLyrics(Framework:GetKEValue("Rings").." <font face='Arcade' color='#FFFF00'>O</font>");
+
+				if Framework:GetKEValue("Rings") < 0 then
+					Framework.KateEngine.Modcharter.Health.Set(0);
+				end
+			end
+		end;
+		SongStart = function(Framework)
+			Framework.KateEngine.Cache["RealHealthGain"] = Framework.KateEngine.Settings["Healthbar_HealthGain"] or 5;
+			Framework.KateEngine.Cache["RealHealthLoss"] = Framework.KateEngine.Settings["Healthbar_HealthLoss"] or 15;
+			Framework.KateEngine.Settings["Healthbar_HealthGain"] = 2;
+			Framework.KateEngine.Settings["Healthbar_HealthLoss"] = 5;
+
+			Framework:SetKEValue("Rings", 10);
+			Framework.KateEngine.Modcharter.SetLyrics("10 <font face='Arcade' color='#FFFF00'>O</font>");
+		end;
+		SongEnd = function(Framework)
+			Framework.KateEngine.Settings["Healthbar_HealthGain"] = Framework.KateEngine.Cache["RealHealthGain"];
+			Framework.KateEngine.Settings["Healthbar_HealthLoss"] = Framework.KateEngine.Cache["RealHealthLoss"];
+			Framework.KateEngine.Cache["RealHealthGain"] = nil; -- Clear the cache
+			Framework.KateEngine.Cache["RealHealthLoss"] = nil;
+		end;
+	};
+
 	["10729979967"] = { -- Vs. LSE - Means of Destruction
 		OnBeat = function(Framework, Beat)
 			if Beat == 140 then
@@ -232,7 +335,7 @@ return {
 							30,
 							Enum.EasingStyle.Quad,
 							Enum.EasingDirection.In
-						), {Rotation = 360*35}):Play();
+							), {Rotation = 360*35}):Play();
 					end;
 				end;
 			end);

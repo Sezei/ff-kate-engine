@@ -1,6 +1,20 @@
 Change Notes
 ===
 
+# 21/02/2023 (v0.11b)
+---
+Modcharts Added;
+- Kreadian Funk - Rave 404 | Warnings
+  
+Modcharts Changed;
+None
+
+Modcharter Changes;
+- Officially added Events and EventDefinitions to the modcharter, allowing for easier porting of modcharts from mods.
+
+Engine Changes;
+None
+
 # 17/02/2023
 ---
 Modcharts Added;
