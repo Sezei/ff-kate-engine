@@ -5,12 +5,14 @@ Change Notes
 ---
 Modcharts Added;
 - Kreadian Funk - Rave 404 | Warnings
+- Final Escape | Rings Mechanic
   
 Modcharts Changed;
 None
 
 Modcharter Changes;
 - Officially added Events and EventDefinitions to the modcharter, allowing for easier porting of modcharts from mods.
+- Added NoteCreated event to the modcharter -> To be used soon?
 
 Engine Changes;
 None

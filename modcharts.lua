@@ -142,15 +142,14 @@ return {
 
 	["10482500352"] = { -- Playable Final Escape
 		Clock = function(Framework, Tick)
-			if Tick >= 375 then
-				Framework.KateEngine.Modcharter.Health.Hurt(0.125, 1);
+			if Tick >= 720 then
+				Framework.KateEngine.Modcharter.Health.Hurt(0.25, 1);
 			end;
 		end;
 		NoteMiss = function(Framework, Note)
 			if not Note then return end;
 			if Note.Side == Framework.UI.CurrentSide then
-				-- Check if it's not a GOAL note
-				if Note.Type and table.find(Framework.UI.IgnoredNoteTypes, Note.Type) then return end; -- ignored note types = return
+				if Note and Note.NoteDataConfigs and Note.NoteDataConfigs.Type and table.find(Framework.UI.IgnoredNoteTypes, Note.NoteDataConfigs.Type) then return end; -- ignored note types = return
 				Framework:SetKEValue("Rings", Framework:GetKEValue("Rings") - 1);
 				Framework.KateEngine.Modcharter.SetLyrics(Framework:GetKEValue("Rings").." <font face='Arcade' color='#FFFF00'>O</font>");
 

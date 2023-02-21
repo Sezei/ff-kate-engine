@@ -1501,11 +1501,13 @@ local EventClock = 0;
 
 local debugtext = "";
 
+-- Events we listen to
 local LanePressed = Framework:GetEvent("LanePressed") -- This is the event that is fired whenever you press a strum; @param {table {Direction : number<0-3>, Position : ?}}
 local SceneLoaded = Framework:GetEvent("SceneLoaded"); -- This is the event that gets fired when a scene is loaded; @param {string? = scenename, folder? = sceneinstance | nil = scene unloading}
 local SoundEvent = Framework:GetEvent("SoundEvent"); -- This is the event that gets fired when a song starts or ends; @param {boolean = songstarted/songended}
-local NoteMiss = Framework:GetEvent("NoteMissed"); -- This is the event that gets fired when a note is missed, used for modcharts; 
+local NoteMiss = Framework:GetEvent("NoteMissed"); -- This is the event that gets fired when a note is missed, used for modcharts; @param {table NoteClass, table Receptor(?)}
 local NoteHit = Framework:GetEvent("NoteHitBegan"); -- NoteHitEnded is also available, but we need the NoteHit part because it contains the ms; @param: {table {HitAccuracy:number<0-100>, MS:float?, Note:table {NoteData}, HitTime:float<tick()>}, table {?}}
+local NoteCreated = Framework:GetEvent("NoteCreated"); -- This is the event that gets fired when a note is created?; @param {table NoteClass?, table? self}
 
 ModchartSystem = {
 	-- Camera zooming thing
@@ -2009,6 +2011,15 @@ NoteMiss:Connect(function(Note, Receptor)
 	end
 end);
 
+NoteCreated:Connect(function(Note)
+	-- @param: { table NoteClass }
+	local Modchart = Framework:GetKEValue("CurrentModchart")
+	
+	if Modchart and Modchart.NoteCreated then
+		Modchart.NoteCreated(Framework, Note);
+	end
+end);
+
 local curPos = nil
 
 local function CreateModchartDebug(songmodchart)
@@ -2085,6 +2096,9 @@ local function CreateModchartDebug(songmodchart)
 			end;
 			if songmodchart.SongEnd then
 				table.insert(events, "SongEnd");
+			end;
+			if songmodchart.NoteCreated then
+				table.insert(events, "NoteCreated");
 			end;
 
 			if #events == 0 then
