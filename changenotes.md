@@ -4,7 +4,7 @@ Change Notes
 # 22/02/2023
 ---
 Modcharts Added;
-None
+- Error 404, Rave 404, LSE Mania charts and Gift (Funkdela Catalogue) all added.
 
 Modcharts Changed;
 None

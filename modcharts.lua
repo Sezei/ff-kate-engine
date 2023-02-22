@@ -31,6 +31,14 @@ local PreRequisites = {
 	"popup9.png";
 	"popup10.png";
 	"popup11.png";
+	"fkc_eye1.png";
+	"fkc_eye2.png";
+	"fkc_eye3.png";
+	"fkc_eye4.png";
+	"fkc_eyeidle1.png";
+	"fkc_eyeidle2.png";
+	"fkc_eyeidle3.png";
+	"fkc_eyeidle4.png";
 };
 
 for _,v in pairs(PreRequisites) do
@@ -334,6 +342,82 @@ return {
 			[1808] = "<font size='70'><u>ME!</u></font>";
 			[1824] = "[Maniacal Laugher]";
 			[1838] = "";
+		};
+	};
+
+	["9670223398"] = { -- Funkdela Catalogue - Gift
+		EventDefinitions = {
+			['eye'] = function(Framework)
+				local Eye = Framework.KateEngine.Modcharter.Sprite(FetchAsset("fkc_eye4.png"), UDim2.fromScale((math.random()*0.8), (math.random()*0.8)), UDim2.fromOffset(121, 79), 3, Vector2.new(0.5, 0.5));
+				local hovered = false;
+				local function OpenEye()
+					Eye.Image = FetchAsset("fkc_eye4.png");
+					task.wait(0.1);
+					Eye.Image = FetchAsset("fkc_eye3.png");
+					task.wait(0.1);
+					Eye.Image = FetchAsset("fkc_eye2.png");
+					task.wait(0.1);
+					Eye.Image = FetchAsset("fkc_eye1.png");
+					task.wait(0.1);
+					return
+				end;
+
+				local function IdleEye()
+					repeat task.wait(0.1); Eye.Image = FetchAsset("fkc_eyeidle"..tostring(math.random(1, 4))..".png"); until hovered == true;
+				end;
+
+				local function CloseEye()
+					if hovered == true then return end;
+					Eye.Image = FetchAsset("fkc_eye1.png");
+					hovered = true;
+					task.wait(0.1);
+					Eye.Image = FetchAsset("fkc_eye2.png");
+					task.wait(0.1);
+					Eye.Image = FetchAsset("fkc_eye3.png");
+					task.wait(0.1);
+					Eye.Image = FetchAsset("fkc_eye4.png");
+					task.wait(0.1);
+					return
+				end;
+
+				local _ = OpenEye();
+				Eye.MouseEnter:Connect(function()
+					CloseEye();
+
+					-- Destroy the asset
+					task.wait(0.5);
+					Eye:Destroy();
+				end);
+				task.delay(15, function() -- If the player still hasn't hovered over the eye after 15 seconds, destroy it anyways.
+					if hovered == false and Eye then
+						CloseEye();
+						task.wait(0.5);
+						Eye:Destroy();
+					end;
+				end);
+				local _ = IdleEye();
+			end;
+		};
+		TimeStamps = {
+			[23272.7272727273] = {"eye"};
+			[23363.6363636364] = {"eye"};
+			[23454.5454545455] = {"eye"};
+			[34909.0909090909] = {"eye"};
+			[35272.7272727273] = {"eye"};
+			[35454.5454545455] = {"eye"};
+			[37818.1818181818] = {"eye"};
+			[38181.8181818182] = {"eye"};
+			[38363.6363636364] = {"eye"};
+			[77818.1818181819] = {"eye"};
+			[78000] = {"eye"};
+			[88000] = {"eye"};
+			[88363.6363636364] = {"eye"};
+			[89272.7272727273] = {"eye"};
+			[90181.8181818182] = {"eye"};
+			[115636.363636364] = {"eye"};
+			[116000] = {"eye"};
+			[116363.636363636] = {"eye"};
+			[116636.363636364] = {"eye"};
 		};
 	};
 
