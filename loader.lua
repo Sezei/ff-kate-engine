@@ -2279,7 +2279,7 @@ SoundEvent:Connect(function(Active)
 					lastclockcheck = os.clock();
 
 					-- This is here because PsychEngine's EventClock is based on milliseconds, rather than 20th of seconds. Made for more accurate modcharts.
-					if songmodchart.TimeStamps then
+					if songmodchart and songmodchart.TimeStamps then
 						local songpos = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.TimePosition;
 						songpos = songpos and math.floor(songpos * 1000);
 						if songpos then
