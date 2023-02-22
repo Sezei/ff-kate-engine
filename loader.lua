@@ -2252,6 +2252,7 @@ SoundEvent:Connect(function(Active)
 				CurrentSection = 0;
 				local laststepcheck = 0;
 				local lastclockcheck = 0;
+				local lastposcheck = 0;
 
 				-- Insert all event definitions into a table so we can use them in the song later
 				local eventdefinitions = {};
@@ -2276,6 +2277,29 @@ SoundEvent:Connect(function(Active)
 
 					laststepcheck = os.clock();
 					lastclockcheck = os.clock();
+
+					-- This is here because PsychEngine's EventClock is based on milliseconds, rather than 20th of seconds. Made for more accurate modcharts.
+					if songmodchart.TimeStamps then
+						local songpos = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.TimePosition;
+						songpos = songpos and math.floor(songpos * 1000);
+						if songpos then
+							for i,v in pairs(songmodchart.TimeStamps) do
+								if i > lastposcheck and i <= songpos then
+									-- This is a timestamp that we need to run the function for
+									-- Structure: [Timestamp] = {FunctionName, ... Arguments}
+									if eventdefinitions[v[1]] then
+										eventdefinitions[v[1]](Framework, unpack(v, 2));
+									else
+										ModchartSystem.SetLyrics("<font color='#ff2020'>Event '"..songmodchart.Events[EventClock][1].."' is not defined!</font>");
+										task.delay(2, function()
+											ModchartSystem.SetLyrics("");
+										end);
+									end
+								end
+							end
+						end
+						lastposcheck = songpos;
+					end
 
 					-- An EventClock is used to tick every 1/20th of a second, regardless of the song's BPM; Made in order to accurately time events regardless of the song's BPM
 					if (lastclockcheck + 0.05) > (songstart + (EventClock/20)) then

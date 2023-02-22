@@ -1,6 +1,20 @@
 Change Notes
 ===
 
+# 22/02/2023
+---
+Modcharts Added;
+None
+
+Modcharts Changed;
+None
+
+Modcharter Changes;
+- Added TimeStamp events for modcharts. They can be used to set the time of the modchart to a specific time. (Useful for porting modcharts more accurately)
+
+Engine Changes;
+None
+
 # 21/02/2023 (v0.11b)
 ---
 Modcharts Added;
