@@ -501,6 +501,7 @@ KateEngine = {
 					"None";
 					"Explosion";
 					"Burn";
+					"Pipe";
 				};
 
 				Stored = true;
@@ -2281,24 +2282,27 @@ SoundEvent:Connect(function(Active)
 					-- This is here because PsychEngine's EventClock is based on milliseconds, rather than 20th of seconds. Made for more accurate modcharts.
 					if songmodchart and songmodchart.TimeStamps then
 						local songpos = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.TimePosition;
-						songpos = songpos and math.floor(songpos * 1000);
+						songpos = songpos and songpos * 1000;
+						local poscheck = lastposcheck;
+						lastposcheck = songpos;
 						if songpos then
 							for i,v in pairs(songmodchart.TimeStamps) do
-								if i > lastposcheck and i <= songpos then
-									-- This is a timestamp that we need to run the function for
-									-- Structure: [Timestamp] = {FunctionName, ... Arguments}
-									if eventdefinitions[v[1]] then
-										eventdefinitions[v[1]](Framework, unpack(v, 2));
-									else
-										ModchartSystem.SetLyrics("<font color='#ff2020'>Event '"..songmodchart.Events[EventClock][1].."' is not defined!</font>");
-										task.delay(2, function()
-											ModchartSystem.SetLyrics("");
-										end);
-									end
+								if i > poscheck and i <= songpos then
+									task.spawn(function()
+										-- This is a timestamp that we need to run the function for
+										-- Structure: [Timestamp] = {FunctionName, ... Arguments}
+										if eventdefinitions[v[1]] then
+											eventdefinitions[v[1]](Framework, unpack(v, 2));
+										else
+											ModchartSystem.SetLyrics("<font color='#ff2020'>Event '"..songmodchart.Events[EventClock][1].."' is not defined!</font>");
+											task.delay(2, function()
+												ModchartSystem.SetLyrics("");
+											end);
+										end
+									end);
 								end
 							end
 						end
-						lastposcheck = songpos;
 					end
 
 					-- An EventClock is used to tick every 1/20th of a second, regardless of the song's BPM; Made in order to accurately time events regardless of the song's BPM
@@ -2314,17 +2318,19 @@ SoundEvent:Connect(function(Active)
 
 						if songmodchart and songmodchart.Events then
 							if songmodchart.Events[EventClock] then
-								-- An event is structured like this;
-								-- [EventClock] = {DefinedEvent, ... (Parameters)};
-								-- Example: [1] = {"SetBPM", 100};
-								if eventdefinitions[songmodchart.Events[EventClock][1]] then
-									eventdefinitions[songmodchart.Events[EventClock][1]](Framework, unpack(songmodchart.Events[EventClock], 2));
-								else
-									ModchartSystem.SetLyrics("<font color='#ff2020'>Event '"..songmodchart.Events[EventClock][1].."' is not defined!</font>");
-									task.delay(2, function()
-										ModchartSystem.SetLyrics("");
-									end);
-								end
+								task.spawn(function()
+									-- An event is structured like this;
+									-- [EventClock] = {DefinedEvent, ... (Parameters)};
+									-- Example: [1] = {"SetBPM", 100};
+									if eventdefinitions[songmodchart.Events[EventClock][1]] then
+										eventdefinitions[songmodchart.Events[EventClock][1]](Framework, unpack(songmodchart.Events[EventClock], 2));
+									else
+										ModchartSystem.SetLyrics("<font color='#ff2020'>Event '"..songmodchart.Events[EventClock][1].."' is not defined!</font>");
+										task.delay(2, function()
+											ModchartSystem.SetLyrics("");
+										end);
+									end
+								end)
 							end
 						end
 					end;
@@ -2332,7 +2338,9 @@ SoundEvent:Connect(function(Active)
 					if (laststepcheck + SPS) > (songstart + (SPS * CurrentStep)) then
 						CurrentStep = CurrentStep + 1;
 						if songmodchart and songmodchart.OnStep then
-							songmodchart.OnStep(Framework, CurrentStep-1);
+							task.spawn(function()
+								songmodchart.OnStep(Framework, CurrentStep-1);
+							end);
 						end
 
 						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Step") and songmodchart.Lyrics[CurrentStep-1] then
@@ -2347,7 +2355,9 @@ SoundEvent:Connect(function(Active)
 					if CurrentStep % 4 == 2 then -- Every 4 steps is a beat
 						CurrentBeat = CurrentBeat + 1;
 						if songmodchart and songmodchart.OnBeat then
-							songmodchart.OnBeat(Framework, CurrentBeat);
+							task.spawn(function()
+								songmodchart.OnBeat(Framework, CurrentBeat);
+							end);
 						end
 					else
 						debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
@@ -2362,7 +2372,9 @@ SoundEvent:Connect(function(Active)
 							ModchartSystem.CameraZoom();
 						end
 						if songmodchart and songmodchart.OnSection then
-							songmodchart.OnSection(Framework, CurrentSection);
+							task.spawn(function()
+								songmodchart.OnSection(Framework, CurrentSection);
+							end);
 						end;
 					end;
 

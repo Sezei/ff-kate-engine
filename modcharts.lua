@@ -13,6 +13,9 @@ local FetchAsset = function(Asset)
 end;
 
 local PreRequisites = {
+	"KF_warning.png";
+	"lse_maniaDW.png";
+	"lse_maniaGS.png";
 	"metalpipe.mp3";
 	"pop_up.mp3";
 	"Meow.mp3";
@@ -71,6 +74,24 @@ return {
 
 	["9103760328"] = { -- Salty's Legacy - Rising Star
 		SetBPM = 120;
+	};
+
+	["10527138259"] = { -- Kreadian Funk - Error 404
+		EventDefinitions = {
+			["Warning"] = function(Framework)
+				local sprite = Framework.KateEngine.Modcharter.Sprite(FetchAsset("KF_warning.png"),UDim2.fromScale(0.5,0.5), UDim2.fromScale(1,1), 0, Vector2.new(0.5, 0.5));
+				sprite.ImageTransparency = 0;
+				task.wait(0.2);
+				local tween = TweenService:Create(sprite, TweenInfo.new(0.3), {ImageTransparency = 1});
+				tween:Play();
+				tween.Completed:Wait();
+				sprite:Destroy();
+			end;
+		};
+		TimeStamps = {
+			[41208.7912087912] = {"Warning", nil};
+			[146579.67032967] = {"Warning", nil};
+		};
 	};
 
 	["10527124142"] = { -- Kreadian Funk - Rave 404
@@ -176,27 +197,128 @@ return {
 	};
 
 	["10729979967"] = { -- Vs. LSE - Means of Destruction
-		OnBeat = function(Framework, Beat)
-			if Beat == 140 then
+		EventDefinitions = {
+			["GuitarMode"] = function(Framework)
 				Framework.KateEngine.Modcharter.SetAllArrows("CircularWide");
 				Framework:GetEvent("ArrowDataChanged"):Fire();
-			elseif Beat == 306 then
+			end;
+			["LeaveGuitar"] = function(Framework)
 				Framework.KateEngine.Modcharter.LoadArrowsStyle();
 				Framework:GetEvent("ArrowDataChanged"):Fire();
-			end
-		end;
+			end;
+		};
+		TimeStamps = {
+			[41684.2105263158] = {"GuitarMode"};
+			[88421.0526315789] = {"LeaveGuitar"};
+		};
+		SetBPM = 190;
 	};
 
 	["10729982629"] = { -- Vs. LSE - DAW Wars
-		OnBeat = function(Framework, Beat)
-			if Beat == 308 then
+		EventDefinitions = {
+			["GuitarMode"] = function(Framework)
 				Framework.KateEngine.Modcharter.SetAllArrows("CircularWide");
 				Framework:GetEvent("ArrowDataChanged"):Fire();
-			elseif Beat == 436 then
+			end;
+			["LeaveGuitar"] = function(Framework)
 				Framework.KateEngine.Modcharter.LoadArrowsStyle();
 				Framework:GetEvent("ArrowDataChanged"):Fire();
-			end
+			end;
+		};
+		TimeStamps = {
+			[87525] = {"GuitarMode"};
+			[116250] = {"LeaveGuitar"};
+		};
+		SetBPM = 200;
+	};
+
+	["10729995005"] = { -- Vs. LSE - Gain Stage (Mania)
+		DisableDefault = true;
+		SongStart = function(Framework)
+			local Background = Framework.KateEngine.Modcharter.Sprite(FetchAsset("lse_maniaGS.png"), UDim2.new(0,0,0,-40), UDim2.new(1,0,1,40), 0, Vector2.new(0, 0));
+			Background.ImageTransparency = 0;
+			Framework.KateEngine.Cache["Background"] = Background;
+
+			Framework.KateEngine.Cache["RealMiddleScrollValue"] = Framework.Settings.MiddleScroll.Value;
+			Framework.Settings.MiddleScroll.Value = true;
+			Framework:GetEvent("ArrowDataChanged"):Fire();
 		end;
+		SongEnd = function(Framework)
+			Framework.KateEngine.Cache["Background"]:Destroy();
+			Framework.KateEngine.Cache["Background"] = nil;
+
+			Framework.Settings.MiddleScroll.Value = Framework.KateEngine.Cache["RealMiddleScrollValue"];
+			Framework.KateEngine.Cache["RealMiddleScrollValue"] = nil;
+		end;
+	};
+
+	["10729975456"] = { -- Vs. LSE - Daw Wars (Mania)
+		DisableDefault = true;
+		SongStart = function(Framework)
+			local Background = Framework.KateEngine.Modcharter.Sprite(FetchAsset("lse_maniaDW.png"), UDim2.new(0,0,0,-40), UDim2.new(1,0,1,40), 0, Vector2.new(0, 0));
+			Background.ImageTransparency = 0;
+			Framework.KateEngine.Cache["Background"] = Background;
+
+			Framework.KateEngine.Cache["RealMiddleScrollValue"] = Framework.Settings.MiddleScroll.Value;
+			Framework.Settings.MiddleScroll.Value = true;
+			Framework:GetEvent("ArrowDataChanged"):Fire();
+		end;
+		SongEnd = function(Framework)
+			Framework.KateEngine.Cache["Background"]:Destroy();
+			Framework.KateEngine.Cache["Background"] = nil;
+
+			Framework.Settings.MiddleScroll.Value = Framework.KateEngine.Cache["RealMiddleScrollValue"];
+			Framework.KateEngine.Cache["RealMiddleScrollValue"] = nil;
+		end;
+		Lyrics = {
+			["Method"] = "Step";
+			-- Verse
+			[284] = "I see the starlight";
+			[303] = "Up high in the morning";
+			[320] = "Driving with you in the twilight hours";
+			[348] = "You know the DJ plays songs through my heart";
+			[380] = "Though, wind in my hair makes your eyes shine bright";
+			[412] = "And I lose myself in the thrill of the night";
+			[444] = "The heat of the engine sets me afire";
+			[479] = "You know I am tired of this low velocity";
+			[511] = "Wearing me down, I'll lose it tonight and go..";
+			[549] = "<i>Crazy, going crazy now...</i>";
+			[581] = "<i>Go crazy, losing my mind...</i>";
+			[615] = "<i>Go crazy, going crazy now...</i>";
+			[645] = "<i>Unleash the fire inside!</i>";
+			-- Chorus
+			[675] = "When you're by my side";
+			[700] = "I feel the burning flame inside my heart go";
+			[738] = "Race towards the skies";
+			[762] = "And find your place among the stars you're going";
+			[801] = "You've got the heart of a beast";
+			[820] = "You're flying higher than we were dreaming";
+			[848] = "(You'd find the fire)";
+			[867] = "Take the flight you're running with me";
+			[884] = "A thousand miles away from here, we're going crazy, yeah!";
+			[945] = "";
+			-- Instrumental Break
+			-- Chorus
+			[1943] = "When you're by my side";
+			[1978] = "I feel the burning flame inside my heart go";
+			[2019] = "Race towards the skies";
+			[2045] = "And find your place among the stars you're going";
+			[2081] = "You've got the heart of a beast";
+			[2100] = "You're flying higher than we were dreaming";
+			[2127] = "(You'd find the fire)";
+			[2146] = "Take the flight you're running with me";
+			[2165] = "A thousand miles away from here, we're going crazy, yeah!";
+			[2215] = "You've got the heart of a beast";
+			[2230] = "You're flying higher than we were dreaming";
+			[2255] = "(You'd find the fire)";
+			[2273] = "Take the flight you're running with me";
+			[2294] = "A thousand miles away from here, we're going crazy, yeah!";
+			-- Ending Verse
+			[2338] = "Riding the streets with our hearts set ablaze";
+			[2367] = "The scream of the engine driving me crazy now...";
+			[2406] = "Crazy, going crazy now...";
+			[2472] = "";
+		};
 	};
 
 	["9103779046"] = { -- Secret Histories - Confrontation
