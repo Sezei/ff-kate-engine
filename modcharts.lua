@@ -1,5 +1,7 @@
 local TweenService = game:GetService("TweenService");
 local LoadAsset = getsynasset or getcustomasset;
+local LocalPlayer = game:GetService("Players").LocalPlayer;
+local GameUI = LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local FetchAsset = function(Asset)
 	if isfolder('KateEngine/Assets') and isfile('KateEngine/Assets/'..Asset) then
 		return LoadAsset('KateEngine/Assets/'..Asset);
@@ -202,6 +204,115 @@ return {
 			Framework.KateEngine.Cache["RealHealthGain"] = nil; -- Clear the cache
 			Framework.KateEngine.Cache["RealHealthLoss"] = nil;
 		end;
+	};
+
+	["9103416440"] = { -- Blueballed (Pibby) {{THIS IS THE ONLY PIBBY CHART IM MODDING BECAUSE OF IT BEING RATHER COOL OK?!}}
+		OnStep = function(Framework, Step)
+			if Step == 120 then
+				if Framework.UI.CurrentSide == "Left" then
+					Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#FF0000'>CONTROL: "..Framework:GetKEValue("MissesLeft").."</font>");
+				elseif Framework.UI.CurrentSide == "Right" then
+					Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#00FFFF'>RESISTANCE: "..Framework:GetKEValue("MissesLeft").."</font>");
+				end;
+			end;
+		end;
+		NoteMiss = function(Framework, Note)
+			if not Note then return end;
+			if Note.Side == Framework.UI.CurrentSide then
+				if Note and Note.NoteDataConfigs and Note.NoteDataConfigs.Type and table.find(Framework.UI.IgnoredNoteTypes, Note.NoteDataConfigs.Type) then return end; -- ignored note types = return
+				
+				Framework:SetKEValue("MissesLeft", Framework:GetKEValue("MissesLeft") - 1);
+				if Framework.UI.CurrentSide == "Left" then
+					Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#FF0000'>CONTROL: "..(Framework:GetKEValue("MissesLeft")).."</font>");
+				elseif Framework.UI.CurrentSide == "Right" then
+					Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#0088FF'>RESISTANCE: "..(Framework:GetKEValue("MissesLeft")).."</font>");
+				end;
+
+				if Framework:GetKEValue("MissesLeft") <= 0 then
+					Framework.KateEngine.Modcharter.Health.Set(0);
+				end
+			end;
+		end;
+		SongStart = function(Framework)
+			Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#FF0000'>5 MISSES.</font> <font face='Arcade'>That's the limit. Don't mess up.</font>");
+			Framework.KateEngine.Cache["RealMiddleScrollValue"] = Framework.Settings.MiddleScroll.Value;
+			Framework.Settings.MiddleScroll.Value = false; -- Disable middle scroll
+			Framework:GetEvent("ArrowDataChanged"):Fire();
+
+			-- Fetch the current background transparency
+			local ScrollUnderlay = Framework.Settings.ScrollUnderlay.Value
+
+			Framework:SetKEValue("MissesLeft", 5);
+
+			if Framework.UI.CurrentSide == "Right" then
+				GameUI.Arrows["Right"].ZIndex = 1;
+				GameUI.Arrows["Left"].ZIndex = 0;
+			else
+				GameUI.Arrows["Right"].ZIndex = 0;
+				GameUI.Arrows["Left"].ZIndex = 1;
+			end;
+
+			GameUI.Arrows["Right"].Underlay.BackgroundTransparency = 1;
+			GameUI.Arrows["Left"].Underlay.BackgroundTransparency = 1;
+
+			GameUI.Arrows["Left"].Position = UDim2.new(0.25, 0, 0.5, 0);
+			GameUI.Arrows["Right"].Position = UDim2.new(0.75, 0, 0.5, 0);
+
+			task.spawn(function()
+				task.wait(2);
+				GameUI.Arrows["Left"]:TweenPosition(UDim2.new(0.5, 0, 0.5, 0), "InOut", "Quad", 10, true);
+				GameUI.Arrows["Right"]:TweenPosition(UDim2.new(0.5, 0, 0.5, 0), "InOut", "Quad", 10, true);
+				task.delay(10,function()
+					if Framework.UI.CurrentSide == "Right" then
+						TweenService:Create(GameUI.Arrows["Left"].Underlay, TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {BackgroundTransparency = ScrollUnderlay}):Play();
+					else
+						TweenService:Create(GameUI.Arrows["Right"].Underlay, TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {BackgroundTransparency = ScrollUnderlay}):Play();
+					end;
+				end);
+				for i = 0, 3 do
+					local note = Framework.KateEngine.Modcharter.Note(i);
+					if note then
+						local Frame = note.Fetch().InnerFrame;
+						local Arrow = Frame:FindFirstChild(tostring(i)).Arrow.Layers;
+
+						Arrow.Rotation = 0;
+						TweenService:Create(Arrow, TweenInfo.new(
+							10,
+							Enum.EasingStyle.Quad,
+							Enum.EasingDirection.InOut
+						), {Rotation = 360}):Play();
+
+						if Framework.UI.CurrentSide == "Right" then
+							Framework.UI.Arrows.Receptors[''..i].ArrowTransparency = 0.65;
+						end;
+					end;
+				end;
+				for i = 4, 7 do
+					local note = Framework.KateEngine.Modcharter.Note(i);
+					if note then
+						local Frame = note.Fetch().InnerFrame;
+						local Arrow = Frame:FindFirstChild(tostring(i-4)).Arrow.Layers;
+
+						Arrow.Rotation = 0;
+						TweenService:Create(Arrow, TweenInfo.new(
+							10,
+							Enum.EasingStyle.Quad,
+							Enum.EasingDirection.InOut
+						), {Rotation = 360}):Play();
+
+						if Framework.UI.CurrentSide == "Left" then
+							Framework.UI.Arrows.Receptors[''..i].ArrowTransparency = 0.65;
+						end;
+					end;
+				end;
+				
+			end);
+		end;
+		SongEnd = function(Framework)
+			Framework.Settings.MiddleScroll.Value = Framework.KateEngine.Cache["RealMiddleScrollValue"];
+			Framework.KateEngine.Cache["RealMiddleScrollValue"] = nil;
+		end;
+		SetBPM = 136;
 	};
 
 	["10729979967"] = { -- Vs. LSE - Means of Destruction
@@ -551,7 +662,7 @@ return {
 		SetBPM = 140;
 		DisableDefault = true;
 		OnSection = function(Framework, Section)
-			if Section >= 76 and Section <= 91 or Section == 106 then
+			if Section >= 75 and Section <= 90 or Section == 105 then
 				return;
 			end;
 
@@ -678,9 +789,9 @@ return {
 	["10575656167"] = { -- Seek's Cool Deltarune Mod - HYPERLINK
 		DisableDefault = true;
 		OnSection = function(Framework, Section)
-			if Section >= 28 and Section <= 30 then
+			if Section >= 27 and Section <= 29 then
 				return;
-			elseif Section == 65 or Section == 66 or Section == 85 then
+			elseif Section == 64 or Section == 65 or Section == 84 then
 				return;
 			end;
 			Framework.KateEngine.Modcharter.CameraZoom();

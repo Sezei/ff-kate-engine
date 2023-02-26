@@ -113,6 +113,16 @@ KateEngine = {
 		FullCombo = "Full Combo (<Combo>)";
 	};
 
+	Song = {
+		Id = 0;
+		BPM = 0;
+		Clock = 0;
+		Step = 0;
+		Beat = 0;
+		Section = 0;
+		Instance = nil; -- The audio instance the song uses.
+	};
+
 	-- Game Modifications
 	Health = {
 		Current = 40;
@@ -2206,10 +2216,12 @@ SoundEvent:Connect(function(Active)
 		KateEngine.Assets.Healthbar.Front.Position = UDim2.new((Framework.UI.CurrentSide == "Right" and 1 or 0), 0, 0.5, 0);
 
 		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
+		KateEngine.Song.Instance = Framework.SongPlayer.CurrentlyPlaying;
 		-- Should come out as just the ID number of the song
 		-- Like this; rbxassetid://12345 => 12345
 
-		Framework:SetKEValue("SongID", songid);
+		Framework:SetKEValue("SongID", songid); -- TO BE DEPRECATED IN FAVOR OF [[ Engine.Song.Id ]]
+		KateEngine.Song.Id = songid;
 		print("SongID: "..songid)
 
 		-- Check if the song has a modchart
@@ -2239,6 +2251,7 @@ SoundEvent:Connect(function(Active)
 		local Stage = Zone and (Zone.Parent.Name:match("Stage") and Zone.Parent);
 		if Stage then
 			local BPM = (Modcharts[songid] and Modcharts[songid].SetBPM) or Stage:GetAttribute("BPM");
+			KateEngine.Song.BPM = BPM;
 			local OFFSET = Stage:GetAttribute("Offset");
 			if BPM then
 				local BPS = BPM / 60; -- BPS (Beats per second)
@@ -2258,6 +2271,11 @@ SoundEvent:Connect(function(Active)
 				-- Insert all event definitions into a table so we can use them in the song later
 				local eventdefinitions = {};
 
+				KateEngine.Song.Clock = 0;
+				KateEngine.Song.Step = 0;
+				KateEngine.Song.Beat = 0;
+				KateEngine.Song.Section = 0;
+
 				if songmodchart and songmodchart.EventDefinitions then
 					for i,v in pairs(songmodchart.EventDefinitions) do
 						eventdefinitions[i] = v;
@@ -2274,6 +2292,11 @@ SoundEvent:Connect(function(Active)
 						CurrentBeat = 1;
 						CurrentSection = 1;
 						EventClock = 1;
+
+						KateEngine.Song.Clock = 1;
+						KateEngine.Song.Step = 1;
+						KateEngine.Song.Beat = 1;
+						KateEngine.Song.Section = 1;
 					end;
 
 					laststepcheck = os.clock();
@@ -2308,6 +2331,7 @@ SoundEvent:Connect(function(Active)
 					-- An EventClock is used to tick every 1/20th of a second, regardless of the song's BPM; Made in order to accurately time events regardless of the song's BPM
 					if (lastclockcheck + 0.05) > (songstart + (EventClock/20)) then
 						EventClock = EventClock + 1;
+						KateEngine.Song.Clock = EventClock;
 						if songmodchart and songmodchart.Clock then
 							songmodchart.Clock(Framework, EventClock);
 						end
@@ -2338,6 +2362,7 @@ SoundEvent:Connect(function(Active)
 					if (laststepcheck + SPS) > (songstart + (SPS * CurrentStep)) then
 						CurrentStep = CurrentStep + 1;
 						if songmodchart and songmodchart.OnStep then
+							KateEngine.Song.Step = CurrentStep-1;
 							task.spawn(function()
 								songmodchart.OnStep(Framework, CurrentStep-1);
 							end);
@@ -2347,20 +2372,21 @@ SoundEvent:Connect(function(Active)
 							ModchartSystem.SetLyrics(songmodchart.Lyrics[CurrentStep-1]);
 						end
 					else
-						debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
+						debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
 						BPMSheet.Text = debugtext..songmodcharttext;
 						return;
 					end;
 
 					if CurrentStep % 4 == 2 then -- Every 4 steps is a beat
 						CurrentBeat = CurrentBeat + 1;
+						KateEngine.Song.Beat = CurrentBeat;
 						if songmodchart and songmodchart.OnBeat then
 							task.spawn(function()
 								songmodchart.OnBeat(Framework, CurrentBeat);
 							end);
 						end
 					else
-						debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
+						debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
 						BPMSheet.Text = debugtext..songmodcharttext;
 						return;
 					end;
@@ -2368,17 +2394,18 @@ SoundEvent:Connect(function(Active)
 					-- Every 4 beats is a section
 					if CurrentBeat % 4 == 2 then
 						CurrentSection = CurrentSection + 1;
+						KateEngine.Song.Section = CurrentSection-1;
 						if defaultbumping then
 							ModchartSystem.CameraZoom();
 						end
 						if songmodchart and songmodchart.OnSection then
 							task.spawn(function()
-								songmodchart.OnSection(Framework, CurrentSection);
+								songmodchart.OnSection(Framework, CurrentSection-1);
 							end);
 						end;
 					end;
 
-					debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..CurrentSection.."\nSongID: "..songid;
+					debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
 					BPMSheet.Text = debugtext..songmodcharttext;
 				end);
 			else
