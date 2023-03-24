@@ -18,6 +18,10 @@ if not setclipboard then
 	missing["clipboard"] = true;
 end;
 
+if not (type(syn) == 'table' and syn.set_thread_identity) or setidentity or setthreadcontext then
+	missing["setidentity"] = true;
+end;
+
 -- 💀
 if not isfolder("KateEngine") then
 	makefolder("KateEngine");
@@ -847,7 +851,7 @@ local Healthbar = Instance.new("Frame");
 Healthbar.Visible = true;
 Healthbar.Parent = GameUI.Arrows;
 Healthbar.AnchorPoint = Vector2.new(0.5,1);
-Healthbar.Position = UDim2.new(0.5,0,1,-50);
+Healthbar.Position = UDim2.new(0.5,0,1,-75);
 Healthbar.Size = UDim2.new(0.4,0,0,16);
 Healthbar.BackgroundColor3 = Color3.fromRGB(255, 0, 0);
 Healthbar.BorderSizePixel = 0;
@@ -955,8 +959,11 @@ local function BopIcons()
 	-- Calculate the time for beat; Seconds per beat = 60 / BPM (KateEngine.Song.BPM)
 	local delta = (60 / KateEngine.Song.BPM) / 1.15;
 
-	IconP1.Size = UDim2.fromOffset(140,140);
-	IconP2.Size = UDim2.fromOffset(140,140);
+	local p1size = 140 - (30*(KateEngine.Health.Current / 100)) -- Calculate the size of the icon; 140 is the default size, 110 is the size if the health is 100%
+	local p2size = 100 + (40*(KateEngine.Health.Current / 100)) -- Calculate the size of the icon; 100 is the default size, 140 is the size if the health is 100%
+
+	IconP1.Size = UDim2.fromOffset(p1size,p1size);
+	IconP2.Size = UDim2.fromOffset(p2size,p2size);
 	TweenService:Create(IconP1, TweenInfo.new(delta), {Size = UDim2.fromOffset(100,100)}):Play();
 	TweenService:Create(IconP2, TweenInfo.new(delta), {Size = UDim2.fromOffset(100,100)}):Play();
 end;
@@ -1659,10 +1666,18 @@ GameUI.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
 	end
 end)
 
+
 Framework.Settings.MissedSound.Value = false;
 if KateEngine.Settings.CamManipulation then
 	Framework.Settings.CameraDirectionMovement.Value = false;
 end
+
+Framework:GetEvent("SettingsChanged"):Connect(function()
+	Framework.Settings.MissedSound.Value = false;
+	if KateEngine.Settings.CamManipulation then
+		Framework.Settings.CameraDirectionMovement.Value = false;
+	end
+end);
 
 GameUI.TopbarLabel:GetPropertyChangedSignal("TextColor3"):Connect(function()
 	Topbar.TextColor3 = GameUI.TopbarLabel.TextColor3
@@ -2710,5 +2725,55 @@ SoundEvent:Connect(function(Active)
 		end;
 	end;
 end);
+
+-- Misc Functions; Edit the existing stuff the framework already has in order to give a better experience overall
+if not missing["setidentity"] then
+	local setidentity = (type(syn) == 'table' and syn.set_thread_identity) or setidentity or setthreadcontext
+
+	setidentity(2);
+
+	Framework.SongPlayer.Countdown = function(self)
+		-- Create the countdown instances
+		local Zone = Framework.StageZone and Framework.StageZone.CurrentZone;
+		local Stage = Zone and (Zone.Parent.Name:match("Stage") and Zone.Parent);
+		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
+		local bpm = (Modcharts[songid] and Modcharts[songid].SetBPM) or (Stage and Stage:GetAttribute("BPM")) or 120;
+		print(bpm);
+		local delta = (60 / bpm);
+		print(delta);
+		local countdowntext = Instance.new("ImageLabel");
+		countdowntext.Name = "Countdown";
+		countdowntext.BackgroundTransparency = 1;
+		countdowntext.Image = "";
+		countdowntext.AnchorPoint = Vector2.new(0.5, 0.5);
+		countdowntext.Size = UDim2.new(0.5, 0, 0.5, 0);
+		countdowntext.Position = UDim2.new(0.5, 0, 0.5, 0);
+		countdowntext.Parent = GameUI.Arrows;
+
+		Framework.SongPlayer.CountDown = true;
+
+		Framework.SoundHandler:Play("3", Framework.SoundService);
+		task.wait(delta);
+		Framework.SoundHandler:Play("2", Framework.SoundService);
+		countdowntext.Image = "rbxassetid://6443228613";
+		countdowntext.ImageTransparency = 0;
+		TweenService:Create(countdowntext, TweenInfo.new(delta,Enum.EasingStyle.Linear), {ImageTransparency = 1}):Play();
+		task.wait(delta);
+		Framework.SoundHandler:Play("1", Framework.SoundService);
+		countdowntext.Image = "rbxassetid://6443225217";
+		countdowntext.ImageTransparency = 0;
+		TweenService:Create(countdowntext, TweenInfo.new(delta,Enum.EasingStyle.Linear), {ImageTransparency = 1}):Play();
+		task.wait(delta);
+		Framework.SoundHandler:Play("Go", Framework.SoundService);
+		countdowntext.Image = "rbxassetid://6443224742";
+		countdowntext.ImageTransparency = 0;
+		TweenService:Create(countdowntext, TweenInfo.new(delta,Enum.EasingStyle.Linear), {ImageTransparency = 1}):Play();
+		task.wait(delta);
+		Framework.SongPlayer.CountDown = false;
+		countdowntext:Destroy();
+	end;
+
+	setidentity(7); -- return to default identity
+end;
 
 return Framework;
