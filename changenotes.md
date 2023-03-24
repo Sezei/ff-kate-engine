@@ -1,6 +1,20 @@
 Change Notes
 ===
 
+# 24/03/2023 (v0.12)
+---
+Modcharts Added;
+- Vs. Camellia - Tomato Town
+  
+Modcharts Changed;
+- Vs. LongestSoloEver - Means of Destruction | Testing anim-change mid-song
+  
+Modcharter Changes;
+None
+
+Engine Changes;
+- Added icons to the healthbar.
+
 # 22/02/2023
 ---
 Modcharts Added;

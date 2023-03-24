@@ -2155,6 +2155,7 @@ function Material.Load(Config)
 			local TextFieldText = TextFieldConfig.Text or "nil text field"
 			local TextFieldInputType = TextFieldConfig.Type or TextFieldConfig.type or "Default"
 			local TextFieldCallback = TextFieldConfig.Callback or function() print("nil text field") end
+			local TextFieldDefault = TextFieldConfig.Default or ""
 			local Menu = TextFieldConfig.Menu or {}
 
 			local TextField = Objects.new("Round")
@@ -2183,7 +2184,7 @@ function Material.Load(Config)
 			TextInput.PlaceholderColor3 = Theme.TextFieldAccent
 			TextInput.TextInputType = Enum.TextInputType[TextFieldInputType]
 			TextInput.TextColor3 = Theme.TextFieldAccent
-			TextInput.Text = ""
+			TextInput.Text = TextFieldDefault
 			TextInput.Font = Enum.Font.GothamSemibold
 			TextInput.TextSize = 14
 			TextInput.TextTransparency = 1

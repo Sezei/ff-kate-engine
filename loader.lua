@@ -32,6 +32,14 @@ function getGameFramework()
 	end
 end
 
+function getNetworking()
+	for _, v in next, getgc(true) do
+		if type(v) == 'table' and type(rawget(v, 'Server')) == 'table' then
+			return v
+		end
+	end
+end;
+
 local ColorJSON = {
 	Encode = function(Color)
 		if typeof(Color) == "Color3" then
@@ -94,6 +102,7 @@ KateEngine = {
 	Version = Version;
 	Cache = {};
 	InSolo = false;
+	Network = getNetworking();
 
 	DefaultStrings = {
 		ScoreL = "Score: <Score>";
@@ -435,6 +444,30 @@ KateEngine = {
 
 				Callback = function(Value)
 					KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Value;
+				end;
+
+				Stored = true;
+			};
+			{
+				Type = "TextField";
+				Default = "rbxassetid://6605178204";
+				Text = "Player Icon";
+				Key = "Healthbar_IconPlayer";
+
+				Callback = function(Value)
+					KateEngine.Assets.Healthbar.Front.IconP2.Image = Value;
+				end;
+
+				Stored = true;
+			};
+			{
+				Type = "TextField";
+				Default = "rbxassetid://8846704715";
+				Text = "Opponent Icon";
+				Key = "Healthbar_IconPlayer";
+
+				Callback = function(Value)
+					KateEngine.Assets.Healthbar.Front.IconP1.Image = Value;
 				end;
 
 				Stored = true;
@@ -797,6 +830,64 @@ HBFront.BackgroundColor3 = Color3.new(0,1,0);
 HBFront.ZIndex = 2;
 HBFront.Name = "Front";
 
+-- Create 2 icons attached to the healthbar; Player1 is attached to the left, Player2 is attached to the right;
+-- The icons will be attached to the missing health, meaning if a player gains health, the icon will move to the right along with the healthbar
+-- The offset is 15 pixels away from the healthbar
+local IconP1 = Instance.new("ImageLabel");
+IconP1.Name = "IconP1";
+IconP1.Image = "rbxassetid://6605178204"; -- Todo: Create icons for the healthbars
+IconP1.BackgroundTransparency = 1;
+IconP1.Size = UDim2.fromOffset(100,100);
+IconP1.Parent = HBFront;
+-- Attach the icon to the left side of the front healthbar
+IconP1.AnchorPoint = Vector2.new(0.75,0.5);
+IconP1.Position = UDim2.new(0, -25, 0.5, 0);
+
+local IconP2 = IconP1:Clone();
+IconP2.Name = "IconP2";
+IconP2.Parent = HBFront;
+IconP2.Image = "rbxassetid://8846704715";
+-- Attach the icon to the right side of the front healthbar
+IconP2.AnchorPoint = Vector2.new(0.25,0.5);
+IconP2.Position = UDim2.new(0, 25, 0.5, 0);
+IconP2.ImageRectOffset = Vector2.new(1024,0);
+IconP2.ImageRectSize = Vector2.new(-1024,1024);
+
+local function IconCheck(side)
+	-- Check which side the player is on
+	if side == "Left" then -- Player is on side 1
+		IconP1.AnchorPoint = Vector2.new(0.25,0.5);
+		IconP1.Position = UDim2.new(1, 25, 0.5, 0);
+		IconP1.ImageRectOffset = Vector2.new(1024,0);
+		IconP1.ImageRectSize = Vector2.new(-1024,1024);
+
+		IconP2.AnchorPoint = Vector2.new(0.75,0.5);
+		IconP2.Position = UDim2.new(1, -25, 0.5, 0);
+		IconP2.ImageRectOffset = Vector2.new(0,0);
+		IconP2.ImageRectSize = Vector2.new(0,0);
+	elseif side == "Right" then -- Player is on side 2
+		IconP1.AnchorPoint = Vector2.new(0.75,0.5);
+		IconP1.Position = UDim2.new(0, -25, 0.5, 0);
+		IconP1.ImageRectOffset = Vector2.new(0,0);
+		IconP1.ImageRectSize = Vector2.new(0,0);
+
+		IconP2.AnchorPoint = Vector2.new(0.25,0.5);
+		IconP2.Position = UDim2.new(0, 25, 0.5, 0);
+		IconP2.ImageRectOffset = Vector2.new(1024,0);
+		IconP2.ImageRectSize = Vector2.new(-1024,1024);
+	end;
+end;
+
+local function BopIcons()
+	-- Calculate the time for beat; Seconds per beat = 60 / BPM (KateEngine.Song.BPM)
+	local delta = (60 / KateEngine.Song.BPM) / 1.5;
+
+	IconP1.Size = UDim2.fromOffset(140,140);
+	IconP2.Size = UDim2.fromOffset(140,140);
+	TweenService:Create(IconP1, TweenInfo.new(delta), {Size = UDim2.fromOffset(100,100)}):Play();
+	TweenService:Create(IconP2, TweenInfo.new(delta), {Size = UDim2.fromOffset(100,100)}):Play();
+end;
+
 ---TODO---
 --[[ Create a Funky Chart category in the song selector
 local Category = GameUI.SongSelector.Categories:FindFirstChild("Favourites"):Clone();
@@ -949,6 +1040,23 @@ for category, v in pairs(KateEngine.MenuBuild) do
 			if data.Callback then
 				data.Callback(KateEngine.ColorJSON.Decode(KateEngine.Settings[data.Key] or data.Default));
 			end;
+		elseif datatype == "TextField" then
+			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
+			tab.TextField({
+				Text = data.Text;
+				Callback = function(value)
+					if data.Callback then
+						data.Callback(value);
+					end
+					KateEngine.Settings[data.Key] = value;
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+				end;
+				Default = KateEngine.Settings[data.Key] or data.Default;
+			});
+
+			if data.Callback then
+				data.Callback(KateEngine.Settings[data.Key] or data.Default);
+			end
 		end
 	end
 end
@@ -2260,7 +2368,7 @@ LanePressed:Connect(function(direction, isActive)
 
 				local Element = bind.Self;
 				local Strength = bind.Strength;
-				bind.Self:TweenPosition(UDim2.new(Element.Self.Position.X.Scale + (cameraManipulationTable[tostring(curPos)].X * Strength), Element.Self.Position.X.Offset, Element.Self.Position.Y.Scale + (cameraManipulationTable[tostring(curPos)].Y * Strength), Element.Self.Position.Y.Offset), "Out", "Quad", 0.25, true);
+				Element:TweenPosition(UDim2.new(Element.Position.X.Scale + (cameraManipulationTable[tostring(curPos)].X * Strength), Element.Position.X.Offset, Element.Position.Y.Scale + (cameraManipulationTable[tostring(curPos)].Y * Strength), Element.Position.Y.Offset), "Out", "Quad", 0.25, true);
 			end;
 
 			return;
@@ -2270,11 +2378,11 @@ LanePressed:Connect(function(direction, isActive)
 
 			for _, bind in pairs(KateEngine.CameraBinds) do
 				-- Assume the bind is active if bind.Self isn't nil
-				if not bind.Self then continue end; -- oops?
+				if not bind.Self or not bind.Self.Parent then continue end; -- oops?
 
 				local Element = bind.Self;
 				local Strength = bind.Strength;
-				bind.Self:TweenPosition(UDim2.new(Element.Self.Position.X.Scale - (cameraManipulationTable[tostring(curPos)].X * Strength), Element.Self.Position.X.Offset, Element.Self.Position.Y.Scale - (cameraManipulationTable[tostring(curPos)].Y * Strength), Element.Self.Position.Y.Offset), "Out", "Quad", 0.25, true);
+				Element:TweenPosition(UDim2.new(Element.Position.X.Scale - (cameraManipulationTable[tostring(curPos)].X * Strength), Element.Position.X.Offset, Element.Position.Y.Scale - (cameraManipulationTable[tostring(curPos)].Y * Strength), Element.Position.Y.Offset), "Out", "Quad", 0.25, true);
 			end;
 		end;
 	end;
@@ -2299,6 +2407,16 @@ SoundEvent:Connect(function(Active)
 		for key, default in pairs(KateEngine.DefaultStrings) do
 			ModchartSystem.SetString(key, default);
 		end;
+
+		for ae,v in pairs(KateEngine.CameraBinds) do
+			if v.Self then
+				v.Self:Destroy();
+			end;
+
+			v.Self = nil;
+
+			table.remove(KateEngine.CameraBinds, ae);
+		end;
 	end
 	id = id + 1;
 	local assigned = id;
@@ -2311,6 +2429,7 @@ SoundEvent:Connect(function(Active)
 
 		KateEngine.Assets.Healthbar.Front.AnchorPoint = Vector2.new((Framework.UI.CurrentSide == "Right" and 1 or 0), 0.5);
 		KateEngine.Assets.Healthbar.Front.Position = UDim2.new((Framework.UI.CurrentSide == "Right" and 1 or 0), 0, 0.5, 0);
+		IconCheck(Framework.UI.CurrentSide);
 
 		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
 		KateEngine.Song.Instance = Framework.SongPlayer.CurrentlyPlaying;
@@ -2477,6 +2596,7 @@ SoundEvent:Connect(function(Active)
 					if CurrentStep % 4 == 2 then -- Every 4 steps is a beat
 						CurrentBeat = CurrentBeat + 1;
 						KateEngine.Song.Beat = CurrentBeat;
+						BopIcons();
 						if songmodchart and songmodchart.OnBeat then
 							task.spawn(function()
 								songmodchart.OnBeat(Framework, CurrentBeat);

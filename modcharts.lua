@@ -1,7 +1,7 @@
 local TweenService = game:GetService("TweenService");
 local LoadAsset = getsynasset or getcustomasset;
 local LocalPlayer = game:GetService("Players").LocalPlayer;
-local GameUI = LocalPlayer.PlayerGui:FindFirstChild("GameUI");
+local GameUI = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local FetchAsset = function(Asset)
 	if isfolder('KateEngine/Assets') and isfile('KateEngine/Assets/'..Asset) then
 		return LoadAsset('KateEngine/Assets/'..Asset);
@@ -220,7 +220,7 @@ return {
 			if not Note then return end;
 			if Note.Side == Framework.UI.CurrentSide then
 				if Note and Note.NoteDataConfigs and Note.NoteDataConfigs.Type and table.find(Framework.UI.IgnoredNoteTypes, Note.NoteDataConfigs.Type) then return end; -- ignored note types = return
-				
+
 				Framework:SetKEValue("MissesLeft", Framework:GetKEValue("MissesLeft") - 1);
 				if Framework.UI.CurrentSide == "Left" then
 					Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#FF0000'>CONTROL: "..(Framework:GetKEValue("MissesLeft")).."</font>");
@@ -280,7 +280,7 @@ return {
 							10,
 							Enum.EasingStyle.Quad,
 							Enum.EasingDirection.InOut
-						), {Rotation = 360}):Play();
+							), {Rotation = 360}):Play();
 
 						if Framework.UI.CurrentSide == "Right" then
 							Framework.UI.Arrows.Receptors[''..i].ArrowTransparency = 0.65;
@@ -298,14 +298,14 @@ return {
 							10,
 							Enum.EasingStyle.Quad,
 							Enum.EasingDirection.InOut
-						), {Rotation = 360}):Play();
+							), {Rotation = 360}):Play();
 
 						if Framework.UI.CurrentSide == "Left" then
 							Framework.UI.Arrows.Receptors[''..i].ArrowTransparency = 0.65;
 						end;
 					end;
 				end;
-				
+
 			end);
 		end;
 		SongEnd = function(Framework)
@@ -320,6 +320,9 @@ return {
 			["GuitarMode"] = function(Framework)
 				Framework.KateEngine.Modcharter.SetAllArrows("CircularWide");
 				Framework:GetEvent("ArrowDataChanged"):Fire();
+
+				Framework.AnimController:Stop(LocalPlayer.Character);
+				Framework.AnimController:Start(LocalPlayer.Character, Framework.UI.CurrentSide == "Right" and 2 or 1, "LongestSoloEver");
 			end;
 			["LeaveGuitar"] = function(Framework)
 				Framework.KateEngine.Modcharter.LoadArrowsStyle();
@@ -369,6 +372,158 @@ return {
 			Framework.Settings.MiddleScroll.Value = Framework.KateEngine.Cache["RealMiddleScrollValue"];
 			Framework.KateEngine.Cache["RealMiddleScrollValue"] = nil;
 		end;
+	};
+
+	["11602934927"] = { -- Vs. Camellia - Tomato Town
+		DisableDefault = true;
+		OnStep = function(Framework, Step)
+			if Step == 127 then
+				Framework:GetKEValue("sincounter")(true);
+			elseif Step == 365 then
+				Framework:GetKEValue("sincounter")(false);
+			end;
+
+			if Step == 2113 then
+				Framework:GetKEValue("caramba")();
+			end;
+
+			if Step >= 2232 and Step <= 2269 then
+				Framework.KateEngine.Modcharter.SetLyrics("You're Rapping\nCOOL "..(Step % 2 == 0 and "GOOD <font color='#777777'>" or "<font color='#777777'>GOOD ").."BAD AWFUL</font>\n[ 0 ]");
+			elseif Step >= 2220 and Step <= 2231 then
+				Framework.KateEngine.Modcharter.SetLyrics("You're Rapping\nCOOL "..(Step % 2 == 0 and "GOOD <font color='#777777'>" or "<font color='#777777'>GOOD ").."BAD AWFUL</font>\n[ <font color='#ff2222'>-300</font> ]");
+			end;
+
+			-- Off-beat Sections
+			if Step == 660 or Step == 692 or Step == 724 or Step == 737 or Step == 743 or (Step > 744 and Step < 768) then
+				Framework.KateEngine.Modcharter.CameraZoom();
+			end
+
+			if Step == 384 or Step == 616 or Step == 622 or Step == 629 or Step == 635 or Step == 1592 or Step == 2376 then
+				Framework:GetKEValue("vineboom")("bf");
+			elseif Step == 416 or Step == 619 or Step == 626 or Step == 632 or Step == 638 or Step == 1979 or Step == 2412 then
+				Framework:GetKEValue("vineboom")("cml");
+			elseif Step == 1152 or Step == 1183 or Step == 1215 then
+				Framework:GetKEValue("vineboom")("E");
+			elseif Step == 640 then
+				Framework:GetKEValue("overlay")(true);
+			elseif Step == 768 then
+				Framework:GetKEValue("overlay")(false);
+			end;
+		end;
+		OnSection = function(Framework, Section)
+			if Section < 41 or Section >= 49 then
+				Framework.KateEngine.Modcharter.CameraZoom();
+			end
+		end;
+		Lyrics = {
+			["Method"] = "Step";
+			-- todo lol
+			[2113] = "Caramba!";
+			[2121] = "I hate it when there's a lot of hair on the floor!";
+			[2144] = "Here, I'll go clean up!";
+			-- lol
+			[2165] = "You're Rapping\nCOOL <font color='#777777'>GOOD BAD AWFUL</font>\n[ "..math.random(200,299).." ]";
+			-- [[2200]] = [flashing good text]
+			-- ends at 2269
+			[2270] = "Phew! Feels good when the floor is clean, doesn't it?? Let's groove";
+			[2317] = "";
+		};
+		NoteHit = function(Framework, NoteData, Note)
+			if Note and Note.Side and Note.Side == "Left" then
+				if Framework.KateEngine.Song.Step >= 127 and Framework.KateEngine.Song.Step <= 365 then
+					Framework:SetKEValue('counter', Framework:GetKEValue('counter') + 1);
+					local sincounter = Framework:GetKEValue('currentsincounter');
+					sincounter.Text = Framework:GetKEValue('counter').."\nFNF Sin Counter";
+				end;
+			end;
+		end;
+		SongStart = function(Framework)
+			local overlayactive = nil;
+			local sincounter = nil;
+			Framework:SetKEValue('counter', 0);
+			Framework:SetKEValue("vineboom",function(what)
+				if what == "bf" then
+					local boom = Framework.KateEngine.Modcharter.Sprite(FetchAsset("TomatoTown_SAD_BF.png"), UDim2.new(0,0,0,-40), UDim2.new(1,0,1,40), 0, Vector2.new(0, 0));
+					boom.ImageTransparency = 0;
+
+					task.spawn(function()
+						task.wait(0.3);
+						TweenService:Create(boom, TweenInfo.new(0.5), {ImageTransparency = 1}):Play();
+						task.wait(0.6);
+						boom:Destroy();
+					end);
+				elseif what == "cml" then
+					local boom = Framework.KateEngine.Modcharter.Sprite(FetchAsset("TomatoTown_SAD_CML.png"), UDim2.new(0,0,0,-40), UDim2.new(1,0,1,40), 0, Vector2.new(0, 0));
+					boom.ImageTransparency = 0;
+
+					task.spawn(function()
+						task.wait(0.3);
+						TweenService:Create(boom, TweenInfo.new(0.5), {ImageTransparency = 1}):Play();
+						task.wait(0.6);
+						boom:Destroy();
+					end);
+				elseif what == "E" then
+					local boom = Framework.KateEngine.Modcharter.Sprite(FetchAsset("TomatoTown_E.png"), UDim2.new(0.5,0,0.5,0), UDim2.new(0.5,0,0.4,0), 0, Vector2.new(0.5, 0.5));
+					boom.ImageTransparency = 0;
+
+					task.spawn(function()
+						task.wait(0.3);
+						TweenService:Create(boom, TweenInfo.new(0.5), {ImageTransparency = 1}):Play();
+						task.wait(0.6);
+						boom:Destroy();
+					end);
+				end;
+			end);
+			Framework:SetKEValue("overlay",function(enable)
+				if enable then
+					if overlayactive then
+						overlayactive:Destroy();
+					end;
+					overlayactive = Framework.KateEngine.Modcharter.Sprite(FetchAsset("TomatoTown_dead.png"), UDim2.new(0,0,0,-40), UDim2.new(1,0,1,40), 2, Vector2.new(0, 0));
+					overlayactive.ImageTransparency = 0;
+				else
+					overlayactive:Destroy();
+					overlayactive = nil;
+				end;
+			end);
+			Framework:SetKEValue("caramba",function()
+				-- Create a new videoframe with the caramba video and play it; Once it ends, destroy it
+				local caramba = Instance.new("VideoFrame");
+				caramba.Size = UDim2.new(1,0,1,40);
+				caramba.Position = UDim2.new(0,0,0,-40);
+				caramba.Parent = GameUI;
+				caramba.Video = FetchAsset("TomatoTown_caramba.webm");
+				caramba.Looped = false;
+				caramba.Volume = 0;
+				caramba.BackgroundTransparency = 1;
+				caramba.zIndex = 0;
+
+				caramba.Playing = true;
+				caramba.Ended:Connect(function()
+					caramba:Destroy();
+				end);
+			end);
+			Framework:SetKEValue("sincounter",function(enable)
+				if enable then
+					local counter = Framework.KateEngine.Modcharter.Object.Text("0\nFNF Sin Counter", UDim2.new(1,-50,0,0), UDim2.fromOffset(200, 50), 0, Vector2.new(1,0));
+					counter.TextColor3 = Color3.fromRGB(255, 255, 255);
+					counter.TextStrokeTransparency = 0;
+					counter.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
+					counter.Parent = GameUI.Arrows;
+					counter.TextSize = 20;
+					counter.Font = Enum.Font.Arcade;
+					Framework:SetKEValue("currentsincounter", counter);
+					Framework.KateEngine.Modcharter.Object.BindToCamera(counter,0.005);
+
+					sincounter = counter;
+				else
+					sincounter:Destroy();
+					sincounter = nil;
+					Framework:SetKEValue("currentsincounter", nil);
+				end;
+			end);
+		end;
+		SetBPM = 170;
 	};
 
 	["10729975456"] = { -- Vs. LSE - Daw Wars (Mania)
