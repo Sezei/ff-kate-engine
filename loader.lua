@@ -449,6 +449,10 @@ KateEngine = {
 				Stored = true;
 			};
 			{
+				Type = "Label";
+				Text = "Player Icon";
+			};
+			{
 				Type = "TextField";
 				Default = "rbxassetid://6605178204";
 				Text = "Player Icon";
@@ -462,13 +466,49 @@ KateEngine = {
 			};
 			{
 				Type = "TextField";
+				Default = "";
+				Text = "Losing Icon";
+				Key = "Healthbar_IconPlayerLosing";
+
+				Stored = true;
+			};
+			{
+				Type = "TextField";
+				Default = "";
+				Text = "Winning Icon";
+				Key = "Healthbar_IconPlayerWinning";
+
+				Stored = true;
+			};
+			{
+				Type = "Label";
+				Text = "Opponent Icon";
+			};
+			{
+				Type = "TextField";
 				Default = "rbxassetid://8846704715";
 				Text = "Opponent Icon";
-				Key = "Healthbar_IconPlayer";
+				Key = "Healthbar_IconOpponent";
 
 				Callback = function(Value)
 					KateEngine.Assets.Healthbar.Front.IconP1.Image = Value;
 				end;
+
+				Stored = true;
+			};
+			{
+				Type = "TextField";
+				Default = "";
+				Text = "Losing Icon";
+				Key = "Healthbar_IconOpponentLosing";
+
+				Stored = true;
+			};
+			{
+				Type = "TextField";
+				Default = "";
+				Text = "Winning Icon";
+				Key = "Healthbar_IconOpponentWinning";
 
 				Stored = true;
 			};
@@ -680,7 +720,7 @@ local GameUI = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local RemoteEvent = game.ReplicatedStorage.RE;
 
 -- Material UI (Used for the menu)
-local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..Version;Theme = "Dark";SizeX = 550;})
+local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/unstable/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..Version;Theme = "Dark";SizeX = 550;})
 material.Self.Enabled = false;
 
 -- Build the UI
@@ -878,9 +918,42 @@ local function IconCheck(side)
 	end;
 end;
 
+local function UpdateIcons(health)
+	-- Update the icons according to the health left
+	-- Player Icon check
+	if KateEngine.Settings.Healthbar_IconPlayer ~= "" then
+		IconP2.Image = KateEngine.Settings.Healthbar_IconPlayer;
+		if KateEngine.Settings.Healthbar_IconPlayerWinning ~= "" then
+			if health >= 80 then
+				IconP2.Image = KateEngine.Settings.Healthbar_IconPlayerWinning;
+			end;
+		end;
+		if KateEngine.Settings.Healthbar_IconPlayerLosing ~= "" then
+			if health <= 20 then
+				IconP2.Image = KateEngine.Settings.Healthbar_IconPlayerLosing;
+			end;
+		end;
+	end
+	
+	-- Opponent Icon check
+	if KateEngine.Settings.Healthbar_IconOpponent ~= "" then
+		IconP1.Image = KateEngine.Settings.Healthbar_IconOpponent;
+		if KateEngine.Settings.Healthbar_IconOpponentWinning ~= "" then
+			if health <= 20 then
+				IconP1.Image = KateEngine.Settings.Healthbar_IconOpponentWinning;
+			end;
+		end;
+		if KateEngine.Settings.Healthbar_IconOpponentLosing ~= "" then
+			if health >= 80 then
+				IconP1.Image = KateEngine.Settings.Healthbar_IconOpponentLosing;
+			end;
+		end;
+	end
+end;
+
 local function BopIcons()
 	-- Calculate the time for beat; Seconds per beat = 60 / BPM (KateEngine.Song.BPM)
-	local delta = (60 / KateEngine.Song.BPM) / 1.5;
+	local delta = (60 / KateEngine.Song.BPM) / 1.15;
 
 	IconP1.Size = UDim2.fromOffset(140,140);
 	IconP2.Size = UDim2.fromOffset(140,140);
@@ -1197,6 +1270,7 @@ local function UpdateHealth() -- To be fired every time health is added/reduced
 
 	-- Otherwise, clamp the health between 0 and 100 and update the healthbar.
 	KateEngine.Health.Current = math.clamp(KateEngine.Health.Current,0,100);
+	UpdateIcons(KateEngine.Health.Current);
 	HBFront.Size = UDim2.new(KateEngine.Health.Current/100,0,1,0);
 	if KateEngine.Health.Current == 0 and KateEngine.Settings.Healthbar_DeathOnZero then
 		game.Players.LocalPlayer.Character.Humanoid.Health = -100;
