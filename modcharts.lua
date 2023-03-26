@@ -209,11 +209,74 @@ return {
 	["9103416440"] = { -- Blueballed (Pibby) {{THIS IS THE ONLY PIBBY CHART IM MODDING BECAUSE OF IT BEING RATHER COOL OK?!}}
 		OnStep = function(Framework, Step)
 			if Step == 120 then
+				Framework.KateEngine.Modcharter.Health.Set(50);
 				if Framework.UI.CurrentSide == "Left" then
 					Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#FF0000'>CONTROL: "..Framework:GetKEValue("MissesLeft").."</font>");
 				elseif Framework.UI.CurrentSide == "Right" then
 					Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#00FFFF'>RESISTANCE: "..Framework:GetKEValue("MissesLeft").."</font>");
 				end;
+				if Framework.UI.CurrentSide == "Left" then
+					Framework.KateEngine.Assets.Healthbar.Front.IconP2.Visible = true;
+					Framework.KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorFront);
+				elseif Framework.UI.CurrentSide == "Right" then
+					Framework.KateEngine.Assets.Healthbar.Front.IconP1.Visible = true;
+					Framework.KateEngine.Assets.Healthbar.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorBack);
+				end;
+			elseif Step == 386 then
+				if Framework.UI.CurrentSide == "Left" then
+					Framework.KateEngine.Modcharter.Health.Set(100);
+					Framework.KateEngine.Assets.Healthbar.Front.IconP2.Visible = false;
+					Framework.KateEngine.Modcharter.SetIcons({Idle = Framework.KateEngine.Cache["Healthbar_IconPlayer"], Losing = Framework.KateEngine.Cache["Healthbar_IconPlayerWinning"], Winning = Framework.KateEngine.Cache["Healthbar_IconPlayerLosing"]},"Right");
+					Framework.KateEngine.Assets.Healthbar.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorFront);
+					Framework.KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Color3.new(0,0,0);
+				elseif Framework.UI.CurrentSide == "Right" then
+					Framework.KateEngine.Modcharter.Health.Set(0);
+					Framework.KateEngine.Assets.Healthbar.Front.IconP1.Visible = false;
+					Framework.KateEngine.Modcharter.SetIcons({Idle = Framework.KateEngine.Cache["Healthbar_IconOpponent"], Losing = Framework.KateEngine.Cache["Healthbar_IconOpponentWinning"], Winning = Framework.KateEngine.Cache["Healthbar_IconOpponentLosing"]},"Right");
+					Framework.KateEngine.Assets.Healthbar.BackgroundColor3 = Color3.new(0,0,0);
+					Framework.KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorBack);
+				end;
+			elseif Step == 449 then
+				if Framework.UI.CurrentSide == "Left" then
+					Framework.KateEngine.Modcharter.ResetIcons("Right");
+					Framework.KateEngine.Assets.Healthbar.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorBack);
+				elseif Framework.UI.CurrentSide == "Right" then
+					Framework.KateEngine.Modcharter.ResetIcons("Right");
+					Framework.KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorFront);
+				end;
+			elseif Step == 512 then
+				if Framework.UI.CurrentSide == "Left" then
+					Framework.KateEngine.Modcharter.SetIcons({Idle = Framework.KateEngine.Cache["Healthbar_IconPlayer"], Losing = Framework.KateEngine.Cache["Healthbar_IconPlayerWinning"], Winning = Framework.KateEngine.Cache["Healthbar_IconPlayerLosing"]},"Right");
+					Framework.KateEngine.Assets.Healthbar.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorFront);
+				elseif Framework.UI.CurrentSide == "Right" then
+					Framework.KateEngine.Modcharter.SetIcons({Idle = Framework.KateEngine.Cache["Healthbar_IconOpponent"], Losing = Framework.KateEngine.Cache["Healthbar_IconOpponentWinning"], Winning = Framework.KateEngine.Cache["Healthbar_IconOpponentLosing"]},"Right");
+					Framework.KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorBack);
+				end;
+			elseif Step == 574 then
+				if Framework.UI.CurrentSide == "Left" then
+					Framework.KateEngine.Modcharter.ResetIcons("Right");
+					Framework.KateEngine.Assets.Healthbar.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorBack);
+				elseif Framework.UI.CurrentSide == "Right" then
+					Framework.KateEngine.Modcharter.ResetIcons("Right");
+					Framework.KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorFront);
+				end;
+			elseif Step == 643 then -- Return to normal
+				Framework.KateEngine.Modcharter.Health.Set(50);
+				Framework.KateEngine.Assets.Healthbar.Front.IconP1.Visible = true;
+				Framework.KateEngine.Assets.Healthbar.Front.IconP2.Visible = true;
+				Framework.KateEngine.Assets.Healthbar.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorBack);
+				Framework.KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorFront);
+				Framework.KateEngine.Modcharter.ResetIcons("Right");
+				Framework.KateEngine.Modcharter.ResetIcons("Left");
+			elseif Step == 1314 then
+				Framework.KateEngine.Modcharter.Health.Set(Framework:GetKEValue("MissesLeft") * 20);
+				Framework.KateEngine.Assets.Healthbar.Front.IconP1.Visible = false;
+				Framework.KateEngine.Assets.Healthbar.Front.IconP2.Visible = true;
+			end;
+		end;
+		Clock = function(Framework)
+			if Framework.KateEngine.Song.Step <= 1314 then
+				GameUI.Arrows.Position = UDim2.new(0.5, math.random(-5,5), 0.5, math.random(-5,5));
 			end;
 		end;
 		NoteMiss = function(Framework, Note)
@@ -223,21 +286,57 @@ return {
 
 				Framework:SetKEValue("MissesLeft", Framework:GetKEValue("MissesLeft") - 1);
 				if Framework.UI.CurrentSide == "Left" then
-					Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#FF0000'>CONTROL: "..(Framework:GetKEValue("MissesLeft")).."</font>");
+					Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#CC0000'>CONTROL: "..(Framework:GetKEValue("MissesLeft")).."</font>");
 				elseif Framework.UI.CurrentSide == "Right" then
 					Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#0088FF'>RESISTANCE: "..(Framework:GetKEValue("MissesLeft")).."</font>");
 				end;
 
 				if Framework:GetKEValue("MissesLeft") <= 0 then
+					Framework.KateEngine.Settings.Healthbar_DeathOnZero = true;
 					Framework.KateEngine.Modcharter.Health.Set(0);
 				end
 			end;
 		end;
+		NoteHit = function(Framework, NoteData, Note)
+			if not Note then return end;
+			if Note.Side ~= Framework.UI.CurrentSide then
+				-- this is literally a mirror lol
+				Framework.KateEngine.Modcharter.Health.Decrease(Framework.KateEngine.Settings.Healthbar_HealthGain * 0.9);
+				if Framework.KateEngine.Song.Step >= 387 and Framework.KateEngine.Song.Step <= 642 and Framework.UI.CurrentSide == "Right" then
+					-- Glitch effect like in the original chart
+					Framework.KateEngine.Modcharter.Health.Set(math.random(0, 4));
+				end;
+			end;
+		end;
 		SongStart = function(Framework)
+			Framework.KateEngine.Cache["RealHealthbarDeath"] = Framework.KateEngine.Settings.Healthbar_DeathOnZero;
+			Framework.KateEngine.Settings.Healthbar_DeathOnZero = false;
+			if Framework.UI.CurrentSide == "Left" then
+				Framework.KateEngine.Modcharter.Health.Set(0);
+			elseif Framework.UI.CurrentSide == "Right" then
+				Framework.KateEngine.Modcharter.Health.Set(100);
+			end;
 			Framework.KateEngine.Modcharter.SetLyrics("<font face='Arcade' color='#FF0000'>5 MISSES.</font> <font face='Arcade'>That's the limit. Don't mess up.</font>");
 			Framework.KateEngine.Cache["RealMiddleScrollValue"] = Framework.Settings.MiddleScroll.Value;
 			Framework.Settings.MiddleScroll.Value = false; -- Disable middle scroll
 			Framework:GetEvent("ArrowDataChanged"):Fire();
+
+			-- Store the icons for later use in the song :tr:
+			Framework.KateEngine.Cache["Healthbar_IconPlayer"] = Framework.KateEngine.Settings.Healthbar_IconPlayer;
+			Framework.KateEngine.Cache["Healthbar_IconPlayerWinning"] = Framework.KateEngine.Settings.Healthbar_IconPlayerWinning;
+			Framework.KateEngine.Cache["Healthbar_IconPlayerLosing"] = Framework.KateEngine.Settings.Healthbar_IconPlayerLosing;
+			Framework.KateEngine.Cache["Healthbar_IconOpponent"] = Framework.KateEngine.Settings.Healthbar_IconOpponent;
+			Framework.KateEngine.Cache["Healthbar_IconOpponentWinning"] = Framework.KateEngine.Settings.Healthbar_IconOpponentWinning;
+			Framework.KateEngine.Cache["Healthbar_IconOpponentLosing"] = Framework.KateEngine.Settings.Healthbar_IconOpponentLosing;
+
+			-- Set the icon to invisible and the color to black for the Left side
+			if Framework.UI.CurrentSide == "Left" then
+				Framework.KateEngine.Assets.Healthbar.Front.IconP2.Visible = false;
+				Framework.KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Color3.fromRGB(0, 0, 0);
+			elseif Framework.UI.CurrentSide == "Right" then
+				Framework.KateEngine.Assets.Healthbar.Front.IconP1.Visible = false;
+				Framework.KateEngine.Assets.Healthbar.BackgroundColor3 = Color3.fromRGB(0, 0, 0);
+			end;
 
 			-- Fetch the current background transparency
 			local ScrollUnderlay = Framework.Settings.ScrollUnderlay.Value
@@ -309,8 +408,24 @@ return {
 			end);
 		end;
 		SongEnd = function(Framework)
+			Framework.KateEngine.Settings.Healthbar_DeathOnZero = Framework.KateEngine.Cache["RealHealthbarDeath"];
 			Framework.Settings.MiddleScroll.Value = Framework.KateEngine.Cache["RealMiddleScrollValue"];
+			Framework.KateEngine.Assets.Healthbar.Front.IconP2.Visible = true;
+			Framework.KateEngine.Assets.Healthbar.Front.IconP1.Visible = true;
+			Framework.KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorFront);
+			Framework.KateEngine.Assets.Healthbar.BackgroundColor3 = Framework.KateEngine.ColorJSON.Decode(Framework.KateEngine.Settings.Healthbar_ColorBack);
+			Framework.KateEngine.Modcharter.ResetIcons("Left");
+			Framework.KateEngine.Modcharter.ResetIcons("Right");
+			Framework.KateEngine.Cache["Healthbar_IconPlayer"] = nil;
+			Framework.KateEngine.Cache["Healthbar_IconPlayerWinning"] = nil;
+			Framework.KateEngine.Cache["Healthbar_IconPlayerLosing"] = nil;
+			Framework.KateEngine.Cache["Healthbar_IconOpponent"] = nil;
+			Framework.KateEngine.Cache["Healthbar_IconOpponentWinning"] = nil;
+			Framework.KateEngine.Cache["Healthbar_IconOpponentLosing"] = nil;
 			Framework.KateEngine.Cache["RealMiddleScrollValue"] = nil;
+			Framework.KateEngine.Cache["RealHealthbarDeath"] = nil;
+
+			GameUI.Arrows.Position = UDim2.new(0.5, 0, 0.5, 0); -- Reset the position of the UI
 		end;
 		SetBPM = 136;
 	};
@@ -493,15 +608,16 @@ return {
 				caramba.Position = UDim2.new(0,0,0,-40);
 				caramba.Parent = GameUI;
 				caramba.Video = FetchAsset("TomatoTown_caramba.webm");
-				caramba.Looped = false;
+				caramba.Looped = true;
 				caramba.Volume = 0;
-				caramba.BackgroundTransparency = 1;
-				caramba.zIndex = 0;
+				caramba.BackgroundTransparency = 0;
+				caramba.ZIndex = 0;
+				caramba.Visible = true;
+				caramba.BackgroundColor3 = Color3.fromRGB(0, 0, 0);
 
-				caramba.Playing = true;
-				caramba.Ended:Connect(function()
-					caramba:Destroy();
-				end);
+				caramba:Play();
+				task.wait(18);
+				caramba:Destroy();
 			end);
 			Framework:SetKEValue("sincounter",function(enable)
 				if enable then

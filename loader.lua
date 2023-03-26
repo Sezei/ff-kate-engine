@@ -392,14 +392,6 @@ KateEngine = {
 
 				Stored = true;
 			};
-			--[[{
-				Type = "Boolean";
-				Default = false;
-				Text = "Show Player Head (EXPERIMENTAL)";
-				Key = "Healthbar_ShowHead";
-
-				Stored = true;
-			};]]
 			{
 				Type = "Boolean";
 				Default = true;
@@ -1806,6 +1798,87 @@ ModchartSystem = {
 		end);
 	end;
 
+	SetIcons = function(IconTable, Side)
+		if not Side then Side = Framework.UI.CurrentSide; end;
+		local Target = IconP2; -- Change own icons
+		if Side ~= Framework.UI.CurrentSide then
+			Target = IconP1; -- Change opponent icons
+		end;
+
+		-- Store the current icons
+		if not KateEngine.Cache["Icons_"..Side] then
+			KateEngine.Cache["Icons_"..Side] = {
+				Idle = Target==IconP1 and KateEngine.Settings.Healthbar_IconOpponent or KateEngine.Settings.Healthbar_IconPlayer;
+				Losing = Target==IconP1 and KateEngine.Settings.Healthbar_IconOpponentLosing or KateEngine.Settings.Healthbar_IconPlayerLosing;
+				Winning = Target==IconP1 and KateEngine.Settings.Healthbar_IconOpponentWinning or KateEngine.Settings.Healthbar_IconPlayerWinning;
+			};
+		end;
+
+		-- Set the icons
+		if Target == IconP1 then
+			KateEngine.Settings.Healthbar_IconOpponent = IconTable.Idle;
+			KateEngine.Settings.Healthbar_IconOpponentLosing = IconTable.Losing or "";
+			KateEngine.Settings.Healthbar_IconOpponentWinning = IconTable.Winning or "";
+		elseif Target == IconP2 then
+			KateEngine.Settings.Healthbar_IconPlayer = IconTable.Idle;
+			KateEngine.Settings.Healthbar_IconPlayerLosing = IconTable.Losing or "";
+			KateEngine.Settings.Healthbar_IconPlayerWinning = IconTable.Winning or "";
+		end;
+	end;
+
+	ResetIcons = function(Side)
+		if not KateEngine.Cache["Icons_"..Side] then return; end;
+
+		if not Side then Side = Framework.UI.CurrentSide; end;
+		local Target = IconP2; -- Change own icons
+		if Side ~= Framework.UI.CurrentSide then
+			Target = IconP1; -- Change opponent icons
+		end;
+
+		-- Reset the icons
+		if Target == IconP1 then
+			KateEngine.Settings.Healthbar_IconOpponent = KateEngine.Cache["Icons_"..Side].Idle;
+			KateEngine.Settings.Healthbar_IconOpponentLosing = KateEngine.Cache["Icons_"..Side].Losing;
+			KateEngine.Settings.Healthbar_IconOpponentWinning = KateEngine.Cache["Icons_"..Side].Winning;
+		elseif Target == IconP2 then
+			KateEngine.Settings.Healthbar_IconPlayer = KateEngine.Cache["Icons_"..Side].Idle;
+			KateEngine.Settings.Healthbar_IconPlayerLosing = KateEngine.Cache["Icons_"..Side].Losing;
+			KateEngine.Settings.Healthbar_IconPlayerWinning = KateEngine.Cache["Icons_"..Side].Winning;
+		end;
+
+		KateEngine.Cache["Icons_"..Side] = nil;
+	end;
+
+	SetHealthColor = function(Color, Side);
+		if not Side then Side = Framework.UI.CurrentSide; end;
+		local Target = HBFront;
+		if Side ~= Framework.UI.CurrentSide then
+			Target = Healthbar;
+		end;
+
+		if not KateEngine.Cache["Color_"..Side] then
+			KateEngine.Cache["Color_"..Side] = Target.BackgroundColor3;
+		end;
+
+		-- Set the color
+		Target.BackgroundColor3 = Color;
+	end;
+
+	ResetHealthColor = function(Side)
+		if not KateEngine.Cache["Color_"..Side] then return; end;
+
+		if not Side then Side = Framework.UI.CurrentSide; end;
+		local Target = HBFront;
+		if Side ~= Framework.UI.CurrentSide then
+			Target = Healthbar;
+		end;
+
+		-- Reset the color
+		Target.BackgroundColor3 = KateEngine.Cache["Color_"..Side];
+
+		KateEngine.Cache["Color_"..Side] = nil;
+	end;
+
 	SetString = function(Key, NewString)
 		KateEngine.Strings[Key] = NewString;
 
@@ -2492,6 +2565,12 @@ SoundEvent:Connect(function(Active)
 		Framework:SetKEValue("CurrentModchart", nil);
 		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
 
+		ModchartSystem.ResetIcons("Left");
+		ModchartSystem.ResetIcons("Right");
+
+		ModchartSystem.ResetHealthColor("Left");
+		ModchartSystem.ResetHealthColor("Right");
+
 		-- Reset the strings to the default ones
 		for key, default in pairs(KateEngine.DefaultStrings) do
 			ModchartSystem.SetString(key, default);
@@ -2733,7 +2812,7 @@ if not missing["setidentity"] then
 	setidentity(2);
 
 	Framework.SongPlayer.Countdown = function(self)
-		-- Create the countdown instances
+		Framework.SongPlayer.CountDown = true;
 		local Zone = Framework.StageZone and Framework.StageZone.CurrentZone;
 		local Stage = Zone and (Zone.Parent.Name:match("Stage") and Zone.Parent);
 		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
@@ -2749,8 +2828,6 @@ if not missing["setidentity"] then
 		countdowntext.Size = UDim2.new(0.5, 0, 0.5, 0);
 		countdowntext.Position = UDim2.new(0.5, 0, 0.5, 0);
 		countdowntext.Parent = GameUI.Arrows;
-
-		Framework.SongPlayer.CountDown = true;
 
 		Framework.SoundHandler:Play("3", Framework.SoundService);
 		task.wait(delta);

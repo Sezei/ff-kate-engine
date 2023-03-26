@@ -1,6 +1,20 @@
 Change Notes
 ===
 
+# 25/03/2023
+---
+Modcharts Added;
+None
+
+Modcharts Changed;
+- Vs. Camellia - Tomato Town | Fixed the video playback (maybe???)
+  
+Modcharter Changes;
+None
+
+Engine Changes;
+None
+
 # 24/03/2023 (v0.12)
 ---
 Modcharts Added;
@@ -8,9 +22,10 @@ Modcharts Added;
   
 Modcharts Changed;
 - Vs. LongestSoloEver - Means of Destruction | Testing anim-change mid-song
+- Pibby - Blueballed | Reworked the chart to be more accurate to the original modchart
   
 Modcharter Changes;
-None
+- Added new functions to edit the healthbar; SetIcons(icontable, side?), ResetIcons(side), SetHealthColor(color, side?), ResetHealthColor(side)
 
 Engine Changes;
 - Added icons to the healthbar.
