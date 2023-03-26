@@ -1849,7 +1849,7 @@ ModchartSystem = {
 		KateEngine.Cache["Icons_"..Side] = nil;
 	end;
 
-	SetHealthColor = function(Color, Side);
+	SetHealthColor = function(Color, Side)
 		if not Side then Side = Framework.UI.CurrentSide; end;
 		local Target = HBFront;
 		if Side ~= Framework.UI.CurrentSide then
