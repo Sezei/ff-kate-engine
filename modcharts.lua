@@ -206,6 +206,20 @@ return {
 		end;
 	};
 
+	["9579945041"] = { -- CN Takeover - Quiet
+		SongStart = function (Framework)
+			Framework:SetKEValue("Shifter", function(Note)
+				
+			end)
+		end;
+
+		NoteCreated = function (Framework, NoteClass, NoteData)
+			if NoteData.Notes[1].Data.NoteData == "Shifter" then
+				Framework:GetKEValue("Shifter")(NoteClass);
+			end
+		end;
+	};
+
 	["9103416440"] = { -- Blueballed (Pibby) {{THIS IS THE ONLY PIBBY CHART IM MODDING BECAUSE OF IT BEING RATHER COOL OK?!}}
 		OnStep = function(Framework, Step)
 			if Step == 120 then
@@ -850,6 +864,30 @@ return {
 
 	["9104474200"] = { -- Vs. Bob - Run
 		SetBPM = 200;
+	};
+	
+	["10728922503"] = { -- Mind Games - Uproar
+		PortedBy = "Aaron";
+		OnBeat = function(Framework, Beat)
+			if Beat == 64 or Beat == 160 then
+				Framework:GetKEValue("MustPressSwap")(true);
+			end;
+			if Beat == 96 or Beat == 192 then
+				Framework:GetKEValue("MustPressSwap")(false);
+			end;
+		end;
+		
+		SongStart = function(Framework)
+			Framework:SetKEValue("MustPressSwap", function(isSwapped)
+				if isSwapped then
+					GameUI.Arrows["Left"]:TweenPosition(UDim2.new(0.8, 0, 0.5, 0), "InOut", "Quad", 10, true);
+					GameUI.Arrows["Right"]:TweenPosition(UDim2.new(0.2, 0, 0.5, 0), "InOut", "Quad", 10, true);
+				else
+					GameUI.Arrows["Left"]:TweenPosition(UDim2.new(0.2, 0, 0.5, 0), "InOut", "Quad", 10, true);
+					GameUI.Arrows["Right"]:TweenPosition(UDim2.new(0.8, 0, 0.5, 0), "InOut", "Quad", 10, true);
+				end;
+			end);
+		end;
 	};
 
 	["9104471276"] = { -- Vs. Bob - Onslaugh
