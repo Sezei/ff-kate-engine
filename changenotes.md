@@ -6,6 +6,7 @@ Change Notes
 Modcharts Added;
 - Touhou - Reisen's Theme; Lunatic Eyes (ULiL) | BPM fix only
 - FNaF - Fourth Wall | Added possible boss-mode modchart; To be used?
+- Vs. Dracobot - Error 404 (Minus) | Added the modchart
 
 Modcharts Changed;
 - Vs. LongestSoloEver - Means of Destruction | Fixed the anim-change mid-song

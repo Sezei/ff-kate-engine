@@ -84,6 +84,41 @@ return {
 		};
 	};
 
+	["11397179605"] = { -- Kreadian Funk - Error 404 Minus
+		SetBPM = 200; -- 160 is off-sync, 200 is 2-3 steps ahead; better than having it entirely unsynced?
+		EventDefinitions = {
+			["Warning"] = function(Framework)
+				local sprite = Framework.KateEngine.Modcharter.Sprite(FetchAsset("KF_warning.png"),UDim2.fromScale(0.5,0.5), UDim2.fromScale(1,1), 0, Vector2.new(0.5, 0.5));
+				sprite.ImageTransparency = 0;
+				task.wait(0.2);
+				local tween = TweenService:Create(sprite, TweenInfo.new(0.3), {ImageTransparency = 1});
+				tween:Play();
+				tween.Completed:Wait();
+				sprite:Destroy();
+			end;
+		};
+		TimeStamps = {
+			[20374.5929759862] = {"Warning"};
+			[77824.5929759862] = {"Warning"};
+			[117424.592975986] = {"Warning"};
+			[119824.592975986] = {"Warning"};
+			[122224.592975986] = {"Warning"};
+			[124624.592975986] = {"Warning"};
+			[127024.592975986] = {"Warning"};
+			[129424.592975986] = {"Warning"};
+			[131824.592975986] = {"Warning"};
+			[134224.592975986] = {"Warning"};
+			[136624.592975986] = {"Warning"};
+			[139024.592975986] = {"Warning"};
+			[141424.592975986] = {"Warning"};
+			[146224.592975986] = {"Warning"};
+			[148624.592975986] = {"Warning"};
+			[151024.592975986] = {"Warning"};
+			[156049.592975986] = {"Warning"};
+			[165649.592975986] = {"Warning"};
+		};
+	};
+
 	["10527124142"] = { -- Kreadian Funk - Rave 404
 		EventDefinitions = {
 			["Warning"] = function(Framework)
@@ -449,12 +484,10 @@ return {
 			["GuitarMode"] = function(Framework)
 				Framework.KateEngine.Modcharter.SetAllArrows("CircularWide");
 				Framework:GetEvent("ArrowDataChanged"):Fire();
-				Framework.KateEngine.Modcharter.SetAnimation("LongestSoloEver");
 			end;
 			["LeaveGuitar"] = function(Framework)
 				Framework.KateEngine.Modcharter.LoadArrowsStyle();
 				Framework:GetEvent("ArrowDataChanged"):Fire();
-				Framework.KateEngine.Modcharter.ResetAnimation();
 			end;
 		};
 		TimeStamps = {
@@ -467,7 +500,7 @@ return {
 	["10729995005"] = { -- Vs. LSE - Gain Stage (Mania)
 		DisableDefault = true;
 		OnBeat = function(Framework, Beat)
-			if Beat == 64 then
+			if Beat == 65 then
 				local flash = Instance.new("Frame");
 				flash.BackgroundTransparency = 0;
 				flash.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
