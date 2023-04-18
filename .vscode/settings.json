@@ -8,6 +8,9 @@
         "getgc",
         "setclipboard",
         "getsynasset",
-        "getcustomasset"
+        "getcustomasset",
+        "syn",
+        "setidentity",
+        "setthreadcontext"
     ]
 }

@@ -18,10 +18,133 @@ if not setclipboard then
 	missing["clipboard"] = true;
 end;
 
+if not (type(syn) == 'table' and syn.set_thread_identity) or setidentity or setthreadcontext then
+	missing["setidentity"] = true;
+end;
+
 -- 💀
 if not isfolder("KateEngine") then
 	makefolder("KateEngine");
 end;
+
+-- Check if this is the first time the script is being executed; Doable by checking if a file exists.
+if not isfile("KateEngine/Accepted.txt") then
+	-- Create a GUI to accept the terms of use.
+	local screenGui = Instance.new("ScreenGui")
+
+	local canvasGroup = Instance.new("CanvasGroup")
+	canvasGroup.AnchorPoint = Vector2.new(0.5, 1.5)
+	canvasGroup.BackgroundColor3 = Color3.fromRGB(39, 39, 39)
+	canvasGroup.Position = UDim2.fromScale(0.5, 0.5)
+	canvasGroup.Size = UDim2.fromScale(0.25, 0.325)
+
+	local frame = Instance.new("Frame")
+	frame.AnchorPoint = Vector2.new(0.5, 0)
+	frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+	frame.BorderSizePixel = 0
+	frame.Position = UDim2.fromScale(0.5, 0)
+	frame.Size = UDim2.new(1, 0, 0, 30)
+
+	local textLabel = Instance.new("TextLabel")
+	textLabel.FontFace = Font.new("rbxasset://fonts/families/PermanentMarker.json")
+	textLabel.Text = "Kate Engine - Warning"
+	textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	textLabel.TextSize = 22
+	textLabel.AnchorPoint = Vector2.new(0.5, 0)
+	textLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	textLabel.BackgroundTransparency = 1
+	textLabel.Position = UDim2.fromScale(0.5, 0)
+	textLabel.Size = UDim2.new(0, 200, 1, 0)
+
+	local uIStroke = Instance.new("UIStroke")
+	uIStroke.Thickness = 1.5
+	uIStroke.Parent = textLabel
+
+	textLabel.Parent = frame
+
+	frame.Parent = canvasGroup
+
+	local uICorner = Instance.new("UICorner")
+	uICorner.Parent = canvasGroup
+
+	local textLabel1 = Instance.new("TextLabel")
+	textLabel1.FontFace = Font.new("rbxasset://fonts/families/PermanentMarker.json")
+	textLabel1.Text = "By using Kate Engine, you agree that any actions you do with it are your own, meaning it is your own responsibility. All FF/KE contributors are not responsible to whatever happens when you use this.\n\n(also pls no use for cheats ty)"
+	textLabel1.TextColor3 = Color3.fromRGB(255, 255, 255)
+	textLabel1.TextSize = 22
+	textLabel1.TextStrokeTransparency = 0
+	textLabel1.TextWrapped = true
+	textLabel1.AnchorPoint = Vector2.new(0.5, 0)
+	textLabel1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	textLabel1.BackgroundTransparency = 1
+	textLabel1.Position = UDim2.new(0.5, 0, 0, 40)
+	textLabel1.Size = UDim2.new(0.9, 0, 1, -70)
+	textLabel1.Parent = canvasGroup
+
+	local agree = Instance.new("TextButton")
+	agree.FontFace = Font.new("rbxasset://fonts/families/PermanentMarker.json")
+	agree.Text = "Agree"
+	agree.TextColor3 = Color3.fromRGB(255, 255, 255)
+	agree.TextSize = 18
+	agree.TextStrokeTransparency = 0
+	agree.AnchorPoint = Vector2.new(0, 1)
+	agree.BackgroundColor3 = Color3.fromRGB(144, 144, 144)
+	agree.BorderSizePixel = 0
+	agree.Position = UDim2.fromScale(0, 1)
+	agree.Size = UDim2.new(0.6, 0, 0, 30)
+	agree.Parent = canvasGroup
+
+	local decline = Instance.new("TextButton")
+	decline.FontFace = Font.new("rbxasset://fonts/families/PermanentMarker.json")
+	decline.Text = "Disagree and Unload"
+	decline.TextColor3 = Color3.fromRGB(255, 255, 255)
+	decline.TextSize = 18
+	decline.TextStrokeTransparency = 0
+	decline.AnchorPoint = Vector2.new(1, 1)
+	decline.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+	decline.BorderSizePixel = 0
+	decline.Position = UDim2.fromScale(1, 1)
+	decline.Size = UDim2.new(0.4, 0, 0, 30)
+	decline.Parent = canvasGroup
+
+	canvasGroup.Parent = screenGui
+
+	screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui");
+
+	game:GetService("TweenService"):Create(canvasGroup, TweenInfo.new(0.5), {Position = UDim2.fromScale(0.5, 0.5)}):Play()
+
+	local choice = nil
+
+	agree.MouseButton1Click:Connect(function()
+		choice = true
+	end)
+
+	decline.MouseButton1Click:Connect(function()
+		choice = false
+	end)
+
+	-- Wait until the user makes a choice.
+	repeat
+		task.wait();
+	until type(choice) == "boolean";
+
+	game:GetService("TweenService"):Create(canvasGroup, TweenInfo.new(0.5), {Position = UDim2.fromScale(0.5, 1.5)}):Play()
+
+	-- If the user chose to decline, unload the script.
+	if not choice then
+		task.wait(0.5);
+		screenGui:Destroy()
+		return -- Unloads the script
+	end
+
+	-- If the user chose to agree, continue.
+	screenGui:Destroy()
+
+	-- Add the file so the UI won't show up again.
+	writefile("KateEngine/Accepted.txt", "true");
+end;
+
+local Version = "v0.12";
 
 -- Function to get the Framework
 function getGameFramework()
@@ -31,6 +154,14 @@ function getGameFramework()
 		end
 	end
 end
+
+function getNetworking()
+	for _, v in next, getgc(true) do
+		if type(v) == 'table' and (type(rawget(v, 'Client')) == 'table' or type(rawget(v, 'Server')) == 'table') and rawget(v, "Broadcast") then
+			return v
+		end
+	end
+end;
 
 local ColorJSON = {
 	Encode = function(Color)
@@ -49,6 +180,54 @@ local ColorJSON = {
 	end;
 };
 
+local funkything = Instance.new("ScreenGui");
+funkything.Name = "loadinggui";
+funkything.Parent = game.CoreGui;
+
+local load = Instance.new("Frame");
+load.Name = "loading";
+load.Parent = funkything;
+load.BackgroundColor3 = Color3.fromRGB(0,0,0);
+load.BackgroundTransparency = 0.5;
+load.BorderSizePixel = 0;
+load.Position = UDim2.new(0.5, 0, 1, -50);
+load.Size = UDim2.new(0.2, 0, 0, 30);
+load.AnchorPoint = Vector2.new(0.5, 1);
+
+local stroke = Instance.new("UIStroke");
+stroke.Name = "stroke";
+stroke.Parent = load;
+stroke.Color = Color3.fromRGB(0,0,0);
+stroke.Thickness = 2;
+stroke.Transparency = 0.5;
+
+local loadtext = Instance.new("TextLabel");
+loadtext.Name = "loadingtext";
+loadtext.Parent = load;
+loadtext.BackgroundColor3 = Color3.fromRGB(0,0,0);
+loadtext.BackgroundTransparency = 1;
+loadtext.BorderSizePixel = 0;
+loadtext.Position = UDim2.fromScale(0.5, 0.5);
+loadtext.Size = UDim2.fromScale(1, 1);
+loadtext.AnchorPoint = Vector2.new(0.5, 0.5);
+loadtext.Text = "-";
+loadtext.TextColor3 = Color3.fromRGB(170,170,170);
+loadtext.TextSize = 24;
+loadtext.TextStrokeTransparency = 0.5;
+loadtext.Font = Enum.Font.PermanentMarker;
+loadtext.ZIndex = 2; -- Above the loading bar
+
+local loadbar = Instance.new("Frame");
+loadbar.Name = "loadingbar";
+loadbar.Parent = load;
+loadbar.BackgroundColor3 = Color3.fromRGB(255,255,255);
+loadbar.BackgroundTransparency = 0;
+loadbar.BorderSizePixel = 0;
+loadbar.Position = UDim2.fromScale(0, 0);
+loadbar.Size = UDim2.fromScale(0, 1);
+loadbar.AnchorPoint = Vector2.new(0, 0);
+
+local LocalPlayer = game:GetService("Players").LocalPlayer;
 local LoadAsset = getsynasset or getcustomasset;
 local FetchAsset = function(Asset)
 	if isfolder('KateEngine/Assets') and isfile('KateEngine/Assets/'..Asset) then
@@ -63,6 +242,11 @@ local FetchAsset = function(Asset)
 end;
 
 local PreRequisites = {
+	"KF_warning.png";
+	"lse_maniaDW.png";
+	"lse_maniaGS.png";
+	"mania_defaultgray.png";
+	"mania_defaultalt.png";
 	"metalpipe.mp3";
 	"pop_up.mp3";
 	"Meow.mp3";
@@ -78,15 +262,25 @@ local PreRequisites = {
 	"popup9.png";
 	"popup10.png";
 	"popup11.png";
+	"fkc_eye1.png";
+	"fkc_eye2.png";
+	"fkc_eye3.png";
+	"fkc_eye4.png";
+	"fkc_eyeidle1.png";
+	"fkc_eyeidle2.png";
+	"fkc_eyeidle3.png";
+	"fkc_eyeidle4.png";
 };
 
-for _,v in pairs(PreRequisites) do
+for k,v in pairs(PreRequisites) do
+	loadtext.Text = "Loading Asset: "..v.." ("..k.."/"..#PreRequisites..")";
+	loadbar.Size = UDim2.fromScale(k/#PreRequisites, 1);
 	FetchAsset(v);
 end;
 
-local Framework = getGameFramework();
+loadtext.Text = "Taking your sweet time...";
 
-local Version = "v0.11b";
+local Framework = getGameFramework();
 
 -- Create the KateEngine table
 KateEngine = {
@@ -94,6 +288,7 @@ KateEngine = {
 	Version = Version;
 	Cache = {};
 	InSolo = false;
+	Network = getNetworking();
 
 	DefaultStrings = {
 		ScoreL = "Score: <Score>";
@@ -379,14 +574,6 @@ KateEngine = {
 
 				Stored = true;
 			};
-			--[[{
-				Type = "Boolean";
-				Default = false;
-				Text = "Show Player Head (EXPERIMENTAL)";
-				Key = "Healthbar_ShowHead";
-
-				Stored = true;
-			};]]
 			{
 				Type = "Boolean";
 				Default = true;
@@ -436,6 +623,70 @@ KateEngine = {
 				Callback = function(Value)
 					KateEngine.Assets.Healthbar.Front.BackgroundColor3 = Value;
 				end;
+
+				Stored = true;
+			};
+			{
+				Type = "Label";
+				Text = "Player Icon";
+			};
+			{
+				Type = "TextField";
+				Default = "rbxassetid://6605178204";
+				Text = "Player Icon";
+				Key = "Healthbar_IconPlayer";
+
+				Callback = function(Value)
+					KateEngine.Assets.Healthbar.Front.IconP2.Image = Value;
+				end;
+
+				Stored = true;
+			};
+			{
+				Type = "TextField";
+				Default = "";
+				Text = "Losing Icon";
+				Key = "Healthbar_IconPlayerLosing";
+
+				Stored = true;
+			};
+			{
+				Type = "TextField";
+				Default = "";
+				Text = "Winning Icon";
+				Key = "Healthbar_IconPlayerWinning";
+
+				Stored = true;
+			};
+			{
+				Type = "Label";
+				Text = "Opponent Icon";
+			};
+			{
+				Type = "TextField";
+				Default = "rbxassetid://8846704715";
+				Text = "Opponent Icon";
+				Key = "Healthbar_IconOpponent";
+
+				Callback = function(Value)
+					KateEngine.Assets.Healthbar.Front.IconP1.Image = Value;
+				end;
+
+				Stored = true;
+			};
+			{
+				Type = "TextField";
+				Default = "";
+				Text = "Losing Icon";
+				Key = "Healthbar_IconOpponentLosing";
+
+				Stored = true;
+			};
+			{
+				Type = "TextField";
+				Default = "";
+				Text = "Winning Icon";
+				Key = "Healthbar_IconOpponentWinning";
 
 				Stored = true;
 			};
@@ -603,7 +854,16 @@ KateEngine = {
 	};
 
 	-- Store assets generated by the script
-	Assets = {};
+	Assets = {
+		-- UIKey = Instance (Element)
+	};
+
+	CameraBinds = {
+		--UIKey = {
+		--	Strength = Number; -> How 'strongly' is it binded to the camera movement: How much the element will move against the camera movement to 'stay in place';
+		--  Self = Instance; -> The element itself;
+		--}
+	};
 };
 
 Framework.KateEngine = KateEngine;
@@ -634,11 +894,11 @@ local TweenService = game:GetService("TweenService");
 local UIS = game:GetService("UserInputService");
 
 -- Game Stuff
-local GameUI = game.Players.LocalPlayer.PlayerGui:FindFirstChild("GameUI");
+local GameUI = LocalPlayer.PlayerGui:FindFirstChild("GameUI");
 local RemoteEvent = game.ReplicatedStorage.RE;
 
 -- Material UI (Used for the menu)
-local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..Version;Theme = "Dark";SizeX = 550;})
+local material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/unstable/UIFramework.lua",true))().Load({Style = 1;Title = "Kate Engine "..Version;Theme = "Dark";SizeX = 550;})
 material.Self.Enabled = false;
 
 -- Build the UI
@@ -765,7 +1025,7 @@ local Healthbar = Instance.new("Frame");
 Healthbar.Visible = true;
 Healthbar.Parent = GameUI.Arrows;
 Healthbar.AnchorPoint = Vector2.new(0.5,1);
-Healthbar.Position = UDim2.new(0.5,0,1,-50);
+Healthbar.Position = UDim2.new(0.5,0,1,-75);
 Healthbar.Size = UDim2.new(0.4,0,0,16);
 Healthbar.BackgroundColor3 = Color3.fromRGB(255, 0, 0);
 Healthbar.BorderSizePixel = 0;
@@ -787,6 +1047,100 @@ HBFront.Position = UDim2.fromScale(1,0.5);
 HBFront.BackgroundColor3 = Color3.new(0,1,0);
 HBFront.ZIndex = 2;
 HBFront.Name = "Front";
+
+-- Create 2 icons attached to the healthbar; Player1 is attached to the left, Player2 is attached to the right;
+-- The icons will be attached to the missing health, meaning if a player gains health, the icon will move to the right along with the healthbar
+-- The offset is 15 pixels away from the healthbar
+local IconP1 = Instance.new("ImageLabel");
+IconP1.Name = "IconP1";
+IconP1.Image = "rbxassetid://6605178204"; -- Todo: Create icons for the healthbars
+IconP1.BackgroundTransparency = 1;
+IconP1.Size = UDim2.fromOffset(100,100);
+IconP1.Parent = HBFront;
+-- Attach the icon to the left side of the front healthbar
+IconP1.AnchorPoint = Vector2.new(0.75,0.5);
+IconP1.Position = UDim2.new(0, -25, 0.5, 0);
+
+local IconP2 = IconP1:Clone();
+IconP2.Name = "IconP2";
+IconP2.Parent = HBFront;
+IconP2.Image = "rbxassetid://8846704715";
+-- Attach the icon to the right side of the front healthbar
+IconP2.AnchorPoint = Vector2.new(0.25,0.5);
+IconP2.Position = UDim2.new(0, 25, 0.5, 0);
+IconP2.ImageRectOffset = Vector2.new(1024,0);
+IconP2.ImageRectSize = Vector2.new(-1024,1024);
+
+local function IconCheck(side)
+	-- Check which side the player is on
+	if side == "Left" then -- Player is on side 1
+		IconP1.AnchorPoint = Vector2.new(0.25,0.5);
+		IconP1.Position = UDim2.new(1, 25, 0.5, 0);
+		IconP1.ImageRectOffset = Vector2.new(1024,0);
+		IconP1.ImageRectSize = Vector2.new(-1024,1024);
+
+		IconP2.AnchorPoint = Vector2.new(0.75,0.5);
+		IconP2.Position = UDim2.new(1, -25, 0.5, 0);
+		IconP2.ImageRectOffset = Vector2.new(0,0);
+		IconP2.ImageRectSize = Vector2.new(0,0);
+	elseif side == "Right" then -- Player is on side 2
+		IconP1.AnchorPoint = Vector2.new(0.75,0.5);
+		IconP1.Position = UDim2.new(0, -25, 0.5, 0);
+		IconP1.ImageRectOffset = Vector2.new(0,0);
+		IconP1.ImageRectSize = Vector2.new(0,0);
+
+		IconP2.AnchorPoint = Vector2.new(0.25,0.5);
+		IconP2.Position = UDim2.new(0, 25, 0.5, 0);
+		IconP2.ImageRectOffset = Vector2.new(1024,0);
+		IconP2.ImageRectSize = Vector2.new(-1024,1024);
+	end;
+end;
+
+local function UpdateIcons(health)
+	-- Update the icons according to the health left
+	-- Player Icon check
+	if KateEngine.Settings.Healthbar_IconPlayer ~= "" then
+		IconP2.Image = KateEngine.Settings.Healthbar_IconPlayer;
+		if KateEngine.Settings.Healthbar_IconPlayerWinning ~= "" then
+			if health >= 80 then
+				IconP2.Image = KateEngine.Settings.Healthbar_IconPlayerWinning;
+			end;
+		end;
+		if KateEngine.Settings.Healthbar_IconPlayerLosing ~= "" then
+			if health <= 20 then
+				IconP2.Image = KateEngine.Settings.Healthbar_IconPlayerLosing;
+			end;
+		end;
+	end
+	
+	-- Opponent Icon check
+	if KateEngine.Settings.Healthbar_IconOpponent ~= "" then
+		IconP1.Image = KateEngine.Settings.Healthbar_IconOpponent;
+		if KateEngine.Settings.Healthbar_IconOpponentWinning ~= "" then
+			if health <= 20 then
+				IconP1.Image = KateEngine.Settings.Healthbar_IconOpponentWinning;
+			end;
+		end;
+		if KateEngine.Settings.Healthbar_IconOpponentLosing ~= "" then
+			if health >= 80 then
+				IconP1.Image = KateEngine.Settings.Healthbar_IconOpponentLosing;
+			end;
+		end;
+	end
+end;
+
+local function BopIcons(_, delta)
+	-- Calculate the time for beat; Seconds per beat = 60 / BPM (KateEngine.Song.BPM)
+	local time = delta / 1.15;
+
+	local p1size = 140 - (30*(KateEngine.Health.Current / 100)) -- Calculate the size of the icon; 140 is the default size, 110 is the size if the health is 100%
+	local p2size = 100 + (40*(KateEngine.Health.Current / 100)) -- Calculate the size of the icon; 100 is the default size, 140 is the size if the health is 100%
+
+	IconP1.Size = UDim2.fromOffset(p1size,p1size);
+	IconP2.Size = UDim2.fromOffset(p2size,p2size);
+	TweenService:Create(IconP1, TweenInfo.new(time), {Size = UDim2.fromOffset(100,100)}):Play();
+	TweenService:Create(IconP2, TweenInfo.new(time), {Size = UDim2.fromOffset(100,100)}):Play();
+end;
 
 ---TODO---
 --[[ Create a Funky Chart category in the song selector
@@ -940,6 +1294,23 @@ for category, v in pairs(KateEngine.MenuBuild) do
 			if data.Callback then
 				data.Callback(KateEngine.ColorJSON.Decode(KateEngine.Settings[data.Key] or data.Default));
 			end;
+		elseif datatype == "TextField" then
+			KateEngine.Settings[data.Key] = KateEngine.Settings[data.Key] or data.Default;
+			tab.TextField({
+				Text = data.Text;
+				Callback = function(value)
+					if data.Callback then
+						data.Callback(value);
+					end
+					KateEngine.Settings[data.Key] = value;
+					writefile("KateEngine/config.png", game:GetService("HttpService"):JSONEncode(KateEngine.Settings));
+				end;
+				Default = KateEngine.Settings[data.Key] or data.Default;
+			});
+
+			if data.Callback then
+				data.Callback(KateEngine.Settings[data.Key] or data.Default);
+			end
 		end
 	end
 end
@@ -1043,17 +1414,21 @@ end
 
 local Ratings = {
 	Simple = {
-		[100] = "P";
-		[99] = "S";
-		[95] = "A";
-		[90] = "B";
-		[80] = "C";
-		[50] = "D";
+		[100] = "S";
+		[99] = "A";
+		[97] = "A-";
+		[80] = "B";
+		[70] = "C";
+		[60] = "D";
+		[50] = "F";
+		[30] = "F-";
+		[0] = "🗿";
 	};
 	Regular = {
-		[100] = "P";
-		[99.98] = "S++";
-		[99.95] = "S+";
+		[100] = "SS";
+		[99.99] = "S+";
+		[99.98] = "S:";
+		[99.95] = "S.";
 		[99.9] = "S";
 		[99.8] = "AAA";
 		[99.7] = "AA+";
@@ -1070,6 +1445,9 @@ local Ratings = {
 		[70] = "C";
 		[60] = "D";
 		[50] = "F+";
+		[40] = "F";
+		[30] = "F-";
+		[0] = "🗿";
 	};
 }
 
@@ -1079,15 +1457,16 @@ local function UpdateHealth() -- To be fired every time health is added/reduced
 	if not KateEngine.Settings.Healthbar then KateEngine.Health.Current = 40; return end;
 
 	-- Otherwise, clamp the health between 0 and 100 and update the healthbar.
-	KateEngine.Health.Current = math.clamp(KateEngine.Health.Current,0,100);
-	HBFront.Size = UDim2.new(KateEngine.Health.Current/100,0,1,0);
+	KateEngine.Health.Current = math.clamp(KateEngine.Health.Current,0,KateEngine.Health.Max);
+	UpdateIcons(KateEngine.Health.Current);
+	HBFront.Size = UDim2.new(KateEngine.Health.Current/KateEngine.Health.Max,0,1,0);
 	if KateEngine.Health.Current == 0 and KateEngine.Settings.Healthbar_DeathOnZero then
-		game.Players.LocalPlayer.Character.Humanoid.Health = -100;
+		LocalPlayer.Character.Humanoid.Health = -100;
 
 		if KateEngine.Settings.DeathEffect == "Explosion" then
 			-- Spawn an explosion where the player is
 			local explosion = Instance.new("Explosion");
-			explosion.Position = game.Players.LocalPlayer.Character.HumanoidRootPart.Position;
+			explosion.Position = LocalPlayer.Character.HumanoidRootPart.Position;
 			explosion.BlastRadius = 2;
 			explosion.Parent = workspace;
 		elseif KateEngine.Settings.DeathEffect == "Burn" then
@@ -1095,7 +1474,7 @@ local function UpdateHealth() -- To be fired every time health is added/reduced
 			local fire = Instance.new("Fire");
 			fire.Heat = 30;
 			fire.Size = 10;
-			fire.Parent = game.Players.LocalPlayer.Character.HumanoidRootPart;
+			fire.Parent = LocalPlayer.Character.HumanoidRootPart;
 		elseif KateEngine.Settings.DeathEffect == "Pipe" then
 			-- Pipe'd lol
 			task.spawn(function()
@@ -1155,7 +1534,7 @@ local function updateCombo(combo,acc,miss)
 	KateEngine.Mania.Combo = combo;
 	KateEngine.Mania.TotalNotes += 1;
 
-	local result1 = string.split(game.Players.LocalPlayer.PlayerGui.GameUI.Arrows.Stats.Text,"\n")
+	local result1 = string.split(LocalPlayer.PlayerGui.GameUI.Arrows.Stats.Text,"\n")
 	local res = {};
 	for k,f in pairs(result1) do
 		res[k] = tonumber(string.split(f," ")[2]);
@@ -1350,7 +1729,7 @@ GameUI.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 		-- check if worldcombo is enabled
 		if KateEngine.Settings.WorldCombo then
 			-- check the direction of the player's head; Add +5 studs to the direction of the player's head
-			local head = game.Players.LocalPlayer.Character.Head
+			local head = LocalPlayer.Character.Head
 			local direction = head.CFrame.lookVector
 			local position = head.Position + (direction * 5)
 
@@ -1468,10 +1847,18 @@ GameUI.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
 	end
 end)
 
+
 Framework.Settings.MissedSound.Value = false;
 if KateEngine.Settings.CamManipulation then
 	Framework.Settings.CameraDirectionMovement.Value = false;
 end
+
+Framework:GetEvent("SettingsChanged"):Connect(function()
+	Framework.Settings.MissedSound.Value = false;
+	if KateEngine.Settings.CamManipulation then
+		Framework.Settings.CameraDirectionMovement.Value = false;
+	end
+end);
 
 GameUI.TopbarLabel:GetPropertyChangedSignal("TextColor3"):Connect(function()
 	Topbar.TextColor3 = GameUI.TopbarLabel.TextColor3
@@ -1503,7 +1890,7 @@ end)
 
 GameUI.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This function should show any 'shadow' stats
 	GameUI.Arrows.Stats.Visible = false;
-	local result1 = string.split(game.Players.LocalPlayer.PlayerGui.GameUI.Arrows.Stats.Text,"\n")
+	local result1 = string.split(LocalPlayer.PlayerGui.GameUI.Arrows.Stats.Text,"\n")
 	local res = 0;
 	local stats = {};
 
@@ -1547,6 +1934,25 @@ local EventClock = 0;
 
 local debugtext = "";
 
+local function CameraBind(inst, strength)
+	local compilation, isUI = pcall(function()
+		if inst.BackgroundTransparency then
+			return true;
+		end
+	end);
+
+	if not compilation or not isUI then
+		return false;
+	end
+	
+	table.insert(KateEngine.CameraBinds, {
+		Self = inst,
+		Strength = strength
+	});
+
+	return true;
+end;
+
 -- Events we listen to
 local LanePressed = Framework:GetEvent("LanePressed") -- This is the event that is fired whenever you press a strum; @param {table {Direction : number<0-3>, Position : ?}}
 local SceneLoaded = Framework:GetEvent("SceneLoaded"); -- This is the event that gets fired when a scene is loaded; @param {string? = scenename, folder? = sceneinstance | nil = scene unloading}
@@ -1563,12 +1969,11 @@ ModchartSystem = {
 		end;
 
 		-- Tween the camera
-		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
+		local tweenInfo = TweenInfo.new(((60/KateEngine.Song.BPM)*3.5), Enum.EasingStyle.Quad, Enum.EasingDirection.Out);
 		Camera.FieldOfView = FOV-(1*Strength);
 		local camtween = TweenService:Create(Camera, tweenInfo, {FieldOfView = FOV});
-		ManiaRating.TextSize = 30+(5*Strength);
 		local txttween = TweenService:Create(ManiaRating, tweenInfo, {TextSize = 30});
-		GameUI.Arrows.Size = UDim2.fromScale(1+(0.02 * Strength), 1+(0.02 * Strength));
+		GameUI.Arrows.Size = UDim2.fromScale(1+(0.04 * Strength), 1+(0.04 * Strength));
 		local hudtween = TweenService:Create(GameUI.Arrows, tweenInfo, {Size = UDim2.fromScale(1, 1)});
 		camtween:Play();
 		txttween:Play();
@@ -1579,6 +1984,89 @@ ModchartSystem = {
 			txttween:Destroy();
 			hudtween:Destroy();
 		end);
+	end;
+
+	SetIcons = function(IconTable, Side)
+		if not Side then Side = Framework.UI.CurrentSide; end;
+		local Target = IconP2; -- Change own icons
+		if Side ~= Framework.UI.CurrentSide then
+			Target = IconP1; -- Change opponent icons
+		end;
+
+		-- Store the current icons
+		if not KateEngine.Cache["Icons_"..Side] then
+			KateEngine.Cache["Icons_"..Side] = {
+				Idle = Target==IconP1 and KateEngine.Settings.Healthbar_IconOpponent or KateEngine.Settings.Healthbar_IconPlayer;
+				Losing = Target==IconP1 and KateEngine.Settings.Healthbar_IconOpponentLosing or KateEngine.Settings.Healthbar_IconPlayerLosing;
+				Winning = Target==IconP1 and KateEngine.Settings.Healthbar_IconOpponentWinning or KateEngine.Settings.Healthbar_IconPlayerWinning;
+			};
+		end;
+
+		-- Set the icons
+		if Target == IconP1 then
+			KateEngine.Settings.Healthbar_IconOpponent = IconTable.Idle;
+			KateEngine.Settings.Healthbar_IconOpponentLosing = IconTable.Losing or "";
+			KateEngine.Settings.Healthbar_IconOpponentWinning = IconTable.Winning or "";
+		elseif Target == IconP2 then
+			KateEngine.Settings.Healthbar_IconPlayer = IconTable.Idle;
+			KateEngine.Settings.Healthbar_IconPlayerLosing = IconTable.Losing or "";
+			KateEngine.Settings.Healthbar_IconPlayerWinning = IconTable.Winning or "";
+		end;
+
+		UpdateIcons(KateEngine.Health.Current);
+	end;
+
+	ResetIcons = function(Side)
+		if not KateEngine.Cache["Icons_"..Side] then return; end;
+
+		if not Side then Side = Framework.UI.CurrentSide; end;
+		local Target = IconP2; -- Change own icons
+		if Side ~= Framework.UI.CurrentSide then
+			Target = IconP1; -- Change opponent icons
+		end;
+
+		-- Reset the icons
+		if Target == IconP1 then
+			KateEngine.Settings.Healthbar_IconOpponent = KateEngine.Cache["Icons_"..Side].Idle;
+			KateEngine.Settings.Healthbar_IconOpponentLosing = KateEngine.Cache["Icons_"..Side].Losing;
+			KateEngine.Settings.Healthbar_IconOpponentWinning = KateEngine.Cache["Icons_"..Side].Winning;
+		elseif Target == IconP2 then
+			KateEngine.Settings.Healthbar_IconPlayer = KateEngine.Cache["Icons_"..Side].Idle;
+			KateEngine.Settings.Healthbar_IconPlayerLosing = KateEngine.Cache["Icons_"..Side].Losing;
+			KateEngine.Settings.Healthbar_IconPlayerWinning = KateEngine.Cache["Icons_"..Side].Winning;
+		end;
+
+		KateEngine.Cache["Icons_"..Side] = nil;
+	end;
+
+	SetHealthColor = function(Color, Side)
+		if not Side then Side = Framework.UI.CurrentSide; end;
+		local Target = HBFront;
+		if Side ~= Framework.UI.CurrentSide then
+			Target = Healthbar;
+		end;
+
+		if not KateEngine.Cache["Color_"..Side] then
+			KateEngine.Cache["Color_"..Side] = Target.BackgroundColor3;
+		end;
+
+		-- Set the color
+		Target.BackgroundColor3 = Color;
+	end;
+
+	ResetHealthColor = function(Side)
+		if not KateEngine.Cache["Color_"..Side] then return; end;
+
+		if not Side then Side = Framework.UI.CurrentSide; end;
+		local Target = HBFront;
+		if Side ~= Framework.UI.CurrentSide then
+			Target = Healthbar;
+		end;
+
+		-- Reset the color
+		Target.BackgroundColor3 = KateEngine.Cache["Color_"..Side];
+
+		KateEngine.Cache["Color_"..Side] = nil;
 	end;
 
 	SetString = function(Key, NewString)
@@ -1593,6 +2081,26 @@ ModchartSystem = {
 				GameUI.Score.Right.Text = "lol "..GameUI.Score.Right.Text:split(" ")[2];
 			end;
 		end);
+	end;
+
+	ResetAnimation = function()
+		-- Reset the animation to the equipped one
+		Framework.AnimController:Stop(LocalPlayer.Character);
+		Framework.AnimController:Start(LocalPlayer.Character, Framework.UI.CurrentSide == "Right" and 2 or 1, Framework.KateEngine.Network.Server:GetDataValue("MoveSet").Idle);
+	end;
+
+	SetAnimation = function(Animation) -- Limited to localplayer only for now in order to avoid issues with the opponent's animation
+		if not Animation then
+			-- Just reset the animation to the equipped one; Equivelant to ResetAnimation();
+			Framework.AnimController:Stop(LocalPlayer.Character);
+			Framework.AnimController:Start(LocalPlayer.Character, Framework.UI.CurrentSide == "Right" and 2 or 1, Framework.KateEngine.Network.Server:GetDataValue("MoveSet").Idle);
+
+			return;
+		end;
+
+		-- Set the animation
+		Framework.AnimController:Stop(LocalPlayer.Character);
+		Framework.AnimController:Start(LocalPlayer.Character, Framework.UI.CurrentSide == "Right" and 2 or 1, Animation);
 	end;
 
 	SetArrowStyle = function(Key, Style)
@@ -1633,6 +2141,56 @@ ModchartSystem = {
 		LyricsLabel.Text = Text;
 		LyricsLabel.Visible = true;
 	end;
+
+	Object = {
+		BindToCamera = CameraBind;
+
+		Sprite = function(SpriteID, Position, Size, ZIndex, AnchorPoint)
+			local Sprite = Instance.new("ImageLabel");
+			Sprite.Image = SpriteID;
+			Sprite.BackgroundTransparency = 1;
+			Sprite.Size = Size or UDim2.new(0, 100, 0, 100);
+			Sprite.Position = Position or UDim2.new(0.5, 0, 0.5, 0);
+			Sprite.ZIndex = ZIndex or 1;
+			Sprite.Parent = GameUI;
+			Sprite.AnchorPoint = AnchorPoint or Vector2.new(0.5, 0.5);
+			table.insert(KateEngine.Assets, Sprite);
+			return Sprite;
+		end;
+	
+		Sound = function(SoundID, Volume, Pitch)
+			if not SoundID then return end
+			local Sound = Instance.new("Sound");
+			Sound.SoundId = SoundID;
+			Sound.Volume = Volume or 1;
+			Sound.Pitch = Pitch or 1;
+			Sound.Parent = GameUI;
+			table.insert(KateEngine.Assets, Sound);
+			Sound:Play();
+			task.spawn(function()
+				Sound.Ended:Wait();
+				Sound:Destroy();
+			end);
+			return Sound;
+		end;
+
+		Text = function(Text, Position, Size, ZIndex, AnchorPoint)
+			local TextLabel = Instance.new("TextLabel");
+			TextLabel.Text = Text;
+			TextLabel.BackgroundTransparency = 1;
+			TextLabel.TextSize = Size or 14;
+			TextLabel.Position = Position or UDim2.new(0.5, 0, 0.5, 0);
+			TextLabel.ZIndex = ZIndex or 1;
+			TextLabel.Parent = GameUI;
+			TextLabel.AnchorPoint = AnchorPoint or Vector2.new(0.5, 0.5);
+			table.insert(KateEngine.Assets, TextLabel);
+			return TextLabel;
+		end;
+
+		Video = function(VideoID, Position, Size, ZIndex, AnchorPoint)
+			-- TODO
+		end;
+	};
 
 	Sprite = function(SpriteID, Position, Size, ZIndex, AnchorPoint)
 		local Sprite = Instance.new("ImageLabel");
@@ -2169,19 +2727,38 @@ LanePressed:Connect(function(direction, isActive)
 		["1"] = CFrame.new(0, -cameraDisplace, 0),
 		["2"] = CFrame.new(0, cameraDisplace, 0),
 		["3"] = CFrame.new(cameraDisplace, 0, 0)
-	}
+	};
 	-- We check to see if we can go ahead with the camera displacement
 	if Framework.SongPlayer and Framework.SongPlayer.CurrentlyPlaying and direction.Side == Framework.UI.CurrentSide then
 		if isActive then
-			curPos = direction.Direction or direction.Position
-			Framework.StageCam:SetOffset("Direction", cameraManipulationTable[tostring(curPos)])
+			curPos = direction.Direction or direction.Position;
+			Framework.StageCam:SetOffset("Direction", cameraManipulationTable[tostring(curPos)]);
+
+			for _, bind in pairs(KateEngine.CameraBinds) do
+				-- Assume the bind is active if bind.Self isn't nil
+				if not bind.Self then continue end; -- oops?
+
+				local Element = bind.Self;
+				local Strength = bind.Strength;
+				Element:TweenPosition(UDim2.new(Element.Position.X.Scale + (cameraManipulationTable[tostring(curPos)].X * Strength), Element.Position.X.Offset, Element.Position.Y.Scale + (cameraManipulationTable[tostring(curPos)].Y * Strength), Element.Position.Y.Offset), "Out", "Quad", 0.25, true);
+			end;
+
 			return;
-		end
+		end;
 		if direction.Direction == curPos then
 			Framework.StageCam:SetOffset("Direction", nil);
-		end
-	end
-end)
+
+			for _, bind in pairs(KateEngine.CameraBinds) do
+				-- Assume the bind is active if bind.Self isn't nil
+				if not bind.Self or not bind.Self.Parent then continue end; -- oops?
+
+				local Element = bind.Self;
+				local Strength = bind.Strength;
+				Element:TweenPosition(UDim2.new(Element.Position.X.Scale - (cameraManipulationTable[tostring(curPos)].X * Strength), Element.Position.X.Offset, Element.Position.Y.Scale - (cameraManipulationTable[tostring(curPos)].Y * Strength), Element.Position.Y.Offset), "Out", "Quad", 0.25, true);
+			end;
+		end;
+	end;
+end);
 
 SoundEvent:Connect(function(Active)
 	if Active == false then
@@ -2198,9 +2775,25 @@ SoundEvent:Connect(function(Active)
 		Framework:SetKEValue("CurrentModchart", nil);
 		ModchartSystem.LoadArrowsStyle(); -- Return the arrows to their original style
 
+		ModchartSystem.ResetIcons("Left");
+		ModchartSystem.ResetIcons("Right");
+
+		ModchartSystem.ResetHealthColor("Left");
+		ModchartSystem.ResetHealthColor("Right");
+
 		-- Reset the strings to the default ones
 		for key, default in pairs(KateEngine.DefaultStrings) do
 			ModchartSystem.SetString(key, default);
+		end;
+
+		for ae,v in pairs(KateEngine.CameraBinds) do
+			if v.Self then
+				v.Self:Destroy();
+			end;
+
+			v.Self = nil;
+
+			table.remove(KateEngine.CameraBinds, ae);
 		end;
 	end
 	id = id + 1;
@@ -2214,6 +2807,7 @@ SoundEvent:Connect(function(Active)
 
 		KateEngine.Assets.Healthbar.Front.AnchorPoint = Vector2.new((Framework.UI.CurrentSide == "Right" and 1 or 0), 0.5);
 		KateEngine.Assets.Healthbar.Front.Position = UDim2.new((Framework.UI.CurrentSide == "Right" and 1 or 0), 0, 0.5, 0);
+		IconCheck(Framework.UI.CurrentSide);
 
 		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
 		KateEngine.Song.Instance = Framework.SongPlayer.CurrentlyPlaying;
@@ -2222,7 +2816,6 @@ SoundEvent:Connect(function(Active)
 
 		Framework:SetKEValue("SongID", songid); -- TO BE DEPRECATED IN FAVOR OF [[ Engine.Song.Id ]]
 		KateEngine.Song.Id = songid;
-		print("SongID: "..songid)
 
 		-- Check if the song has a modchart
 		if Modcharts and Modcharts[songid] then
@@ -2380,6 +2973,11 @@ SoundEvent:Connect(function(Active)
 					if CurrentStep % 4 == 2 then -- Every 4 steps is a beat
 						CurrentBeat = CurrentBeat + 1;
 						KateEngine.Song.Beat = CurrentBeat;
+						if songmodchart and songmodchart.IconBop then
+							ModchartSystem.IconBop(BPM, (60 / BPM), IconP2, IconP1); -- Send the icons to the modchart to handle the bopping
+						else
+							BopIcons(BPM, (60 / BPM));
+						end;
 						if songmodchart and songmodchart.OnBeat then
 							task.spawn(function()
 								songmodchart.OnBeat(Framework, CurrentBeat);
@@ -2418,6 +3016,57 @@ SoundEvent:Connect(function(Active)
 			end;
 		end;
 	end;
+end);
+
+-- Misc Functions; Edit the existing stuff the framework already has in order to give a better experience overall
+if not missing["setidentity"] then
+	local setidentity = (type(syn) == 'table' and syn.set_thread_identity) or setidentity or setthreadcontext
+
+	setidentity(2);
+
+	Framework.SongPlayer.Countdown = function(self)
+		Framework.SongPlayer.CountDown = true;
+		local Zone = Framework.StageZone and Framework.StageZone.CurrentZone;
+		local Stage = Zone and (Zone.Parent.Name:match("Stage") and Zone.Parent);
+		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
+		local bpm = (Modcharts[songid] and Modcharts[songid].SetBPM) or (Stage and Stage:GetAttribute("BPM")) or 120;
+		local delta = (60 / bpm);
+		local countdowntext = Instance.new("ImageLabel");
+		countdowntext.Name = "Countdown";
+		countdowntext.BackgroundTransparency = 1;
+		countdowntext.Image = "";
+		countdowntext.AnchorPoint = Vector2.new(0.5, 0.5);
+		countdowntext.Size = UDim2.new(0.5, 0, 0.5, 0);
+		countdowntext.Position = UDim2.new(0.5, 0, 0.5, 0);
+		countdowntext.Parent = GameUI.Arrows;
+
+		Framework.SoundHandler:Play("3", Framework.SoundService);
+		task.wait(delta);
+		Framework.SoundHandler:Play("2", Framework.SoundService);
+		countdowntext.Image = "rbxassetid://6443228613";
+		countdowntext.ImageTransparency = 0;
+		TweenService:Create(countdowntext, TweenInfo.new(delta,Enum.EasingStyle.Linear), {ImageTransparency = 1}):Play();
+		task.wait(delta);
+		Framework.SoundHandler:Play("1", Framework.SoundService);
+		countdowntext.Image = "rbxassetid://6443225217";
+		countdowntext.ImageTransparency = 0;
+		TweenService:Create(countdowntext, TweenInfo.new(delta,Enum.EasingStyle.Linear), {ImageTransparency = 1}):Play();
+		task.wait(delta);
+		Framework.SoundHandler:Play("Go", Framework.SoundService);
+		countdowntext.Image = "rbxassetid://6443224742";
+		countdowntext.ImageTransparency = 0;
+		TweenService:Create(countdowntext, TweenInfo.new(delta,Enum.EasingStyle.Linear), {ImageTransparency = 1}):Play();
+		task.wait(delta);
+		Framework.SongPlayer.CountDown = false;
+		countdowntext:Destroy();
+	end;
+
+	setidentity(7); -- return to default identity
+end;
+
+loadtext.Text = "Loaded - Have fun!";
+task.delay(1, function()
+	funkything:Destroy();
 end);
 
 return Framework;
