@@ -77,10 +77,44 @@ return {
 				tween.Completed:Wait();
 				sprite:Destroy();
 			end;
+			["Stutter"] = function(Framework)
+				-- Shake the screen violently while the song stutters (for ~0.3 seconds)
+				local time = 0.5;
+
+				TweenService:Create(workspace.Camera, TweenInfo.new(0.2), {FieldOfView = 40}):Play();
+
+				repeat
+					local yieldtime = task.wait();
+					time = time - yieldtime;
+					GameUI.Arrows.Position = UDim2.new(0.5, math.random(-5,5), 0.5, math.random(-5,5));
+				until time <= 0;
+
+				GameUI.Arrows.Position = UDim2.new(0.5, 0, 0.5, 0);
+				TweenService:Create(workspace.Camera, TweenInfo.new(0.1), {FieldOfView = 70}):Play();
+			end;
 		};
 		TimeStamps = {
-			[41208.7912087912] = {"Warning", nil};
-			[146579.67032967] = {"Warning", nil};
+			[41208.7912087912] = {"Warning"};
+			[146579.67032967] = {"Warning"};
+			[148351.648351648] = {"Stutter"};
+			[150329.67032967] = {"Stutter"};
+			[151648.351648352] = {"Stutter"};
+			[153626.373626374] = {"Stutter"};
+			[154945.054945055] = {"Stutter"};
+			[156263.736263736] = {"Stutter"};
+			[169450.549450549] = {"Stutter"};
+			[171428.571428571] = {"Stutter"};
+			[172747.252747253] = {"Stutter"};
+			[174725.274725275] = {"Stutter"};
+			[176043.956043956] = {"Stutter"};
+			[177362.637362637] = {"Stutter"};
+			[180000] = {"Stutter"};
+			[181978.021978022] = {"Stutter"};
+			[183296.703296703] = {"Stutter"};
+			[185274.725274725] = {"Stutter"};
+			[186593.406593406] = {"Stutter"};
+			[187912.087912088] = {"Stutter"};
+			
 		};
 	};
 
