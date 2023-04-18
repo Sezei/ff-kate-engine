@@ -1,6 +1,30 @@
 Change Notes
 ===
 
+# 19/04/2023 (v0.12_pre)
+---
+Modcharts Added;
+- Touhou - Reisen's Theme; Lunatic Eyes (ULiL) | BPM fix only
+- FNaF - Fourth Wall | Added possible boss-mode modchart; To be used?
+
+Modcharts Changed;
+- Vs. LongestSoloEver - Means of Destruction | Fixed the anim-change mid-song
+- Vs. LongestSoloEver - DAW WARS | Added anim-change mid-song
+- Vs. LongestSoloEver - Gain Stage (Mania) | Added mid-song event
+
+Modcharter Changes;
+- IconBop is now more stable, and using the delta.
+- Added SetAnimation and ResetAnimation to the modcharter.
+
+Engine Changes;
+- New terms thing
+- New load bar thing
+- Fixed network fetcher
+- Ratings changed a bit
+- Mania rating no longer bops
+- Camera zoom now depends on BPM
+- removed prints that shouldn't have been released in the first place (oops :P)
+
 # 25/03/2023
 ---
 Modcharts Added;

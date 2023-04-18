@@ -14,39 +14,6 @@ local FetchAsset = function(Asset)
 	end
 end;
 
-local PreRequisites = {
-	"KF_warning.png";
-	"lse_maniaDW.png";
-	"lse_maniaGS.png";
-	"metalpipe.mp3";
-	"pop_up.mp3";
-	"Meow.mp3";
-	"woeM.mp3";
-	"popup1.png";
-	"popup2.png";
-	"popup3.png";
-	"popup4.png";
-	"popup5.png";
-	"popup6.png";
-	"popup7.png";
-	"popup8.png";
-	"popup9.png";
-	"popup10.png";
-	"popup11.png";
-	"fkc_eye1.png";
-	"fkc_eye2.png";
-	"fkc_eye3.png";
-	"fkc_eye4.png";
-	"fkc_eyeidle1.png";
-	"fkc_eyeidle2.png";
-	"fkc_eyeidle3.png";
-	"fkc_eyeidle4.png";
-};
-
-for _,v in pairs(PreRequisites) do
-	FetchAsset(v);
-end;
-
 return {
 	-- The full documentation will be open soon on the github wiki, but for now you'll have to do with the examples below I guess.
 
@@ -60,6 +27,19 @@ return {
 		OnSection = function(Framework, Section)
 			Framework.KateEngine.Modcharter.CameraZoom();
 		end;
+	};
+
+	['9107194009'] = { -- FNaF - Fourth Wall
+		SetBPM = 140;
+		OnBeat = function(Framework, Beat)
+			if Framework:GetKEValue("SceneID") == "ScottLightning" and Beat % 2 == 0 then
+				Framework.KateEngine.Modcharter.CameraZoom(Framework.KateEngine.Settings.Modcharts_CameraStrength * 0.05);
+			end;
+		end;
+	};
+
+	["9103859652"] = { -- Touhou - Reisen's Theme; Lunatic Eyes (ULiL)
+		SetBPM = 158;
 	};
 
 	["9103750413"] = { -- Salty's Legacy - Best Girl
@@ -449,13 +429,12 @@ return {
 			["GuitarMode"] = function(Framework)
 				Framework.KateEngine.Modcharter.SetAllArrows("CircularWide");
 				Framework:GetEvent("ArrowDataChanged"):Fire();
-
-				Framework.AnimController:Stop(LocalPlayer.Character);
-				Framework.AnimController:Start(LocalPlayer.Character, Framework.UI.CurrentSide == "Right" and 2 or 1, "LongestSoloEver");
+				Framework.KateEngine.Modcharter.SetAnimation("LongestSoloEver");
 			end;
 			["LeaveGuitar"] = function(Framework)
 				Framework.KateEngine.Modcharter.LoadArrowsStyle();
 				Framework:GetEvent("ArrowDataChanged"):Fire();
+				Framework.KateEngine.Modcharter.ResetAnimation();
 			end;
 		};
 		TimeStamps = {
@@ -470,10 +449,12 @@ return {
 			["GuitarMode"] = function(Framework)
 				Framework.KateEngine.Modcharter.SetAllArrows("CircularWide");
 				Framework:GetEvent("ArrowDataChanged"):Fire();
+				Framework.KateEngine.Modcharter.SetAnimation("LongestSoloEver");
 			end;
 			["LeaveGuitar"] = function(Framework)
 				Framework.KateEngine.Modcharter.LoadArrowsStyle();
 				Framework:GetEvent("ArrowDataChanged"):Fire();
+				Framework.KateEngine.Modcharter.ResetAnimation();
 			end;
 		};
 		TimeStamps = {
@@ -485,8 +466,23 @@ return {
 
 	["10729995005"] = { -- Vs. LSE - Gain Stage (Mania)
 		DisableDefault = true;
+		OnBeat = function(Framework, Beat)
+			if Beat == 64 then
+				local flash = Instance.new("Frame");
+				flash.BackgroundTransparency = 0;
+				flash.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+				flash.Size = UDim2.new(1, 0, 1, 0);
+				flash.Parent = GameUI;
+				flash.ZIndex = 0;
+				Framework.KateEngine.Cache["Background"].Image = FetchAsset("lse_maniaGS.png");
+				TweenService:Create(flash, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play();
+				task.delay(0.3, function()
+					flash:Destroy();
+				end);
+			end;
+		end;
 		SongStart = function(Framework)
-			local Background = Framework.KateEngine.Modcharter.Sprite(FetchAsset("lse_maniaGS.png"), UDim2.new(0,0,0,-40), UDim2.new(1,0,1,40), 0, Vector2.new(0, 0));
+			local Background = Framework.KateEngine.Modcharter.Sprite(FetchAsset("mania_defaultalt.png"), UDim2.new(0,0,0,-40), UDim2.new(1,0,1,40), 0, Vector2.new(0, 0));
 			Background.ImageTransparency = 0;
 			Framework.KateEngine.Cache["Background"] = Background;
 
@@ -888,6 +884,8 @@ return {
 				end;
 			end);
 		end;
+
+		-- SetBPM = 200; [The BPM isn't accurate in the song]
 	};
 
 	["9104471276"] = { -- Vs. Bob - Onslaugh
