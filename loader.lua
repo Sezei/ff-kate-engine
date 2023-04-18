@@ -144,7 +144,7 @@ if not isfile("KateEngine/Accepted.txt") then
 	writefile("KateEngine/Accepted.txt", "true");
 end;
 
-local Version = "v0.12_pre1";
+local Version = "v0.12";
 
 -- Function to get the Framework
 function getGameFramework()
