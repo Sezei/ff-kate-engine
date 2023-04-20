@@ -1931,6 +1931,9 @@ local CurrentStep = 0;
 local CurrentBeat = 0;
 local CurrentSection = 0;
 local EventClock = 0;
+local TotalSteps = 0;
+local songstart = os.clock();
+local BPMChanges = {}; -- Track the BPM changes here so we can sync the song steps correctly
 
 local debugtext = "";
 
@@ -2014,6 +2017,24 @@ ModchartSystem = {
 		end;
 
 		UpdateIcons(KateEngine.Health.Current);
+	end;
+
+	SetBPM = function(newbpm)
+		table.insert(BPMChanges, {
+			KateEngine.Song.Step, -- Step
+			KateEngine.Song.BPM, -- Previous BPM
+			newbpm -- New BPM
+		});
+
+		KateEngine.Song.BPM = newbpm;
+		local BPS = newbpm / 60; -- BPS (Beats per second)
+		local SPB = 1 / BPS; -- SPB (Seconds per beat)
+		local SPS = SPB / 4; -- SPS (Steps per second)
+		KateEngine.Song.SPS = SPS;
+
+		songstart = os.clock();
+		
+		CurrentStep = 2;
 	end;
 
 	ResetIcons = function(Side)
@@ -2781,6 +2802,8 @@ SoundEvent:Connect(function(Active)
 		ModchartSystem.ResetHealthColor("Left");
 		ModchartSystem.ResetHealthColor("Right");
 
+		BPMChanges = {}; -- Reset the BPM changes
+
 		-- Reset the strings to the default ones
 		for key, default in pairs(KateEngine.DefaultStrings) do
 			ModchartSystem.SetString(key, default);
@@ -2798,7 +2821,8 @@ SoundEvent:Connect(function(Active)
 	end
 	id = id + 1;
 	local assigned = id;
-	local songstart = os.clock();
+	local realstart = os.clock();
+	songstart = os.clock();
 	if Active == true then
 		ModchartSystem.SaveArrowsStyle();
 		local defaultbumping = true;
@@ -2857,6 +2881,9 @@ SoundEvent:Connect(function(Active)
 				CurrentStep = 0;
 				CurrentBeat = 0;
 				CurrentSection = 0;
+				TotalSteps = 0;
+				BPMChanges = {};
+				KateEngine.Song.SPS = SPS;
 				local laststepcheck = 0;
 				local lastclockcheck = 0;
 				local lastposcheck = 0;
@@ -2922,7 +2949,7 @@ SoundEvent:Connect(function(Active)
 					end
 
 					-- An EventClock is used to tick every 1/20th of a second, regardless of the song's BPM; Made in order to accurately time events regardless of the song's BPM
-					if (lastclockcheck + 0.05) > (songstart + (EventClock/20)) then
+					if (lastclockcheck + 0.05) > (realstart + (EventClock/20)) then
 						EventClock = EventClock + 1;
 						KateEngine.Song.Clock = EventClock;
 						if songmodchart and songmodchart.Clock then
@@ -2952,20 +2979,21 @@ SoundEvent:Connect(function(Active)
 						end
 					end;
 
-					if (laststepcheck + SPS) > (songstart + (SPS * CurrentStep)) then
+					if (laststepcheck + KateEngine.Song.SPS) > (songstart + (KateEngine.Song.SPS * CurrentStep)) then
 						CurrentStep = CurrentStep + 1;
+						TotalSteps = TotalSteps + 1;
 						if songmodchart and songmodchart.OnStep then
-							KateEngine.Song.Step = CurrentStep-1;
+							KateEngine.Song.Step = TotalSteps-1;
 							task.spawn(function()
-								songmodchart.OnStep(Framework, CurrentStep-1);
+								songmodchart.OnStep(Framework, TotalSteps-1);
 							end);
 						end
 
-						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Step") and songmodchart.Lyrics[CurrentStep-1] then
-							ModchartSystem.SetLyrics(songmodchart.Lyrics[CurrentStep-1]);
+						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Step") and songmodchart.Lyrics[TotalSteps-1] then
+							ModchartSystem.SetLyrics(songmodchart.Lyrics[TotalSteps-1]);
 						end
 					else
-						debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
+						debugtext = "BPM: "..KateEngine.Song.BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(TotalSteps-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
 						BPMSheet.Text = debugtext..songmodcharttext;
 						return;
 					end;
@@ -2974,9 +3002,9 @@ SoundEvent:Connect(function(Active)
 						CurrentBeat = CurrentBeat + 1;
 						KateEngine.Song.Beat = CurrentBeat;
 						if songmodchart and songmodchart.IconBop then
-							ModchartSystem.IconBop(BPM, (60 / BPM), IconP2, IconP1); -- Send the icons to the modchart to handle the bopping
+							ModchartSystem.IconBop(KateEngine.Song.BPM, (60 / KateEngine.Song.BPM), IconP2, IconP1); -- Send the icons to the modchart to handle the bopping
 						else
-							BopIcons(BPM, (60 / BPM));
+							BopIcons(KateEngine.Song.BPM, (60 / KateEngine.Song.BPM));
 						end;
 						if songmodchart and songmodchart.OnBeat then
 							task.spawn(function()
@@ -2984,7 +3012,7 @@ SoundEvent:Connect(function(Active)
 							end);
 						end
 					else
-						debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
+						debugtext = "BPM: "..KateEngine.Song.BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(TotalSteps-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
 						BPMSheet.Text = debugtext..songmodcharttext;
 						return;
 					end;
@@ -3003,7 +3031,7 @@ SoundEvent:Connect(function(Active)
 						end;
 					end;
 
-					debugtext = "BPM: "..BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(CurrentStep-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
+					debugtext = "BPM: "..KateEngine.Song.BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(TotalSteps-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
 					BPMSheet.Text = debugtext..songmodcharttext;
 				end);
 			else

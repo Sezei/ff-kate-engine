@@ -884,6 +884,22 @@ return {
 		SetBPM = 148;
 	};
 
+	["11530932838"] = { -- D-Sides - Test
+		SetBPM = 140;
+		OnBeat = function(Framework, Beat)
+			if Beat == 33 then
+				Framework.KateEngine.Modcharter.SetBPM(158);
+			elseif Beat == 65 then
+				Framework.KateEngine.Modcharter.SetBPM(155);
+			elseif Beat == 114 then
+				Framework.KateEngine.Modcharter.SetBPM(153);
+			elseif Beat == 129 then
+				Framework.KateEngine.Modcharter.SetBPM(140);
+			-- TODO: Finish this lol
+			end;
+		end;
+	};
+
 	["9106848224"] = { -- Neon - Transgression
 		SetBPM = 206;
 	};

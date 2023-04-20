@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/latest%20version-0.11-7300a8?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/latest%20version-0.12-7300a8?style=for-the-badge" />
 </p>
 
 <p align="center">

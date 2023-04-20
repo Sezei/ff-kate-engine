@@ -1,6 +1,20 @@
 Change Notes
 ===
 
+# 20/04/2023
+---
+Modcharts Added;
+- D-Sides - Test | WIP; Testing the BPM changes
+
+Modcharts Changed;
+None
+
+Modcharter Changes;
+- Added a new function to the modcharter; SetBPM(bpm). This can be used to change the BPM mid-song.
+
+Engine Changes;
+None
+
 # 19/04/2023 (v0.12_pre)
 ---
 Modcharts Added;
