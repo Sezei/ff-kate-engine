@@ -1,6 +1,22 @@
 Change Notes
 ===
 
+# 23/04/2023
+---
+Modcharts Added;
+- Vs. Camellia - Nacreous Snowmelt | BPM change stuff
+- D-Sides - Awooga | BPM fix
+
+Modcharts Changed;
+None
+
+Modcharter Changes;
+None
+
+Engine Changes;
+- Replaced the topbar with a new one, which is more stable but shows a bit less info
+- Deprecated the Star Rating system; While it was (somewhat) accurate, it sucked. Really, it sucked.
+
 # 20/04/2023
 ---
 Modcharts Added;

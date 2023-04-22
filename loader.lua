@@ -144,7 +144,7 @@ if not isfile("KateEngine/Accepted.txt") then
 	writefile("KateEngine/Accepted.txt", "true");
 end;
 
-local Version = "v0.12";
+local Version = "v0.12A";
 
 -- Function to get the Framework
 function getGameFramework()
@@ -1015,10 +1015,49 @@ BPMSheet.Parent = Watermark;
 Watermark.Parent = GameUI;
 
 -- Topbar clone
+--[[
 local Topbar = GameUI.TopbarLabel:Clone();
 Topbar.Parent = GameUI.Arrows;
 Topbar.Visible = true;
 Topbar.Name = "KE_Topbar";
+]]
+
+local Topbar = Instance.new("Frame");
+Topbar.BackgroundColor3 = Color3.fromRGB(27,27,27);
+Topbar.BorderSizePixel = 0;
+Topbar.Size = UDim2.new(0.3,0,0,25);
+Topbar.Position = UDim2.new(0.5,0,0,-10);
+Topbar.AnchorPoint = Vector2.new(0.5,0);
+Topbar.Name = "KE_Topbar";
+Topbar.Parent = GameUI.Arrows;
+
+local TopbarPadding = Instance.new("UIPadding");
+TopbarPadding.PaddingLeft = UDim.new(0,5);
+TopbarPadding.PaddingRight = UDim.new(0,5);
+TopbarPadding.PaddingTop = UDim.new(0,5);
+TopbarPadding.PaddingBottom = UDim.new(0,5);
+TopbarPadding.Parent = Topbar;
+
+local TopbarProgress = Instance.new("Frame");
+TopbarProgress.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+TopbarProgress.BorderSizePixel = 0;
+TopbarProgress.Size = UDim2.new(0,0,1,0);
+TopbarProgress.Name = "Progress";
+TopbarProgress.Parent = Topbar;
+
+local TopbarLabel = Instance.new("TextLabel");
+TopbarLabel.BackgroundTransparency = 1;
+TopbarLabel.TextColor3 = Color3.fromRGB(255, 255, 255);
+TopbarLabel.Size = UDim2.new(1,0,1,0);
+TopbarLabel.TextSize = 16;
+TopbarLabel.Text = "-";
+TopbarLabel.RichText = true;
+TopbarLabel.Font = Enum.Font.PermanentMarker;
+TopbarLabel.Name = "Label";
+TopbarLabel.TextStrokeTransparency = 0;
+TopbarLabel.TextStrokeColor3 = Color3.fromRGB(0,0,0);
+TopbarLabel.Parent = Topbar;
+
 KateEngine.Assets.Topbar = Topbar;
 
 local Healthbar = Instance.new("Frame");
@@ -1817,9 +1856,9 @@ end)
 
 
 GameUI.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
-	local newtxt = GameUI.TopbarLabel.Text;
-	Topbar.Text = newtxt
-	local txttable = string.split(newtxt,"\n")
+	local realtxt = GameUI.TopbarLabel.Text;
+	local txttable = string.split(realtxt,"\n");
+	TopbarLabel.Text = txttable[1];
 	if txttable[3] then
 		local tim = string.split(txttable[3],":");
 		local seconds = tonumber(tim[1])*60 + tonumber(tim[2])
@@ -1828,23 +1867,15 @@ GameUI.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
 			KateEngine.Topbar.SongDifficulty = CalcDifficultyRating(seconds);
 		end
 
-		newtxt = newtxt.." | [⭐ "..KateEngine.Topbar.SongDifficulty.."]"
-
 		local function handler()
-			local m = math.floor((seconds/KateEngine.Topbar.OriginTime)*75)
-			local s = string.split(txttable[1],">")[1]..'>'
-			for i=1,math.abs(m-75) do 
-				s ..= '|'
-			end
-			s ..= '</font>'
-			for i=1,m do 
-				s = s..'|'
-			end
-			return s
+			local m = seconds/KateEngine.Topbar.OriginTime -- seconds left / total seconds
+			m = 1-m -- reverse the value
+			TopbarProgress:TweenSize(UDim2.new(m,0,1,0),Enum.EasingDirection.Out,Enum.EasingStyle.Linear,1,true)
+			TopbarLabel.Text ..= " - " .. txttable[3];
 		end
 
-		Topbar.Text = newtxt.."\n["..handler().."]"
-	end
+		handler();
+	end;
 end)
 
 
@@ -1859,10 +1890,6 @@ Framework:GetEvent("SettingsChanged"):Connect(function()
 		Framework.Settings.CameraDirectionMovement.Value = false;
 	end
 end);
-
-GameUI.TopbarLabel:GetPropertyChangedSignal("TextColor3"):Connect(function()
-	Topbar.TextColor3 = GameUI.TopbarLabel.TextColor3
-end)
 
 GameUI.TopbarLabel:GetPropertyChangedSignal("Visible"):Connect(function()
 	GameUI.TopbarLabel.Visible = false;  

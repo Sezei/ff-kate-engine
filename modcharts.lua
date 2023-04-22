@@ -566,6 +566,70 @@ return {
 		end;
 	};
 
+	["9105939283"] = { -- Vs. Camellia - Narceous Snowmelt
+		OnStep = function(Framework, Step)
+			if Step == 2224 then
+				Framework.KateEngine.Modcharter.SetBPM(191);
+			elseif Step == 2240 then
+				Framework.KateEngine.Modcharter.SetBPM(184);
+			elseif Step == 2256 then
+				Framework.KateEngine.Modcharter.SetBPM(177);
+			elseif Step == 2264 then
+				Framework.KateEngine.Modcharter.SetBPM(174);
+			elseif Step == 2272 then
+				Framework.KateEngine.Modcharter.SetBPM(170);
+			elseif Step == 2280 then
+				Framework.KateEngine.Modcharter.SetBPM(168);
+			elseif Step == 2288 then
+				Framework.KateEngine.Modcharter.SetBPM(165);
+			elseif Step == 2296 then
+				Framework.KateEngine.Modcharter.SetBPM(156);
+			elseif Step == 2304 then
+				Framework.KateEngine.Modcharter.SetBPM(155);
+			elseif Step == 2312 then
+				Framework.KateEngine.Modcharter.SetBPM(151);
+			elseif Step == 2320 then
+				Framework.KateEngine.Modcharter.SetBPM(145);
+			elseif Step == 2328 then
+				Framework.KateEngine.Modcharter.SetBPM(143);
+			elseif Step == 2336 then
+				Framework.KateEngine.Modcharter.SetBPM(139);
+			elseif Step == 3104 then -- Returning to the normal BPM?
+				Framework.KateEngine.Modcharter.SetBPM(141);
+			elseif Step == 3112 then
+				Framework.KateEngine.Modcharter.SetBPM(145);
+			elseif Step == 3120 then
+				Framework.KateEngine.Modcharter.SetBPM(151);
+			elseif Step == 3128 then
+				Framework.KateEngine.Modcharter.SetBPM(156);
+			elseif Step == 3136 then
+				Framework.KateEngine.Modcharter.SetBPM(157);
+			elseif Step == 3144 then
+				Framework.KateEngine.Modcharter.SetBPM(164);
+			elseif Step == 3152 then
+				Framework.KateEngine.Modcharter.SetBPM(166);
+			elseif Step == 3160 then
+				Framework.KateEngine.Modcharter.SetBPM(172);
+			elseif Step == 3168 then
+				Framework.KateEngine.Modcharter.SetBPM(173);
+			elseif Step == 3176 then
+				Framework.KateEngine.Modcharter.SetBPM(180);
+			elseif Step == 3184 then
+				Framework.KateEngine.Modcharter.SetBPM(182);
+			elseif Step == 3192 then
+				Framework.KateEngine.Modcharter.SetBPM(183);
+			elseif Step == 3200 then
+				Framework.KateEngine.Modcharter.SetBPM(185);
+			elseif Step == 3208 then
+				Framework.KateEngine.Modcharter.SetBPM(194);
+			elseif Step == 3216 then
+				Framework.KateEngine.Modcharter.SetBPM(198);
+			elseif Step == 3232 then
+				Framework.KateEngine.Modcharter.SetBPM(201);
+			end;
+		end;
+	};
+
 	["11602934927"] = { -- Vs. Camellia - Tomato Town
 		DisableDefault = true;
 		OnStep = function(Framework, Step)
@@ -739,7 +803,6 @@ return {
 		end;
 		Lyrics = {
 			["Method"] = "Step";
-			-- Verse
 			[284] = "I see the starlight";
 			[303] = "Up high in the morning";
 			[320] = "Driving with you in the twilight hours";
@@ -753,7 +816,6 @@ return {
 			[581] = "<i>Go crazy, losing my mind...</i>";
 			[615] = "<i>Go crazy, going crazy now...</i>";
 			[645] = "<i>Unleash the fire inside!</i>";
-			-- Chorus
 			[675] = "When you're by my side";
 			[700] = "I feel the burning flame inside my heart go";
 			[738] = "Race towards the skies";
@@ -765,7 +827,6 @@ return {
 			[884] = "A thousand miles away from here, we're going crazy, yeah!";
 			[945] = "";
 			-- Instrumental Break
-			-- Chorus
 			[1943] = "When you're by my side";
 			[1978] = "I feel the burning flame inside my heart go";
 			[2019] = "Race towards the skies";
@@ -780,7 +841,6 @@ return {
 			[2255] = "(You'd find the fire)";
 			[2273] = "Take the flight you're running with me";
 			[2294] = "A thousand miles away from here, we're going crazy, yeah!";
-			-- Ending Verse
 			[2338] = "Riding the streets with our hearts set ablaze";
 			[2367] = "The scream of the engine driving me crazy now...";
 			[2406] = "Crazy, going crazy now...";
@@ -886,18 +946,25 @@ return {
 
 	["11530932838"] = { -- D-Sides - Test
 		SetBPM = 140;
-		OnBeat = function(Framework, Beat)
-			if Beat == 33 then
-				Framework.KateEngine.Modcharter.SetBPM(158);
-			elseif Beat == 65 then
+		OnSection = function(Framework, Section)
+			if Section == 8 then
 				Framework.KateEngine.Modcharter.SetBPM(155);
-			elseif Beat == 114 then
-				Framework.KateEngine.Modcharter.SetBPM(153);
-			elseif Beat == 129 then
+			elseif Section == 33 then
 				Framework.KateEngine.Modcharter.SetBPM(140);
-			-- TODO: Finish this lol
+			elseif Section == 51 then
+				Framework.KateEngine.Modcharter.SetBPM(127);
+			elseif Section == 55 then
+				Framework.KateEngine.Modcharter.SetBPM(140);
+			elseif Section == 59 then
+				Framework.KateEngine.Modcharter.SetBPM(158);
+			elseif Section == 77 then
+				Framework.KateEngine.Modcharter.SetBPM(140);
 			end;
 		end;
+	};
+
+	["11530941002"] = { -- D-Sides - Awooga
+		SetBPM = 142;
 	};
 
 	["9106848224"] = { -- Neon - Transgression

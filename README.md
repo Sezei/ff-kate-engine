@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/latest%20version-0.12-7300a8?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/latest%20version-0.12A-7300a8?style=for-the-badge" />
 </p>
 
 <p align="center">
@@ -27,15 +27,15 @@ The 'mods' so far are the following;
 - Mania-styled Combo Counter (Works best w/Middle Scroll)
 
 ![image](https://user-images.githubusercontent.com/49373598/168380945-e086d9be-7d29-45dd-84f8-66db7b254d29.png)
-- (cheaply made) Song Progress Bar
+- ~~(cheaply made)~~ Song Progress Bar (Screenshot from Pre-0.12A)
 
 ![image](https://user-images.githubusercontent.com/49373598/196227193-0fb07b42-8d33-470b-85d3-871a2dccedc8.png)
-- Solo Healthbar
+- Solo Healthbar (Screenshot from Pre-0.12)
 
 ![image](https://user-images.githubusercontent.com/49373598/169907335-2f8e8313-231c-4419-8a52-ad20eceb9e5b.png)
 - Count total notes.
 
-- Fixed BPMs for certain songs.
+- Fixed BPMs for certain songs, now with BPM changes mid-song! (Select songs only)
 
 - Perfect Rating (gl getting 'em :trollface:)
 
@@ -43,13 +43,11 @@ The 'mods' so far are the following;
 
 - Dynamic bot difficulty (yes this means you can make the bot suck worse than you lmao)
 
-- Automatic Difficulty Rating Calculation (Shown as [⭐DIFFICULTY] in KE's topbar)
-
-![image](https://user-images.githubusercontent.com/49373598/196227335-4e63f505-3174-42de-951c-36eddbf3ee44.png)
+- ~~Automatic Difficulty Rating Calculation (Shown as [⭐DIFFICULTY] in KE's topbar)~~ Deprecated!
 
 - Better miss-sound handling than the original.. somehow lol
 
-- Full modcharting support, allowing for stuff such as [Hyperlink](https://www.youtube.com/watch?v=1AxvBATQDAQ), [Means of Destruction](https://www.youtube.com/watch?v=CSoFgLZSp_8) or even [Mother (lol)](https://www.youtube.com/watch?v=mGKn6BV_Zkc) ((Footage from beta 0.9)); All the way to even [In My Way](https://youtube.com/watch?v=OLHNoE3abtI&si=EnSIkaIECMiOmarE&t=68) ((Footage from beta 0.11))))
+- Full modcharting support, allowing for stuff such as [Hyperlink](https://www.youtube.com/watch?v=1AxvBATQDAQ), [Means of Destruction](https://www.youtube.com/watch?v=CSoFgLZSp_8) or even [Mother (lol)](https://www.youtube.com/watch?v=mGKn6BV_Zkc) ((Footage from beta 0.9)); All the way to even [In My Way](https://youtube.com/watch?v=OLHNoE3abtI&si=EnSIkaIECMiOmarE&t=68) ((Footage from beta 0.11; Select songs only))
 
 # How to load (correctly)
 I will not elaborate how to get the script into the game and stuff, but it's here;
@@ -57,9 +55,9 @@ I will not elaborate how to get the script into the game and stuff, but it's her
 _G.Framework = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/loader.lua",true))()
 ```
 
-or for the beta users;
+or for the beta users; (Unmaintained temporarily)
 ```lua
-_G.Framework = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/beta/loader.lua",true))()
+_G.Framework = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/unstable/loader.lua",true))()
 ```
 
 # Reporting bugs
