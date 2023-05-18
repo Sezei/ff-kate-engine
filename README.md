@@ -1,6 +1,8 @@
 # Development Paused
 Kate Engine's development is paused due to Roblox enabling the anti-cheat, which is detecting the injection methods of Kate Engine. Apologies!!
 
+(EDIT: After some testing, the engine works with Win10 version of Roblox with minimal edits. However, official development is still paused until further notice.)
+
 ### Disclaimer; Use Kate Engine at your own risk!
 ```diff
 -- PLEASE READ THIS PART CAREFULLY! --
