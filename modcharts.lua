@@ -119,7 +119,7 @@ return {
 	};
 
 	["11397179605"] = { -- Kreadian Funk - Error 404 Minus
-		SetBPM = 200; -- 160 is off-sync, 200 is 2-3 steps ahead; better than having it entirely unsynced?
+		SetBPM = 160;
 		EventDefinitions = {
 			["Warning"] = function(Framework)
 				local sprite = Framework.KateEngine.Modcharter.Sprite(FetchAsset("KF_warning.png"),UDim2.fromScale(0.5,0.5), UDim2.fromScale(1,1), 0, Vector2.new(0.5, 0.5));
@@ -130,8 +130,12 @@ return {
 				tween.Completed:Wait();
 				sprite:Destroy();
 			end;
+			["SetBPM"] = function(Framework, BPM)
+				Framework.KateEngine.Modcharter.SetBPM(BPM);
+			end;
 		};
 		TimeStamps = {
+			-- Warnings
 			[20374.5929759862] = {"Warning"};
 			[77824.5929759862] = {"Warning"};
 			[117424.592975986] = {"Warning"};
@@ -150,6 +154,16 @@ return {
 			[151024.592975986] = {"Warning"};
 			[156049.592975986] = {"Warning"};
 			[165649.592975986] = {"Warning"};
+
+			-- BPM changes
+			[1500] = {"SetBPM", 165};
+			[4409.09090909091] = {"SetBPM", 170};
+			[7232.62032085561] = {"SetBPM", 175};
+			[9975.47746371276] = {"SetBPM", 180};
+			[12642.1441303794] = {"SetBPM", 185};
+			[15236.738724974] = {"SetBPM", 190};
+			[17763.0545144477] = {"SetBPM", 195};
+			[20224.5929759862] = {"SetBPM", 200};
 		};
 	};
 
@@ -803,6 +817,7 @@ return {
 		end;
 		Lyrics = {
 			["Method"] = "Step";
+			-- Verse
 			[284] = "I see the starlight";
 			[303] = "Up high in the morning";
 			[320] = "Driving with you in the twilight hours";
@@ -816,6 +831,7 @@ return {
 			[581] = "<i>Go crazy, losing my mind...</i>";
 			[615] = "<i>Go crazy, going crazy now...</i>";
 			[645] = "<i>Unleash the fire inside!</i>";
+			-- Chorus
 			[675] = "When you're by my side";
 			[700] = "I feel the burning flame inside my heart go";
 			[738] = "Race towards the skies";
@@ -827,6 +843,7 @@ return {
 			[884] = "A thousand miles away from here, we're going crazy, yeah!";
 			[945] = "";
 			-- Instrumental Break
+			-- Chorus
 			[1943] = "When you're by my side";
 			[1978] = "I feel the burning flame inside my heart go";
 			[2019] = "Race towards the skies";
@@ -841,6 +858,7 @@ return {
 			[2255] = "(You'd find the fire)";
 			[2273] = "Take the flight you're running with me";
 			[2294] = "A thousand miles away from here, we're going crazy, yeah!";
+			-- Ending Verse
 			[2338] = "Riding the streets with our hearts set ablaze";
 			[2367] = "The scream of the engine driving me crazy now...";
 			[2406] = "Crazy, going crazy now...";
@@ -963,7 +981,7 @@ return {
 		end;
 	};
 
-	["11530941002"] = { -- D-Sides - Awooga
+	["11530941002"] = {
 		SetBPM = 142;
 	};
 
