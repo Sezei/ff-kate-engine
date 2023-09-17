@@ -1,7 +1,8 @@
 # Development Paused
 Kate Engine's development is paused due to Roblox enabling the anti-cheat, which is detecting the injection methods of Kate Engine. Apologies!!
 
-(EDIT: After some testing, the engine works with Win10 version of Roblox with minimal edits. However, official development is still paused until further notice.)
+~~(EDIT: After some testing, the engine works with Win10 version of Roblox with minimal edits. However, official development is still paused until further notice.)~~
+(EDIT2: Development has entirely ceased and probably won't continue due to multiple roadblocks, including Byfron releasing on UWP and the rewrite of Funky Friday's engine. I'll keep this project as an archive without archiving in-case KE will ever revive.)
 
 ### Disclaimer; Use Kate Engine at your own risk!
 ```diff
