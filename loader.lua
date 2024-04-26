@@ -895,6 +895,8 @@ local UIS = game:GetService("UserInputService");
 
 -- Game Stuff
 local GameUI = LocalPlayer.PlayerGui:FindFirstChild("GameUI");
+local IngameUI = GameUI:FindFirstChild("Screen");
+local PromptUI = GameUI:FindFirstChild("Windows");
 local RemoteEvent = game.ReplicatedStorage.RE;
 
 -- Material UI (Used for the menu)
@@ -906,7 +908,7 @@ material.Self.Enabled = false;
 local ManiaComboCounter = Instance.new("TextLabel");
 ManiaComboCounter.AnchorPoint = Vector2.new(0.5, 0.5);
 ManiaComboCounter.Position = UDim2.fromScale(0.5, 0.5);
-ManiaComboCounter.Parent = GameUI;
+ManiaComboCounter.Parent = IngameUI;
 ManiaComboCounter.BackgroundTransparency = 1;
 ManiaComboCounter.TextColor3 = Color3.new(1, 1, 1);
 ManiaComboCounter.TextStrokeColor3 = Color3.new(0, 0, 0);
@@ -937,7 +939,7 @@ ManiaRating.Name = "Rating";
 local ManiaJudgementOverlay = Instance.new("ImageLabel");
 ManiaJudgementOverlay.Position = UDim2.new(0, 0, 0, -40);
 ManiaJudgementOverlay.Size = UDim2.new(1, 0, 1, 40);
-ManiaJudgementOverlay.Parent = GameUI;
+ManiaJudgementOverlay.Parent = IngameUI;
 ManiaJudgementOverlay.BackgroundTransparency = 1;
 ManiaJudgementOverlay.Image = "rbxassetid://12395330181";
 ManiaJudgementOverlay.Visible = false;
@@ -953,7 +955,7 @@ KateEngine.Assets.ManiaJudgementOverlay = ManiaJudgementOverlay;
 local LyricsLabel = Instance.new("TextLabel");
 LyricsLabel.AnchorPoint = Vector2.new(0.5, 0.75);
 LyricsLabel.Position = UDim2.fromScale(0.5, 0.75);
-LyricsLabel.Parent = GameUI.Arrows;
+LyricsLabel.Parent = IngameUI.Arrows;
 LyricsLabel.BackgroundTransparency = 1;
 LyricsLabel.TextColor3 = Color3.new(1, 1, 1);
 LyricsLabel.TextStrokeColor3 = Color3.new(0, 0, 0);
@@ -1017,7 +1019,7 @@ Watermark.Parent = GameUI;
 -- Topbar clone
 --[[
 local Topbar = GameUI.TopbarLabel:Clone();
-Topbar.Parent = GameUI.Arrows;
+Topbar.Parent = IngameUI.Arrows;
 Topbar.Visible = true;
 Topbar.Name = "KE_Topbar";
 ]]
@@ -1029,7 +1031,7 @@ Topbar.Size = UDim2.new(0.3,0,0,25);
 Topbar.Position = UDim2.new(0.5,0,0,-10);
 Topbar.AnchorPoint = Vector2.new(0.5,0);
 Topbar.Name = "KE_Topbar";
-Topbar.Parent = GameUI.Arrows;
+Topbar.Parent = IngameUI.Arrows;
 
 local TopbarPadding = Instance.new("UIPadding");
 TopbarPadding.PaddingLeft = UDim.new(0,5);
@@ -1062,7 +1064,7 @@ KateEngine.Assets.Topbar = Topbar;
 
 local Healthbar = Instance.new("Frame");
 Healthbar.Visible = true;
-Healthbar.Parent = GameUI.Arrows;
+Healthbar.Parent = IngameUI.Arrows;
 Healthbar.AnchorPoint = Vector2.new(0.5,1);
 Healthbar.Position = UDim2.new(0.5,0,1,-75);
 Healthbar.Size = UDim2.new(0.4,0,0,16);
@@ -1197,39 +1199,39 @@ end);
 ---TODO---
 
 -- Prepare the default GameUI stuff for the hud zoom
-GameUI.Arrows.AnchorPoint = Vector2.new(0.5, 0.5);
-GameUI.Arrows.Position = UDim2.new(0.5, 0, 0.5, 0);
-GameUI.Arrows.Size = UDim2.fromScale(1, 1);
+IngameUI.Arrows.AnchorPoint = Vector2.new(0.5, 0.5);
+IngameUI.Arrows.Position = UDim2.new(0.5, 0, 0.5, 0);
+IngameUI.Arrows.Size = UDim2.fromScale(1, 1);
 
 -- Clone the Score labels
-local ScoreLabelLeft = GameUI.Score:FindFirstChild("Left"):Clone();
-ScoreLabelLeft.Parent = GameUI.Arrows;
+local ScoreLabelLeft = IngameUI.Score:FindFirstChild("Left"):Clone();
+ScoreLabelLeft.Parent = IngameUI.Arrows;
 ScoreLabelLeft.Visible = true;
 ScoreLabelLeft.Name = "KE_ScoreLabelLeft";
-GameUI.Score.Left.Visible = false;
+IngameUI.Score.Left.Visible = false;
 KateEngine.Assets.ScoreLabelLeft = ScoreLabelLeft;
-GameUI.Score:FindFirstChild("Left"):GetPropertyChangedSignal("Text"):Connect(function()
-	local ScoreSplit = GameUI.Score:FindFirstChild("Left").Text:split(" ");
+IngameUI.Score:FindFirstChild("Left"):GetPropertyChangedSignal("Text"):Connect(function()
+	local ScoreSplit = IngameUI.Score:FindFirstChild("Left").Text:split(" ");
 	ScoreLabelLeft.Text = Format(KateEngine.Strings.ScoreL, {["Score"] = ScoreSplit[2]});
 end);
-GameUI.Score:FindFirstChild("Left"):GetPropertyChangedSignal("Visible"):Connect(function()
+IngameUI.Score:FindFirstChild("Left"):GetPropertyChangedSignal("Visible"):Connect(function()
 	ScoreLabelLeft.Visible = true;
-	GameUI.Score:FindFirstChild("Left").Visible = false;
+	IngameUI.Score:FindFirstChild("Left").Visible = false;
 end);
 
-local ScoreLabelRight = GameUI.Score:FindFirstChild("Right"):Clone();
-ScoreLabelRight.Parent = GameUI.Arrows;
+local ScoreLabelRight = IngameUI.Score:FindFirstChild("Right"):Clone();
+ScoreLabelRight.Parent = IngameUI.Arrows;
 ScoreLabelRight.Visible = true;
 ScoreLabelRight.Name = "KE_ScoreLabelRight";
-GameUI.Score.Right.Visible = false;
+IngameUI.Score.Right.Visible = false;
 KateEngine.Assets.ScoreLabelRight = ScoreLabelRight;
-GameUI.Score:FindFirstChild("Right"):GetPropertyChangedSignal("Text"):Connect(function()
-	local ScoreSplit = GameUI.Score:FindFirstChild("Right").Text:split(" ");
+IngameUI.Score:FindFirstChild("Right"):GetPropertyChangedSignal("Text"):Connect(function()
+	local ScoreSplit = IngameUI.Score:FindFirstChild("Right").Text:split(" ");
 	ScoreLabelRight.Text = Format(KateEngine.Strings.ScoreR, {["Score"] = ScoreSplit[2]});
 end);
-GameUI.Score:FindFirstChild("Right"):GetPropertyChangedSignal("Visible"):Connect(function()
+IngameUI.Score:FindFirstChild("Right"):GetPropertyChangedSignal("Visible"):Connect(function()
 	ScoreLabelRight.Visible = true;
-	GameUI.Score:FindFirstChild("Right").Visible = false;
+	IngameUI.Score:FindFirstChild("Right").Visible = false;
 end);
 
 if isfile("KateEngine/config.png") then -- Load the settings if they exist
@@ -1573,7 +1575,7 @@ local function updateCombo(combo,acc,miss)
 	KateEngine.Mania.Combo = combo;
 	KateEngine.Mania.TotalNotes += 1;
 
-	local result1 = string.split(LocalPlayer.PlayerGui.GameUI.Arrows.Stats.Text,"\n")
+	local result1 = string.split(IngameUI.Arrows.Stats.Text,"\n")
 	local res = {};
 	for k,f in pairs(result1) do
 		res[k] = tonumber(string.split(f," ")[2]);
@@ -1730,8 +1732,8 @@ end
 
 local lastmiss = 0;
 
-GameUI.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
-	local t = GameUI.Arrows.InfoBar.Text
+IngameUI.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
+	local t = IngameUI.Arrows.InfoBar.Text
 	local tt = string.split(t, " ")
 	local num;
 	local isReset = false;
@@ -1833,8 +1835,8 @@ GameUI.Arrows.InfoBar:GetPropertyChangedSignal("Text"):Connect(function()
 	isReset = false;
 end)
 
-GameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
-	if GameUI.Arrows.Visible == false then
+IngameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
+	if IngameUI.Arrows.Visible == false then
 		ManiaComboCounter.Visible = false
 		KateEngine.Topbar.OriginTime = 0;
 		KateEngine.Topbar.SongDifficulty = 0;
@@ -1855,8 +1857,8 @@ GameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 end)
 
 
-GameUI.TopbarLabel:GetPropertyChangedSignal("Text"):Connect(function()
-	local realtxt = GameUI.TopbarLabel.Text;
+IngameUI.Topbar.Center:FindFirstChild('Text').Label:GetPropertyChangedSignal("Text"):Connect(function() --not good?
+	local realtxt = IngameUI.Topbar.Center:FindFirstChild('Text').Label.Text;
 	local txttable = string.split(realtxt,"\n");
 	TopbarLabel.Text = txttable[1];
 	if txttable[3] then
@@ -1884,6 +1886,10 @@ if KateEngine.Settings.CamManipulation then
 	Framework.Settings.CameraDirectionMovement.Value = false;
 end
 
+function Framework:GetEvent(Name)
+    return self.EventAction.Events[Name];
+end
+
 Framework:GetEvent("SettingsChanged"):Connect(function()
 	Framework.Settings.MissedSound.Value = false;
 	if KateEngine.Settings.CamManipulation then
@@ -1891,11 +1897,11 @@ Framework:GetEvent("SettingsChanged"):Connect(function()
 	end
 end);
 
-GameUI.TopbarLabel:GetPropertyChangedSignal("Visible"):Connect(function()
-	GameUI.TopbarLabel.Visible = false;  
+IngameUI.Topbar.Center:FindFirstChild('Text').Label:GetPropertyChangedSignal("Visible"):Connect(function()
+	IngameUI.Topbar.Center:FindFirstChild('Text').Label.Visible = false;  
 end)
 
-local newloc = GameUI.SongSelector.Frame.Start
+local newloc = PromptUI.SongSelector.Frame.Start
 newloc.Toggle.Visible = false;
 newloc = newloc.Start
 local buttontemplate = newloc.StartButton;
@@ -1905,19 +1911,19 @@ buttontemplate.MouseButton1Click:Connect(function()
 end)
 
 -- Stats UI clone
-local statgui = GameUI.Arrows.Stats:Clone()
+local statgui = IngameUI.Arrows.Stats:Clone()
 statgui.RichText = true; -- Force rich text on the stats
-statgui.Parent = GameUI.Arrows
+statgui.Parent = IngameUI.Arrows
 
-GameUI.Arrows.Stats:GetPropertyChangedSignal("Visible"):Connect(function()
-	if GameUI.Arrows.Stats.Visible then
-		GameUI.Arrows.Stats.Visible = false;
+IngameUI.Arrows.Stats:GetPropertyChangedSignal("Visible"):Connect(function()
+	if IngameUI.Arrows.Stats.Visible then
+		IngameUI.Arrows.Stats.Visible = false;
 	end
 end)
 
-GameUI.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This function should show any 'shadow' stats
-	GameUI.Arrows.Stats.Visible = false;
-	local result1 = string.split(LocalPlayer.PlayerGui.GameUI.Arrows.Stats.Text,"\n")
+IngameUI.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- This function should show any 'shadow' stats
+	IngameUI.Arrows.Stats.Visible = false;
+	local result1 = string.split(IngameUI.Arrows.Stats.Text,"\n")
 	local res = 0;
 	local stats = {};
 
@@ -2003,8 +2009,8 @@ ModchartSystem = {
 		Camera.FieldOfView = FOV-(1*Strength);
 		local camtween = TweenService:Create(Camera, tweenInfo, {FieldOfView = FOV});
 		local txttween = TweenService:Create(ManiaRating, tweenInfo, {TextSize = 30});
-		GameUI.Arrows.Size = UDim2.fromScale(1+(0.04 * Strength), 1+(0.04 * Strength));
-		local hudtween = TweenService:Create(GameUI.Arrows, tweenInfo, {Size = UDim2.fromScale(1, 1)});
+		IngameUI.Arrows.Size = UDim2.fromScale(1+(0.04 * Strength), 1+(0.04 * Strength));
+		local hudtween = TweenService:Create(IngameUI.Arrows, tweenInfo, {Size = UDim2.fromScale(1, 1)});
 		camtween:Play();
 		txttween:Play();
 		hudtween:Play();
@@ -2124,9 +2130,9 @@ ModchartSystem = {
 		task.spawn(function()
 			task.wait(); -- Wait a single heartbeat; Enough time for the string to realize it's changed
 			if Key == "ScoreL" then
-				GameUI.Score.Left.Text = "lol "..GameUI.Score.Left.Text:split(" ")[2];
+				IngameUI.Score.Left.Text = "lol "..IngameUI.Score.Left.Text:split(" ")[2];
 			elseif Key == "ScoreR" then
-				GameUI.Score.Right.Text = "lol "..GameUI.Score.Right.Text:split(" ")[2];
+				IngameUI.Score.Right.Text = "lol "..IngameUI.Score.Right.Text:split(" ")[2];
 			end;
 		end);
 	end;
@@ -2200,7 +2206,7 @@ ModchartSystem = {
 			Sprite.Size = Size or UDim2.new(0, 100, 0, 100);
 			Sprite.Position = Position or UDim2.new(0.5, 0, 0.5, 0);
 			Sprite.ZIndex = ZIndex or 1;
-			Sprite.Parent = GameUI;
+			Sprite.Parent = IngameUI;
 			Sprite.AnchorPoint = AnchorPoint or Vector2.new(0.5, 0.5);
 			table.insert(KateEngine.Assets, Sprite);
 			return Sprite;
@@ -2229,7 +2235,7 @@ ModchartSystem = {
 			TextLabel.TextSize = Size or 14;
 			TextLabel.Position = Position or UDim2.new(0.5, 0, 0.5, 0);
 			TextLabel.ZIndex = ZIndex or 1;
-			TextLabel.Parent = GameUI;
+			TextLabel.Parent = IngameUI;
 			TextLabel.AnchorPoint = AnchorPoint or Vector2.new(0.5, 0.5);
 			table.insert(KateEngine.Assets, TextLabel);
 			return TextLabel;
@@ -2247,7 +2253,7 @@ ModchartSystem = {
 		Sprite.Size = Size or UDim2.new(0, 100, 0, 100);
 		Sprite.Position = Position or UDim2.new(0.5, 0, 0.5, 0);
 		Sprite.ZIndex = ZIndex or 1;
-		Sprite.Parent = GameUI;
+		Sprite.Parent = IngameUI;
 		Sprite.AnchorPoint = AnchorPoint or Vector2.new(0.5, 0.5);
 		table.insert(KateEngine.Assets, Sprite);
 		return Sprite;
@@ -2327,7 +2333,7 @@ ModchartSystem = {
 		local Number = NoteKey < 4 and NoteKey or NoteKey - 4;
 
 		-- Attempt to find the note
-		local Note = GameUI.Arrows[Side].Arrows['Arrow'..tostring(Number)];
+		local Note = IngameUI.Arrows[Side].Arrows['Arrow'..tostring(Number)];
 
 		-- In order to avoid errors due to a NIL, we'll send a table regardless of if the note exists or not; However, all functions will return instantly if the note doesn't exist.
 		return {
@@ -2490,11 +2496,11 @@ ModchartSystem = {
 
 	CamHUD = {
 		SetAngle = function(Angle)
-			Framework.GameUI.Arrows.Rotation = Angle;
+			Framework.IngameUI.Arrows.Rotation = Angle;
 		end;
 
 		GetAngle = function()
-			return Framework.GameUI.Arrows.Rotation;
+			return Framework.IngameUI.Arrows.Rotation;
 		end;
 
 		TweenAngle = function(Angle, Time)
@@ -2507,14 +2513,14 @@ ModchartSystem = {
 			end;
 
 			if Time > 0 then
-				local Tween = TweenService:Create(Framework.GameUI.Arrows, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Rotation = Angle});
+				local Tween = TweenService:Create(Framework.IngameUI.Arrows, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Rotation = Angle});
 
 				Tween:Play();
 				Tween.Completed:Once(function()
 					Tween:Destroy();
 				end);
 			else
-				Framework.GameUI.Arrows.Rotation = Angle;
+				Framework.IngameUI.Arrows.Rotation = Angle;
 			end;
 		end;
 	}
@@ -3093,7 +3099,7 @@ if not missing["setidentity"] then
 		countdowntext.AnchorPoint = Vector2.new(0.5, 0.5);
 		countdowntext.Size = UDim2.new(0.5, 0, 0.5, 0);
 		countdowntext.Position = UDim2.new(0.5, 0, 0.5, 0);
-		countdowntext.Parent = GameUI.Arrows;
+		countdowntext.Parent = IngameUI.Arrows;
 
 		Framework.SoundHandler:Play("3", Framework.SoundService);
 		task.wait(delta);
