@@ -1,3 +1,27 @@
+--bloxstrap support
+Bloxstrap = {
+	SendMessage = function(command, data)
+		local json = game:GetService('HttpService'):JSONEncode({
+			command = command, 
+			data = data
+		});
+		
+		print("[BloxstrapRPC] " .. json)
+	end;
+
+	SetRichPresence = function(data)
+		if data.timeStart ~= nil then
+			data.timeStart = math.round(data.timeStart)
+		end
+		
+		if data.timeEnd ~= nil then
+			data.timeEnd = math.round(data.timeEnd)
+		end
+		
+		Bloxstrap.SendMessage("SetRichPresence", data)
+	end;
+};
+
 -- why did i even need to include this 💀
 if game.PlaceId ~= 6447798030 and game.PlaceId ~= 6996694685 then
 	return error("No!")
@@ -1856,8 +1880,14 @@ IngameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 	end
 end)
 
+local FormatToTime = function(seconds)
+	local minutes = math.floor(seconds / 60);
+	local seconds = math.floor(seconds % 60);
+	return string.format("%02d:%02d", minutes, seconds);
+end;
 
 IngameUI.Topbar.Center:FindFirstChild('Text').Label:GetPropertyChangedSignal("Text"):Connect(function() --not good?
+	local nofunktxt = string.split(IngameUI.Topbar.Center:FindFirstChild('Text').Label.ContentText,'\n')[1];
 	local realtxt = IngameUI.Topbar.Center:FindFirstChild('Text').Label.Text;
 	local txttable = string.split(realtxt,"\n");
 	TopbarLabel.Text = txttable[1];
@@ -1874,6 +1904,11 @@ IngameUI.Topbar.Center:FindFirstChild('Text').Label:GetPropertyChangedSignal("Te
 			m = 1-m -- reverse the value
 			TopbarProgress:TweenSize(UDim2.new(m,0,1,0),Enum.EasingDirection.Out,Enum.EasingStyle.Linear,1,true)
 			TopbarLabel.Text ..= " - " .. txttable[3];
+
+			Bloxstrap.SetRichPresence({
+				details = "Funky Friday - Playing a song",
+				state = nofunktxt..' - '..FormatToTime(math.abs(KateEngine.Topbar.OriginTime-seconds))..' / '..FormatToTime(KateEngine.Topbar.OriginTime),
+			});
 		end
 
 		handler();
@@ -1898,7 +1933,16 @@ Framework:GetEvent("SettingsChanged"):Connect(function()
 end);
 
 IngameUI.Topbar.Center:FindFirstChild('Text').Label:GetPropertyChangedSignal("Visible"):Connect(function()
-	IngameUI.Topbar.Center:FindFirstChild('Text').Label.Visible = false;  
+	IngameUI.Topbar.Center:FindFirstChild('Text').Label.Visible = false; 
+end)
+
+IngameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
+	if IngameUI.Arrows.Visible == false then
+		Bloxstrap.SetRichPresence({
+			details = "Funky Friday - In the lobby",
+			state = "== Powered by Kate Engine ==",
+		});
+	end
 end)
 
 local newloc = PromptUI.SongSelector.Frame.Start
