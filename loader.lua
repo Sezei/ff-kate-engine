@@ -1,3 +1,6 @@
+--sadly despite the rewrite and the rebranding we still have to keep KE as everything for backwards compatibility
+--womp womp
+
 --bloxstrap support
 Bloxstrap = {
 	SendMessage = function(command, data)
@@ -93,7 +96,7 @@ if not isfile("KateEngine/Accepted.txt") then
 
 	local textLabel1 = Instance.new("TextLabel")
 	textLabel1.FontFace = Font.new("rbxasset://fonts/families/PermanentMarker.json")
-	textLabel1.Text = "By using Kate Engine, you agree that any actions you do with it are your own, meaning it is your own responsibility. All FF/KE contributors are not responsible to whatever happens when you use this.\n\n(also pls no use for cheats ty)"
+	textLabel1.Text = "By using Funkify, you agree that any actions you do with it are your own, meaning it is your own responsibility. All FF(ify) contributors are not responsible to whatever happens when you use this.\n\n(also pls no use for cheats ty)"
 	textLabel1.TextColor3 = Color3.fromRGB(255, 255, 255)
 	textLabel1.TextSize = 22
 	textLabel1.TextStrokeTransparency = 0
@@ -168,7 +171,7 @@ if not isfile("KateEngine/Accepted.txt") then
 	writefile("KateEngine/Accepted.txt", "true");
 end;
 
-local Version = "v0.12A";
+local Version = "v0.13";
 
 -- Function to get the Framework
 function getGameFramework()
@@ -995,7 +998,7 @@ KateEngine.Assets.LyricsLabel = LyricsLabel;
 -- Watermark stuff
 local Watermark = Instance.new("ImageButton");
 Watermark.Name = "KE_Watermark";
-Watermark.Image = "rbxassetid://12289530118";
+Watermark.Image = "rbxassetid://12289530118"; --todo: update with Funkify's new watermark
 Watermark.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
 Watermark.BackgroundTransparency = 1;
 Watermark.Size = UDim2.fromOffset(143, 94);
@@ -1198,11 +1201,8 @@ local function BopIcons(_, delta)
 	-- Calculate the time for beat; Seconds per beat = 60 / BPM (KateEngine.Song.BPM)
 	local time = delta / 1.15;
 
-	local p1size = 140 - (30*(KateEngine.Health.Current / 100)) -- Calculate the size of the icon; 140 is the default size, 110 is the size if the health is 100%
-	local p2size = 100 + (40*(KateEngine.Health.Current / 100)) -- Calculate the size of the icon; 100 is the default size, 140 is the size if the health is 100%
-
-	IconP1.Size = UDim2.fromOffset(p1size,p1size);
-	IconP2.Size = UDim2.fromOffset(p2size,p2size);
+	IconP1.Size = UDim2.fromOffset(120,120);
+	IconP2.Size = UDim2.fromOffset(120,120);
 	TweenService:Create(IconP1, TweenInfo.new(time), {Size = UDim2.fromOffset(100,100)}):Play();
 	TweenService:Create(IconP2, TweenInfo.new(time), {Size = UDim2.fromOffset(100,100)}):Play();
 end;
@@ -1242,6 +1242,9 @@ IngameUI.Score:FindFirstChild("Left"):GetPropertyChangedSignal("Visible"):Connec
 	ScoreLabelLeft.Visible = true;
 	IngameUI.Score:FindFirstChild("Left").Visible = false;
 end);
+IngameUI.Score:FindFirstChild("Left"):GetPropertyChangedSignal("Position"):Connect(function()
+	ScoreLabelLeft.Position = IngameUI.Score:FindFirstChild("Left").Position;
+end);
 
 local ScoreLabelRight = IngameUI.Score:FindFirstChild("Right"):Clone();
 ScoreLabelRight.Parent = IngameUI.Arrows;
@@ -1256,6 +1259,9 @@ end);
 IngameUI.Score:FindFirstChild("Right"):GetPropertyChangedSignal("Visible"):Connect(function()
 	ScoreLabelRight.Visible = true;
 	IngameUI.Score:FindFirstChild("Right").Visible = false;
+end);
+IngameUI.Score:FindFirstChild("Right"):GetPropertyChangedSignal("Position"):Connect(function()
+	ScoreLabelRight.Position = IngameUI.Score:FindFirstChild("Right").Position;
 end);
 
 if isfile("KateEngine/config.png") then -- Load the settings if they exist
@@ -1491,27 +1497,26 @@ local Ratings = {
 	};
 	Regular = {
 		[100] = "SS";
-		[99.99] = "S+";
-		[99.98] = "S:";
-		[99.95] = "S.";
-		[99.9] = "S";
-		[99.8] = "AAA";
-		[99.7] = "AA+";
-		[99.6] = "AA:";
-		[99.5] = "AA.";
-		[99.4] = "AA";
-		[99.3] = "A+";
-		[99.2] = "A:";
-		[99.1] = "A.";
-		[99] = "A";
-		[97] = "A-";
-		[95] = "B+";
+		[99.5] = "S+";
+		[99.3] = "S:";
+		[99.2] = "S.";
+		[99] = "S";
+		[98] = "AAA";
+		[97.5] = "AA+";
+		[97] = "AA:";
+		[96.5] = "AA.";
+		[96] = "AA";
+		[95] = "A+";
+		[94] = "A:";
+		[93] = "A.";
+		[91.5] = "A";
+		[90] = "A-";
+		[85] = "B+";
 		[80] = "B";
 		[70] = "C";
 		[60] = "D";
 		[50] = "F+";
 		[40] = "F";
-		[30] = "F-";
 		[0] = "🗿";
 	};
 }
@@ -1991,7 +1996,7 @@ IngameUI.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- Thi
 	end
 
 	if KateEngine.Mania.Perfects > 0 then
-		statgui.Text = "<font color='#ff0090'>Perfect</font>: "..KateEngine.Mania.Perfects.."\n"..statgui.Text
+		statgui.Text = "<font color='#ff0090'>Marvelous</font>: "..KateEngine.Mania.Perfects.."\n"..statgui.Text
 	end
 
 	if showtotalnotes then
@@ -2571,7 +2576,7 @@ ModchartSystem = {
 };
 
 KateEngine.Modcharter = ModchartSystem;
-
+local CurrentSongId = nil;
 -- Check if KateEngine/Modcharts.lua exists;
 -- If yes, we can load it instead of the default modcharts from github;
 
@@ -2608,6 +2613,30 @@ else
 	Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))();
 end
 
+function generateModchartError(state, ...)
+	-- temporary :3
+	local err=...;
+	warn('===== FUNKIFY =====\nA modchart error has occured!\nPlease report this to the Funkify devs or help fix it yourself by creating a pull request!\n\nSongId: '..CurrentSongId..' | State: '..state..'\n\nError: '..err..'\n\n' .. debug.traceback().. '===== END =====');
+end
+
+function callLuaState(state, ...)
+	-- woops
+	if not CurrentSongId then return end;
+	if not Modcharts then return end;
+	if not Modcharts[CurrentSongId] then return end;
+
+	local AttemptCall = function(...)
+		local s,f = pcall(Modcharts[CurrentSongId][state], Framework, ...);
+		if not s then
+			generateModchartError(state, f);
+		end
+	end;
+
+	if Modcharts[CurrentSongId][state] then
+		task.spawn(AttemptCall, ...);
+	end
+end;
+
 SceneLoaded:Connect(function(SceneID, Scene)
 	--@param {string? = scenename, folder? = sceneinstance | nil = scene unloading}
 	if not SceneID then
@@ -2623,6 +2652,8 @@ SceneLoaded:Connect(function(SceneID, Scene)
 	Framework:SetKEValue("SceneID", SceneID);
 	Framework:SetKEValue("SceneInstance", Scene);
 
+	-- try finding if we have a song?
+
 	-- Can't do anything with modcharts due to the fact that the song hasn't started yet, hence no songID can be grabbed!
 	-- If the modcharters want to do something with the scene, they could theoretically use the SongStart event and use the KE values above to do the stuff they want to do.
 end);
@@ -2634,13 +2665,14 @@ NoteHit:Connect(function(NoteHitData, Note)
 	-- NoteHitData.MS is the ms of the note hit
 	-- NoteHitData.HitTime is the tick() of the note hit
 
-	local Modchart = Framework:GetKEValue("CurrentModchart")
+	--local Modchart = Framework:GetKEValue("CurrentModchart")
 
 	ReselectBotAccuracy();
 
-	if Modchart and Modchart.NoteHit then
-		Modchart.NoteHit(Framework, NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
-	end;
+	--if Modchart and Modchart.NoteHit then
+	--	Modchart.NoteHit(Framework, NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
+	--end;
+	callLuaState("NoteHit", NoteHitData, Note);
 
 	if Note and Note.NoteDataConfigs and (Note.NoteDataConfigs.Type == "Poison" or Note.NoteDataConfigs.Type == "LividLycanthrope") and Note.Side and Note.Side == Framework.UI.CurrentSide then
 		-- This only affects the player if they are in solo anyways.
@@ -2652,7 +2684,7 @@ NoteHit:Connect(function(NoteHitData, Note)
 		return;
 	end
 
-	if math.abs(tonumber(NoteHitData.MS) or 999) <= (0.5 * KateEngine.Settings.PerfectTimeframe) and KateEngine.Settings.PerfectRating and Note and Note.Side and (Note.Side == Framework.UI.CurrentSide) then
+	if math.abs(tonumber(NoteHitData.MS) or 999) <= (KateEngine.Settings.PerfectTimeframe) and KateEngine.Settings.PerfectRating and Note and Note.Side and (Note.Side == Framework.UI.CurrentSide) then
 		KateEngine.Mania.Perfects += 1;
 	end;
 
@@ -2702,20 +2734,29 @@ end);
 NoteMiss:Connect(function(Note, Receptor)
 	-- @param: { table NoteClass, table Receptor(?) }
 
+	--[[
 	local Modchart = Framework:GetKEValue("CurrentModchart")
 
 	if Modchart and Modchart.NoteMiss then
 		Modchart.NoteMiss(Framework, Note, Receptor, Note.Side==Framework.UI.CurrentSide);
-	end
+	end]]
+
+	if Note.Side==Framework.UI.CurrentSide then
+		callLuaState("NoteMiss", Note, Receptor);
+	end;
 end);
 
 NoteCreated:Connect(function(Note)
-	-- @param: { table NoteClass }
+	--[[
+	@param: { table NoteClass }
 	local Modchart = Framework:GetKEValue("CurrentModchart")
 
 	if Modchart and Modchart.NoteCreated then
 		Modchart.NoteCreated(Framework, Note);
 	end
+	]]
+
+	callLuaState("NoteCreated", Note);
 end);
 
 local curPos = nil
@@ -2865,9 +2906,11 @@ SoundEvent:Connect(function(Active)
 			connectedevent = nil;
 		end;
 
-		if Framework:GetKEValue("CurrentModchart") and Framework:GetKEValue("CurrentModchart").SongEnd then
+		--[[if Framework:GetKEValue("CurrentModchart") and Framework:GetKEValue("CurrentModchart").SongEnd then
 			Framework:GetKEValue("CurrentModchart").SongEnd(Framework);
 		end;
+		--]]
+		callLuaState("SongEnd");
 
 		ModchartSystem.SetLyrics(""); -- Clear out the lyrics (how did i miss that)
 		Framework:SetKEValue("CurrentModchart", nil);
@@ -2895,6 +2938,8 @@ SoundEvent:Connect(function(Active)
 
 			table.remove(KateEngine.CameraBinds, ae);
 		end;
+
+		callLuaState('cleanUp');
 	end
 	id = id + 1;
 	local assigned = id;
@@ -2911,6 +2956,7 @@ SoundEvent:Connect(function(Active)
 		IconCheck(Framework.UI.CurrentSide);
 
 		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
+		CurrentSongId = songid; -- for CallLuaState
 		KateEngine.Song.Instance = Framework.SongPlayer.CurrentlyPlaying;
 		-- Should come out as just the ID number of the song
 		-- Like this; rbxassetid://12345 => 12345
@@ -2935,7 +2981,7 @@ SoundEvent:Connect(function(Active)
 					Modcharts[songid].SongStart(Framework);
 				end
 
-				Framework:SetKEValue("CurrentModchart", Modcharts[songid]);
+				--Framework:SetKEValue("CurrentModchart", Modcharts[songid]);
 				songmodchart = Modcharts[songid];
 				songmodcharttext = CreateModchartDebug(Modcharts[songid]);
 			end
@@ -3029,14 +3075,16 @@ SoundEvent:Connect(function(Active)
 					if (lastclockcheck + 0.05) > (realstart + (EventClock/20)) then
 						EventClock = EventClock + 1;
 						KateEngine.Song.Clock = EventClock;
-						if songmodchart and songmodchart.Clock then
-							songmodchart.Clock(Framework, EventClock);
-						end
+						--if songmodchart and songmodchart.Clock then
+						--	songmodchart.Clock(Framework, EventClock);
+						--end
+						callLuaState("Clock", EventClock);
 
 						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Clock") and songmodchart.Lyrics[EventClock] then
 							ModchartSystem.SetLyrics(songmodchart.Lyrics[EventClock]);
 						end
 
+						--todo; rewrite and remake modcharts using this later
 						if songmodchart and songmodchart.Events then
 							if songmodchart.Events[EventClock] then
 								task.spawn(function()
@@ -3059,12 +3107,13 @@ SoundEvent:Connect(function(Active)
 					if (laststepcheck + KateEngine.Song.SPS) > (songstart + (KateEngine.Song.SPS * CurrentStep)) then
 						CurrentStep = CurrentStep + 1;
 						TotalSteps = TotalSteps + 1;
-						if songmodchart and songmodchart.OnStep then
-							KateEngine.Song.Step = TotalSteps-1;
-							task.spawn(function()
-								songmodchart.OnStep(Framework, TotalSteps-1);
-							end);
-						end
+						--if songmodchart and songmodchart.OnStep then
+						--	KateEngine.Song.Step = TotalSteps-1;
+						--	task.spawn(function()
+						--		songmodchart.OnStep(Framework, TotalSteps-1);
+						--	end);
+						--end
+						callLuaState("OnStep", TotalSteps-1);
 
 						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Step") and songmodchart.Lyrics[TotalSteps-1] then
 							ModchartSystem.SetLyrics(songmodchart.Lyrics[TotalSteps-1]);
@@ -3083,11 +3132,12 @@ SoundEvent:Connect(function(Active)
 						else
 							BopIcons(KateEngine.Song.BPM, (60 / KateEngine.Song.BPM));
 						end;
-						if songmodchart and songmodchart.OnBeat then
-							task.spawn(function()
-								songmodchart.OnBeat(Framework, CurrentBeat);
-							end);
-						end
+						--if songmodchart and songmodchart.OnBeat then
+						--	task.spawn(function()
+						--		songmodchart.OnBeat(Framework, CurrentBeat);
+						--	end);
+						--end
+						callLuaState("OnBeat", CurrentBeat);
 					else
 						debugtext = "BPM: "..KateEngine.Song.BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(TotalSteps-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
 						BPMSheet.Text = debugtext..songmodcharttext;
@@ -3101,11 +3151,12 @@ SoundEvent:Connect(function(Active)
 						if defaultbumping then
 							ModchartSystem.CameraZoom();
 						end
-						if songmodchart and songmodchart.OnSection then
-							task.spawn(function()
-								songmodchart.OnSection(Framework, CurrentSection-1);
-							end);
-						end;
+						--if songmodchart and songmodchart.OnSection then
+						--	task.spawn(function()
+						--		songmodchart.OnSection(Framework, CurrentSection-1);
+						--	end);
+						--end;
+						callLuaState("OnSection", CurrentSection-1);
 					end;
 
 					debugtext = "BPM: "..KateEngine.Song.BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(TotalSteps-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
