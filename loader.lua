@@ -2044,7 +2044,9 @@ local SceneLoaded = Framework:GetEvent("SceneLoaded"); -- This is the event that
 local SoundEvent = Framework:GetEvent("SoundEvent"); -- This is the event that gets fired when a song starts or ends; @param {boolean = songstarted/songended}
 local NoteMiss = Framework:GetEvent("NoteMissed"); -- This is the event that gets fired when a note is missed, used for modcharts; @param {table NoteClass, table Receptor(?)}
 local NoteHit = Framework:GetEvent("NoteHitBegan"); -- NoteHitEnded is also available, but we need the NoteHit part because it contains the ms; @param: {table {HitAccuracy:number<0-100>, MS:float?, Note:table {NoteData}, HitTime:float<tick()>}, table {?}}
+local NoteHitEnd = Framework:GetEvent("NoteHitEnded"); -- @param {table NoteClass, table Receptor, ?}
 local NoteCreated = Framework:GetEvent("NoteCreated"); -- This is the event that gets fired when a note is created?; @param {table NoteClass?, table? self}
+local NotePassed = Framework:GetEvent("NotePassed"); -- @param {table NoteClass}
 
 ModchartSystem = {
 	-- Camera zooming thing
@@ -2673,6 +2675,11 @@ NoteHit:Connect(function(NoteHitData, Note)
 	--	Modchart.NoteHit(Framework, NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
 	--end;
 	callLuaState("NoteHit", NoteHitData, Note);
+	if Note.Side and Note.Side == Framework.UI.CurrentSide then
+		callLuaState("PlayerNoteHit", NoteHitData, Note);
+	else
+		callLuaState("OpponentNoteHit", NoteHitData, Note);
+	end;
 
 	if Note and Note.NoteDataConfigs and (Note.NoteDataConfigs.Type == "Poison" or Note.NoteDataConfigs.Type == "LividLycanthrope") and Note.Side and Note.Side == Framework.UI.CurrentSide then
 		-- This only affects the player if they are in solo anyways.
@@ -2731,6 +2738,18 @@ NoteHit:Connect(function(NoteHitData, Note)
 	end
 end);
 
+NoteHitEnd:Connect(function(Note, Receptor)
+	-- @param: {table NoteClass, table Receptor, ?}
+	-- no clue what the 3rd parameter is
+
+	callLuaState("NoteHitEnd", Note, Receptor);
+	if Note.Side == Framework.UI.CurrentSide then
+		callLuaState("PlayerNoteHitEnd", Note, Receptor);
+	else
+		callLuaState("OpponentNoteHitEnd", Note, Receptor);
+	end;
+end);
+
 NoteMiss:Connect(function(Note, Receptor)
 	-- @param: { table NoteClass, table Receptor(?) }
 
@@ -2743,7 +2762,16 @@ NoteMiss:Connect(function(Note, Receptor)
 
 	if Note.Side==Framework.UI.CurrentSide then
 		callLuaState("NoteMiss", Note, Receptor);
+	else
+		callLuaState("OpponentNoteMiss", Note, Receptor);
 	end;
+end);
+
+NotePassed:Connect(function(Note)
+	-- @param: { table NoteClass }
+	-- Literally no clue what it does lol
+	-- Is it just another Miss? Oh well
+	callLuaState("NotePassed", Note);
 end);
 
 NoteCreated:Connect(function(Note)
@@ -2805,46 +2833,7 @@ local function CreateModchartDebug(songmodchart)
 		end
 
 		if songmodchart.SetBPM then
-			debugtext = debugtext.."\nBPM Set: "..songmodchart.SetBPM;
-		end
-
-		do
-			debugtext ..= "\nListened Events: ";
-
-			local events = {};
-			if songmodchart.OnStep then
-				table.insert(events, "OnStep");
-			end
-			if songmodchart.OnBeat then
-				table.insert(events, "OnBeat");
-			end
-			if songmodchart.OnSection then
-				table.insert(events, "OnSection");
-			end
-			if songmodchart.Clock then
-				table.insert(events, "Event Clock");
-			end
-			if songmodchart.NoteHit then
-				table.insert(events, "NoteHit");
-			end
-			if songmodchart.NoteMiss then
-				table.insert(events, "NoteMiss");
-			end;
-			if songmodchart.SongStart then
-				table.insert(events, "SongStart");
-			end;
-			if songmodchart.SongEnd then
-				table.insert(events, "SongEnd");
-			end;
-			if songmodchart.NoteCreated then
-				table.insert(events, "NoteCreated");
-			end;
-
-			if #events == 0 then
-				debugtext = debugtext.."None";
-			else
-				debugtext = debugtext..table.concat(events, ", ");
-			end
+			debugtext = debugtext.."\nManual BPM: "..songmodchart.SetBPM;
 		end
 
 		if songmodchart.ShitpostChart then
