@@ -297,6 +297,7 @@ local PreRequisites = {
 	"fkc_eyeidle2.png";
 	"fkc_eyeidle3.png";
 	"fkc_eyeidle4.png";
+	"funkify_1.png";
 };
 
 for k,v in pairs(PreRequisites) do
@@ -998,7 +999,7 @@ KateEngine.Assets.LyricsLabel = LyricsLabel;
 -- Watermark stuff
 local Watermark = Instance.new("ImageButton");
 Watermark.Name = "KE_Watermark";
-Watermark.Image = "rbxassetid://12289530118"; --todo: update with Funkify's new watermark
+Watermark.Image = FetchAsset("funkify_1.png"); --todo: update with Funkify's new watermark
 Watermark.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
 Watermark.BackgroundTransparency = 1;
 Watermark.Size = UDim2.fromOffset(143, 94);
