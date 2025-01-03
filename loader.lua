@@ -917,6 +917,7 @@ function Format(Original,ReplacementData)
 end
 
 -- Services and Variables
+local LoadStartTime = tick();
 local HttpService = game:GetService("HttpService");
 local TweenService = game:GetService("TweenService");
 local UIS = game:GetService("UserInputService");
@@ -1625,6 +1626,8 @@ local function updateCombo(combo,acc,miss)
 			ManiaRating.Text = "M-FLAG"
 		elseif res[3] == 0 and res[4] == 0 and miss == 0 then
 			ManiaRating.Text = "GFC"
+		elseif res[2] == 1 and res[3] == 1 and res[4] == 1 and miss == 1 then
+			ManiaRating.Text = "OMNI-FLAG"
 		elseif totalnonmiss < 10 and miss == 0 then
 			ManiaRating.Text = "SUB ("..totalnonmiss..")"
 		elseif res[2] < 10 and miss == 0 then
@@ -1886,6 +1889,8 @@ IngameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 	end
 end)
 
+local songstart = tick(); -- used for both modcharting and rich presence
+
 local FormatToTime = function(seconds)
 	local minutes = math.floor(seconds / 60);
 	local seconds = math.floor(seconds % 60);
@@ -1913,7 +1918,9 @@ IngameUI.Topbar.Center:FindFirstChild('Text').Label:GetPropertyChangedSignal("Te
 
 			Bloxstrap.SetRichPresence({
 				details = "Funky Friday - Playing a song",
-				state = nofunktxt..' - '..FormatToTime(math.abs(KateEngine.Topbar.OriginTime-seconds))..' / '..FormatToTime(KateEngine.Topbar.OriginTime),
+				state = nofunktxt, --..' - '..FormatToTime(math.abs(KateEngine.Topbar.OriginTime-seconds))..' / '..FormatToTime(KateEngine.Topbar.OriginTime),
+				timeEnd = os.time() + (KateEngine.Topbar.OriginTime-seconds),
+				timeStart = songstart,
 			});
 		end
 
@@ -1946,7 +1953,7 @@ IngameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 	if IngameUI.Arrows.Visible == false then
 		Bloxstrap.SetRichPresence({
 			details = "Funky Friday - In the lobby",
-			state = "== Powered by Kate Engine ==",
+			timeStart = LoadStartTime,
 		});
 	end
 end)
@@ -2015,7 +2022,6 @@ local CurrentBeat = 0;
 local CurrentSection = 0;
 local EventClock = 0;
 local TotalSteps = 0;
-local songstart = os.clock();
 local BPMChanges = {}; -- Track the BPM changes here so we can sync the song steps correctly
 
 local debugtext = "";
@@ -2117,7 +2123,7 @@ ModchartSystem = {
 		local SPS = SPB / 4; -- SPS (Steps per second)
 		KateEngine.Song.SPS = SPS;
 
-		songstart = os.clock();
+		songstart = tick();
 		
 		CurrentStep = 2;
 	end;
@@ -2933,8 +2939,8 @@ SoundEvent:Connect(function(Active)
 	end
 	id = id + 1;
 	local assigned = id;
-	local realstart = os.clock();
-	songstart = os.clock();
+	local realstart = tick();
+	songstart = tick();
 	if Active == true then
 		ModchartSystem.SaveArrowsStyle();
 		local defaultbumping = true;
@@ -3032,8 +3038,8 @@ SoundEvent:Connect(function(Active)
 						KateEngine.Song.Section = 1;
 					end;
 
-					laststepcheck = os.clock();
-					lastclockcheck = os.clock();
+					laststepcheck = tick();
+					lastclockcheck = tick();
 
 					-- This is here because PsychEngine's EventClock is based on milliseconds, rather than 20th of seconds. Made for more accurate modcharts.
 					if songmodchart and songmodchart.TimeStamps then
