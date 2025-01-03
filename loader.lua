@@ -1915,13 +1915,6 @@ IngameUI.Topbar.Center:FindFirstChild('Text').Label:GetPropertyChangedSignal("Te
 			m = 1-m -- reverse the value
 			TopbarProgress:TweenSize(UDim2.new(m,0,1,0),Enum.EasingDirection.Out,Enum.EasingStyle.Linear,1,true)
 			TopbarLabel.Text ..= " - " .. txttable[3];
-
-			Bloxstrap.SetRichPresence({
-				details = "Funky Friday - Playing a song",
-				state = nofunktxt, --..' - '..FormatToTime(math.abs(KateEngine.Topbar.OriginTime-seconds))..' / '..FormatToTime(KateEngine.Topbar.OriginTime),
-				timeEnd = os.time() + (KateEngine.Topbar.OriginTime-seconds),
-				timeStart = songstart,
-			});
 		end
 
 		handler();
@@ -1947,15 +1940,6 @@ end);
 
 IngameUI.Topbar.Center:FindFirstChild('Text').Label:GetPropertyChangedSignal("Visible"):Connect(function()
 	IngameUI.Topbar.Center:FindFirstChild('Text').Label.Visible = false; 
-end)
-
-IngameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
-	if IngameUI.Arrows.Visible == false then
-		Bloxstrap.SetRichPresence({
-			details = "Funky Friday - In the lobby",
-			timeStart = LoadStartTime,
-		});
-	end
 end)
 
 local newloc = PromptUI.SongSelector.Frame.Start
@@ -2936,6 +2920,11 @@ SoundEvent:Connect(function(Active)
 		end;
 
 		callLuaState('cleanUp');
+
+		Bloxstrap.SetRichPresence({
+			details = "Funky Friday - In the lobby",
+			timeStart = LoadStartTime,
+		});
 	end
 	id = id + 1;
 	local assigned = id;
@@ -3020,6 +3009,13 @@ SoundEvent:Connect(function(Active)
 						eventdefinitions[i] = v;
 					end
 				end
+
+				Bloxstrap.SetRichPresence({
+					details = "Funky Friday - Playing a song",
+					state = nofunktxt, --..' - '..FormatToTime(math.abs(KateEngine.Topbar.OriginTime-seconds))..' / '..FormatToTime(KateEngine.Topbar.OriginTime),
+					timeEnd = os.time() + (KateEngine.Topbar.OriginTime-seconds),
+					timeStart = songstart,
+				});
 
 				connectedevent = game:GetService("RunService").RenderStepped:Connect(function() -- Use this to more accurately time the steps
 					if id ~= assigned or not KateEngine.Settings.Modcharts then
