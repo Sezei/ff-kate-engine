@@ -171,7 +171,7 @@ if not isfile("KateEngine/Accepted.txt") then
 	writefile("KateEngine/Accepted.txt", "true");
 end;
 
-local Version = "v0.13";
+local Version = "v0.13a";
 
 -- Function to get the Framework
 function getGameFramework()
@@ -3216,5 +3216,10 @@ loadtext.Text = "Loaded - Have fun!";
 task.delay(1, function()
 	funkything:Destroy();
 end);
+
+Bloxstrap.SetRichPresence({
+	details = "Funky Friday - In the lobby",
+	timeStart = LoadStartTime,
+});
 
 return Framework;
