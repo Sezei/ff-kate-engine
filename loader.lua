@@ -775,11 +775,11 @@ KateEngine = {
 			};
 			{
 				Type = "Label";
-				Text = "-- DEATH TYPE --";
+				Text = "-- MISCELLANEOUS --";
 			};
 			{
 				Type = "Label";
-				Text = "The effect that plays when you die from health loss. (NOT resetting)";
+				Text = "Other settings that do not affect gameplay";
 			};
 			{
 				Type = "Multichoice";
@@ -795,6 +795,14 @@ KateEngine = {
 
 				Stored = true;
 			};
+            {
+                Type = "Boolean";
+                Default = true;
+                Text = "Miss Highlight";
+                Key = "MissHighlight";
+
+                Stored = true;
+            };
 		};
 
 		["Modcharting"] = {
@@ -1889,7 +1897,7 @@ IngameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 	end
 end)
 
-local songstart = tick(); -- used for both modcharting and rich presence
+local songstart = os.time(); -- used for both modcharting and rich presence
 
 local FormatToTime = function(seconds)
 	local minutes = math.floor(seconds / 60);
@@ -1915,6 +1923,13 @@ IngameUI.Topbar.Center:FindFirstChild('Text').Label:GetPropertyChangedSignal("Te
 			m = 1-m -- reverse the value
 			TopbarProgress:TweenSize(UDim2.new(m,0,1,0),Enum.EasingDirection.Out,Enum.EasingStyle.Linear,1,true)
 			TopbarLabel.Text ..= " - " .. txttable[3];
+
+			Bloxstrap.SetRichPresence({
+				details = "Funky Friday - Playing a song",
+				state = nofunktxt, --..' - '..FormatToTime(math.abs(KateEngine.Topbar.OriginTime-seconds))..' / '..FormatToTime(KateEngine.Topbar.OriginTime),
+				timeEnd = math.floor( os.time() + math.abs( seconds ) ),
+				timeStart = songstart,
+			});
 		end
 
 		handler();
@@ -2107,7 +2122,7 @@ ModchartSystem = {
 		local SPS = SPB / 4; -- SPS (Steps per second)
 		KateEngine.Song.SPS = SPS;
 
-		songstart = tick();
+		songstart = os.time();
 		
 		CurrentStep = 2;
 	end;
@@ -2606,6 +2621,12 @@ else
 	Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))();
 end
 
+function spawnError(err:string)
+    --TODO: Create a UI specifically for errors and send them here.
+    --Apparently errors and warnings are not filtered through the exploits, so they can be detected by Roblox easily.
+    --(hi java)
+end;
+
 function generateModchartError(state, ...)
 	-- temporary :3
 	local err=...;
@@ -2665,6 +2686,10 @@ NoteHit:Connect(function(NoteHitData, Note)
 	--if Modchart and Modchart.NoteHit then
 	--	Modchart.NoteHit(Framework, NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
 	--end;
+
+    if not Note then return end;
+    if not NoteHitData then return end;
+
 	callLuaState("NoteHit", NoteHitData, Note);
 	if Note.Side and Note.Side == Framework.UI.CurrentSide then
 		callLuaState("PlayerNoteHit", NoteHitData, Note);
@@ -2739,6 +2764,12 @@ NoteHitEnd:Connect(function(Note, Receptor)
 	else
 		callLuaState("OpponentNoteHitEnd", Note, Receptor);
 	end;
+
+    if KateEngine.Settings.MissHighlight then
+        if LocalPlayer.Character:FindFirstChild("MissHighlight") then
+            LocalPlayer.Character:FindFirstChild("MissHighlight"):Destroy();
+        end;
+    end;
 end);
 
 NoteMiss:Connect(function(Note, Receptor)
@@ -2756,6 +2787,26 @@ NoteMiss:Connect(function(Note, Receptor)
 	else
 		callLuaState("OpponentNoteMiss", Note, Receptor);
 	end;
+
+    if KateEngine.Settings.MissHighlight then
+        if LocalPlayer.Character:FindFirstChild("MissHighlight") then
+            LocalPlayer.Character:FindFirstChild("MissHighlight"):Destroy();
+        end;
+
+        local Highlight = Instance.new("Highlight");
+        Highlight.FillTransparency = 0.6;
+        Highlight.FillColor = Color3.new(0.556863, 0.000000, 0.925490);
+        Highlight.OutlineTransparency = 1;
+        Highlight.Name = 'MissHighlight';
+
+        Highlight.Parent = LocalPlayer.Character;
+
+        task.delay(0.5, function()
+            if Highlight.Parent then
+                Highlight:Destroy();
+            end;
+        end);
+    end;
 end);
 
 NotePassed:Connect(function(Note)
@@ -2923,13 +2974,13 @@ SoundEvent:Connect(function(Active)
 
 		Bloxstrap.SetRichPresence({
 			details = "Funky Friday - In the lobby",
-			timeStart = LoadStartTime,
+			timeStart = math.floor(LoadStartTime),
 		});
 	end
 	id = id + 1;
 	local assigned = id;
 	local realstart = tick();
-	songstart = tick();
+	songstart = os.time();
 	if Active == true then
 		ModchartSystem.SaveArrowsStyle();
 		local defaultbumping = true;
@@ -3010,13 +3061,6 @@ SoundEvent:Connect(function(Active)
 					end
 				end
 
-				Bloxstrap.SetRichPresence({
-					details = "Funky Friday - Playing a song",
-					state = nofunktxt, --..' - '..FormatToTime(math.abs(KateEngine.Topbar.OriginTime-seconds))..' / '..FormatToTime(KateEngine.Topbar.OriginTime),
-					timeEnd = os.time() + (KateEngine.Topbar.OriginTime-seconds),
-					timeStart = songstart,
-				});
-
 				connectedevent = game:GetService("RunService").RenderStepped:Connect(function() -- Use this to more accurately time the steps
 					if id ~= assigned or not KateEngine.Settings.Modcharts then
 						return;
@@ -3096,7 +3140,7 @@ SoundEvent:Connect(function(Active)
 						end
 					end;
 
-					if (laststepcheck + KateEngine.Song.SPS) > (songstart + (KateEngine.Song.SPS * CurrentStep)) then
+					if (laststepcheck + KateEngine.Song.SPS) > (realstart + (KateEngine.Song.SPS * CurrentStep)) then
 						CurrentStep = CurrentStep + 1;
 						TotalSteps = TotalSteps + 1;
 						--if songmodchart and songmodchart.OnStep then
@@ -3219,7 +3263,7 @@ end);
 
 Bloxstrap.SetRichPresence({
 	details = "Funky Friday - In the lobby",
-	timeStart = LoadStartTime,
+	timeStart = math.floor(LoadStartTime),
 });
 
 return Framework;
