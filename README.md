@@ -1,15 +1,7 @@
-# Development Resumed (thanks, (exploit name here)!)
-Remember to use alternative accounts if you can!
+Rewrite's out, so the mod's dead. Sorry.
+I ain't risking my PC nor my accounts to get a funny exploit script more hate than a mayonaise and peas pizza.
 
-### Disclaimer; Use Funkify at your own risk!
-```diff
--- PLEASE READ THIS PART CAREFULLY! --
-
-! Due to the nature of how Funkify is used, it is recommended to take safety precautions to avoid a permanent account deletion of your Roblox account;
-! Such as; Using an alternative account, being in enclosed environments (VIP server, for example), etc.
-
-! Funkify's Contributors, Lyte Interactive's Affliates, and whoever redirected you here have no control over what happens next if you get caught.
-```
+Archiving just in-case.
 
 ----
 
