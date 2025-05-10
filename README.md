@@ -1,24 +1,16 @@
-# Development Resumed (thanks, (exploit name here)!)
-Remember to use alternative accounts if you can!
+Rewrite's out, so the mod's dead. Sorry.
+I ain't risking my PC nor my accounts to get a funny exploit script more hate than a mayonaise and peas pizza.
 
-### Disclaimer; Use Kate Engine at your own risk!
-```diff
--- PLEASE READ THIS PART CAREFULLY! --
-
-! Due to the nature of how Kate Engine is used, it is recommended to take safety precautions to avoid a permanent account deletion of your Roblox account;
-! Such as; Using an alternative account, being in enclosed environments (VIP server, for example), etc.
-
-! KE's Contributors, Lyte Interactive's Affliates, and whoever redirected you here have no control over what happens next if you get caught.
-```
+Archiving just in-case.
 
 ----
 
 <p align="center">
-  <img src="https://github.com/Sezei/ff-kate-engine/blob/main/kateengine_2.png?raw=true" />
+  <img src="https://github.com/Sezei/ff-kate-engine/blob/rewrite/funkify_1_xl.png?raw=true" />
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/latest%20version-0.12A-7300a8?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/latest%20version-0.13-7300a8?style=for-the-badge" />
 </p>
 
 <p align="center">
@@ -46,8 +38,6 @@ The 'mods' so far are the following;
 
 - Dynamic bot difficulty (yes this means you can make the bot suck worse than you lmao)
 
-- ~~Automatic Difficulty Rating Calculation (Shown as [⭐DIFFICULTY] in KE's topbar)~~ Deprecated!
-
 - Better miss-sound handling than the original.. somehow lol
 
 - Full modcharting support, allowing for stuff such as [Hyperlink](https://www.youtube.com/watch?v=1AxvBATQDAQ), [Means of Destruction](https://www.youtube.com/watch?v=CSoFgLZSp_8) or even [Mother (lol)](https://www.youtube.com/watch?v=mGKn6BV_Zkc) ((Footage from beta 0.9)); All the way to even [In My Way](https://youtube.com/watch?v=OLHNoE3abtI&si=EnSIkaIECMiOmarE&t=68) ((Footage from beta 0.11; Select songs only))
@@ -55,7 +45,7 @@ The 'mods' so far are the following;
 # How to load (correctly)
 I will not elaborate how to get the script into the game and stuff, but it's here;
 ```lua
-_G.Framework = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/loader.lua",true))()
+_G.Framework = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/rewrite/loader.lua",true))()
 ```
 
 or for the beta users; (Unmaintained temporarily)

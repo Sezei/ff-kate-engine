@@ -1,3 +1,6 @@
+--sadly despite the rewrite and the rebranding we still have to keep KE as everything for backwards compatibility
+--womp womp
+
 --bloxstrap support
 Bloxstrap = {
 	SendMessage = function(command, data)
@@ -93,7 +96,7 @@ if not isfile("KateEngine/Accepted.txt") then
 
 	local textLabel1 = Instance.new("TextLabel")
 	textLabel1.FontFace = Font.new("rbxasset://fonts/families/PermanentMarker.json")
-	textLabel1.Text = "By using Kate Engine, you agree that any actions you do with it are your own, meaning it is your own responsibility. All FF/KE contributors are not responsible to whatever happens when you use this.\n\n(also pls no use for cheats ty)"
+	textLabel1.Text = "By using Funkify, you agree that any actions you do with it are your own, meaning it is your own responsibility. All FF(ify) contributors are not responsible to whatever happens when you use this.\n\n(also pls no use for cheats ty)"
 	textLabel1.TextColor3 = Color3.fromRGB(255, 255, 255)
 	textLabel1.TextSize = 22
 	textLabel1.TextStrokeTransparency = 0
@@ -168,7 +171,7 @@ if not isfile("KateEngine/Accepted.txt") then
 	writefile("KateEngine/Accepted.txt", "true");
 end;
 
-local Version = "v0.12A";
+local Version = "v0.13a";
 
 -- Function to get the Framework
 function getGameFramework()
@@ -294,6 +297,7 @@ local PreRequisites = {
 	"fkc_eyeidle2.png";
 	"fkc_eyeidle3.png";
 	"fkc_eyeidle4.png";
+	"funkify_1.png";
 };
 
 for k,v in pairs(PreRequisites) do
@@ -771,11 +775,11 @@ KateEngine = {
 			};
 			{
 				Type = "Label";
-				Text = "-- DEATH TYPE --";
+				Text = "-- MISCELLANEOUS --";
 			};
 			{
 				Type = "Label";
-				Text = "The effect that plays when you die from health loss. (NOT resetting)";
+				Text = "Other settings that do not affect gameplay";
 			};
 			{
 				Type = "Multichoice";
@@ -791,6 +795,14 @@ KateEngine = {
 
 				Stored = true;
 			};
+            {
+                Type = "Boolean";
+                Default = true;
+                Text = "Miss Highlight";
+                Key = "MissHighlight";
+
+                Stored = true;
+            };
 		};
 
 		["Modcharting"] = {
@@ -913,6 +925,7 @@ function Format(Original,ReplacementData)
 end
 
 -- Services and Variables
+local LoadStartTime = tick();
 local HttpService = game:GetService("HttpService");
 local TweenService = game:GetService("TweenService");
 local UIS = game:GetService("UserInputService");
@@ -995,7 +1008,7 @@ KateEngine.Assets.LyricsLabel = LyricsLabel;
 -- Watermark stuff
 local Watermark = Instance.new("ImageButton");
 Watermark.Name = "KE_Watermark";
-Watermark.Image = "rbxassetid://12289530118";
+Watermark.Image = FetchAsset("funkify_1.png"); --todo: update with Funkify's new watermark
 Watermark.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
 Watermark.BackgroundTransparency = 1;
 Watermark.Size = UDim2.fromOffset(143, 94);
@@ -1198,11 +1211,8 @@ local function BopIcons(_, delta)
 	-- Calculate the time for beat; Seconds per beat = 60 / BPM (KateEngine.Song.BPM)
 	local time = delta / 1.15;
 
-	local p1size = 140 - (30*(KateEngine.Health.Current / 100)) -- Calculate the size of the icon; 140 is the default size, 110 is the size if the health is 100%
-	local p2size = 100 + (40*(KateEngine.Health.Current / 100)) -- Calculate the size of the icon; 100 is the default size, 140 is the size if the health is 100%
-
-	IconP1.Size = UDim2.fromOffset(p1size,p1size);
-	IconP2.Size = UDim2.fromOffset(p2size,p2size);
+	IconP1.Size = UDim2.fromOffset(120,120);
+	IconP2.Size = UDim2.fromOffset(120,120);
 	TweenService:Create(IconP1, TweenInfo.new(time), {Size = UDim2.fromOffset(100,100)}):Play();
 	TweenService:Create(IconP2, TweenInfo.new(time), {Size = UDim2.fromOffset(100,100)}):Play();
 end;
@@ -1242,6 +1252,9 @@ IngameUI.Score:FindFirstChild("Left"):GetPropertyChangedSignal("Visible"):Connec
 	ScoreLabelLeft.Visible = true;
 	IngameUI.Score:FindFirstChild("Left").Visible = false;
 end);
+IngameUI.Score:FindFirstChild("Left"):GetPropertyChangedSignal("Position"):Connect(function()
+	ScoreLabelLeft.Position = IngameUI.Score:FindFirstChild("Left").Position;
+end);
 
 local ScoreLabelRight = IngameUI.Score:FindFirstChild("Right"):Clone();
 ScoreLabelRight.Parent = IngameUI.Arrows;
@@ -1256,6 +1269,9 @@ end);
 IngameUI.Score:FindFirstChild("Right"):GetPropertyChangedSignal("Visible"):Connect(function()
 	ScoreLabelRight.Visible = true;
 	IngameUI.Score:FindFirstChild("Right").Visible = false;
+end);
+IngameUI.Score:FindFirstChild("Right"):GetPropertyChangedSignal("Position"):Connect(function()
+	ScoreLabelRight.Position = IngameUI.Score:FindFirstChild("Right").Position;
 end);
 
 if isfile("KateEngine/config.png") then -- Load the settings if they exist
@@ -1491,27 +1507,26 @@ local Ratings = {
 	};
 	Regular = {
 		[100] = "SS";
-		[99.99] = "S+";
-		[99.98] = "S:";
-		[99.95] = "S.";
-		[99.9] = "S";
-		[99.8] = "AAA";
-		[99.7] = "AA+";
-		[99.6] = "AA:";
-		[99.5] = "AA.";
-		[99.4] = "AA";
-		[99.3] = "A+";
-		[99.2] = "A:";
-		[99.1] = "A.";
-		[99] = "A";
-		[97] = "A-";
-		[95] = "B+";
+		[99.5] = "S+";
+		[99.3] = "S:";
+		[99.2] = "S.";
+		[99] = "S";
+		[98] = "AAA";
+		[97.5] = "AA+";
+		[97] = "AA:";
+		[96.5] = "AA.";
+		[96] = "AA";
+		[95] = "A+";
+		[94] = "A:";
+		[93] = "A.";
+		[91.5] = "A";
+		[90] = "A-";
+		[85] = "B+";
 		[80] = "B";
 		[70] = "C";
 		[60] = "D";
 		[50] = "F+";
 		[40] = "F";
-		[30] = "F-";
 		[0] = "🗿";
 	};
 }
@@ -1619,6 +1634,8 @@ local function updateCombo(combo,acc,miss)
 			ManiaRating.Text = "M-FLAG"
 		elseif res[3] == 0 and res[4] == 0 and miss == 0 then
 			ManiaRating.Text = "GFC"
+		elseif res[2] == 1 and res[3] == 1 and res[4] == 1 and miss == 1 then
+			ManiaRating.Text = "OMNI-FLAG"
 		elseif totalnonmiss < 10 and miss == 0 then
 			ManiaRating.Text = "SUB ("..totalnonmiss..")"
 		elseif res[2] < 10 and miss == 0 then
@@ -1880,6 +1897,8 @@ IngameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
 	end
 end)
 
+local songstart = os.time(); -- used for both modcharting and rich presence
+
 local FormatToTime = function(seconds)
 	local minutes = math.floor(seconds / 60);
 	local seconds = math.floor(seconds % 60);
@@ -1907,7 +1926,9 @@ IngameUI.Topbar.Center:FindFirstChild('Text').Label:GetPropertyChangedSignal("Te
 
 			Bloxstrap.SetRichPresence({
 				details = "Funky Friday - Playing a song",
-				state = nofunktxt..' - '..FormatToTime(math.abs(KateEngine.Topbar.OriginTime-seconds))..' / '..FormatToTime(KateEngine.Topbar.OriginTime),
+				state = nofunktxt, --..' - '..FormatToTime(math.abs(KateEngine.Topbar.OriginTime-seconds))..' / '..FormatToTime(KateEngine.Topbar.OriginTime),
+				timeEnd = math.floor( os.time() + math.abs( seconds ) ),
+				timeStart = songstart,
 			});
 		end
 
@@ -1934,15 +1955,6 @@ end);
 
 IngameUI.Topbar.Center:FindFirstChild('Text').Label:GetPropertyChangedSignal("Visible"):Connect(function()
 	IngameUI.Topbar.Center:FindFirstChild('Text').Label.Visible = false; 
-end)
-
-IngameUI.Arrows:GetPropertyChangedSignal("Visible"):Connect(function()
-	if IngameUI.Arrows.Visible == false then
-		Bloxstrap.SetRichPresence({
-			details = "Funky Friday - In the lobby",
-			state = "== Powered by Kate Engine ==",
-		});
-	end
 end)
 
 local newloc = PromptUI.SongSelector.Frame.Start
@@ -1991,7 +2003,7 @@ IngameUI.Arrows.Stats:GetPropertyChangedSignal("Text"):Connect(function() -- Thi
 	end
 
 	if KateEngine.Mania.Perfects > 0 then
-		statgui.Text = "<font color='#ff0090'>Perfect</font>: "..KateEngine.Mania.Perfects.."\n"..statgui.Text
+		statgui.Text = "<font color='#ff0090'>Marvelous</font>: "..KateEngine.Mania.Perfects.."\n"..statgui.Text
 	end
 
 	if showtotalnotes then
@@ -2009,7 +2021,6 @@ local CurrentBeat = 0;
 local CurrentSection = 0;
 local EventClock = 0;
 local TotalSteps = 0;
-local songstart = os.clock();
 local BPMChanges = {}; -- Track the BPM changes here so we can sync the song steps correctly
 
 local debugtext = "";
@@ -2039,7 +2050,9 @@ local SceneLoaded = Framework:GetEvent("SceneLoaded"); -- This is the event that
 local SoundEvent = Framework:GetEvent("SoundEvent"); -- This is the event that gets fired when a song starts or ends; @param {boolean = songstarted/songended}
 local NoteMiss = Framework:GetEvent("NoteMissed"); -- This is the event that gets fired when a note is missed, used for modcharts; @param {table NoteClass, table Receptor(?)}
 local NoteHit = Framework:GetEvent("NoteHitBegan"); -- NoteHitEnded is also available, but we need the NoteHit part because it contains the ms; @param: {table {HitAccuracy:number<0-100>, MS:float?, Note:table {NoteData}, HitTime:float<tick()>}, table {?}}
+local NoteHitEnd = Framework:GetEvent("NoteHitEnded"); -- @param {table NoteClass, table Receptor, ?}
 local NoteCreated = Framework:GetEvent("NoteCreated"); -- This is the event that gets fired when a note is created?; @param {table NoteClass?, table? self}
+local NotePassed = Framework:GetEvent("NotePassed"); -- @param {table NoteClass}
 
 ModchartSystem = {
 	-- Camera zooming thing
@@ -2109,7 +2122,7 @@ ModchartSystem = {
 		local SPS = SPB / 4; -- SPS (Steps per second)
 		KateEngine.Song.SPS = SPS;
 
-		songstart = os.clock();
+		songstart = os.time();
 		
 		CurrentStep = 2;
 	end;
@@ -2571,7 +2584,7 @@ ModchartSystem = {
 };
 
 KateEngine.Modcharter = ModchartSystem;
-
+local CurrentSongId = nil;
 -- Check if KateEngine/Modcharts.lua exists;
 -- If yes, we can load it instead of the default modcharts from github;
 
@@ -2608,6 +2621,36 @@ else
 	Modcharts = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezei/ff-kate-engine/main/modcharts.lua",true))();
 end
 
+function spawnError(err:string)
+    --TODO: Create a UI specifically for errors and send them here.
+    --Apparently errors and warnings are not filtered through the exploits, so they can be detected by Roblox easily.
+    --(hi java)
+end;
+
+function generateModchartError(state, ...)
+	-- temporary :3
+	local err=...;
+	warn('===== FUNKIFY =====\nA modchart error has occured!\nPlease report this to the Funkify devs or help fix it yourself by creating a pull request!\n\nSongId: '..CurrentSongId..' | State: '..state..'\n\nError: '..err..'\n\n' .. debug.traceback().. '===== END =====');
+end
+
+function callLuaState(state, ...)
+	-- woops
+	if not CurrentSongId then return end;
+	if not Modcharts then return end;
+	if not Modcharts[CurrentSongId] then return end;
+
+	local AttemptCall = function(...)
+		local s,f = pcall(Modcharts[CurrentSongId][state], Framework, ...);
+		if not s then
+			generateModchartError(state, f);
+		end
+	end;
+
+	if Modcharts[CurrentSongId][state] then
+		task.spawn(AttemptCall, ...);
+	end
+end;
+
 SceneLoaded:Connect(function(SceneID, Scene)
 	--@param {string? = scenename, folder? = sceneinstance | nil = scene unloading}
 	if not SceneID then
@@ -2623,6 +2666,8 @@ SceneLoaded:Connect(function(SceneID, Scene)
 	Framework:SetKEValue("SceneID", SceneID);
 	Framework:SetKEValue("SceneInstance", Scene);
 
+	-- try finding if we have a song?
+
 	-- Can't do anything with modcharts due to the fact that the song hasn't started yet, hence no songID can be grabbed!
 	-- If the modcharters want to do something with the scene, they could theoretically use the SongStart event and use the KE values above to do the stuff they want to do.
 end);
@@ -2634,12 +2679,22 @@ NoteHit:Connect(function(NoteHitData, Note)
 	-- NoteHitData.MS is the ms of the note hit
 	-- NoteHitData.HitTime is the tick() of the note hit
 
-	local Modchart = Framework:GetKEValue("CurrentModchart")
+	--local Modchart = Framework:GetKEValue("CurrentModchart")
 
 	ReselectBotAccuracy();
 
-	if Modchart and Modchart.NoteHit then
-		Modchart.NoteHit(Framework, NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
+	--if Modchart and Modchart.NoteHit then
+	--	Modchart.NoteHit(Framework, NoteHitData, Note); -- Send the raw data to the modchart so the modcharter has full control over the note hit
+	--end;
+
+    if not Note then return end;
+    if not NoteHitData then return end;
+
+	callLuaState("NoteHit", NoteHitData, Note);
+	if Note.Side and Note.Side == Framework.UI.CurrentSide then
+		callLuaState("PlayerNoteHit", NoteHitData, Note);
+	else
+		callLuaState("OpponentNoteHit", NoteHitData, Note);
 	end;
 
 	if Note and Note.NoteDataConfigs and (Note.NoteDataConfigs.Type == "Poison" or Note.NoteDataConfigs.Type == "LividLycanthrope") and Note.Side and Note.Side == Framework.UI.CurrentSide then
@@ -2652,7 +2707,7 @@ NoteHit:Connect(function(NoteHitData, Note)
 		return;
 	end
 
-	if math.abs(tonumber(NoteHitData.MS) or 999) <= (0.5 * KateEngine.Settings.PerfectTimeframe) and KateEngine.Settings.PerfectRating and Note and Note.Side and (Note.Side == Framework.UI.CurrentSide) then
+	if math.abs(tonumber(NoteHitData.MS) or 999) <= (KateEngine.Settings.PerfectTimeframe) and KateEngine.Settings.PerfectRating and Note and Note.Side and (Note.Side == Framework.UI.CurrentSide) then
 		KateEngine.Mania.Perfects += 1;
 	end;
 
@@ -2699,23 +2754,79 @@ NoteHit:Connect(function(NoteHitData, Note)
 	end
 end);
 
+NoteHitEnd:Connect(function(Note, Receptor)
+	-- @param: {table NoteClass, table Receptor, ?}
+	-- no clue what the 3rd parameter is
+
+	callLuaState("NoteHitEnd", Note, Receptor);
+	if Note.Side == Framework.UI.CurrentSide then
+		callLuaState("PlayerNoteHitEnd", Note, Receptor);
+	else
+		callLuaState("OpponentNoteHitEnd", Note, Receptor);
+	end;
+
+    if KateEngine.Settings.MissHighlight then
+        if LocalPlayer.Character:FindFirstChild("MissHighlight") then
+            LocalPlayer.Character:FindFirstChild("MissHighlight"):Destroy();
+        end;
+    end;
+end);
+
 NoteMiss:Connect(function(Note, Receptor)
 	-- @param: { table NoteClass, table Receptor(?) }
 
+	--[[
 	local Modchart = Framework:GetKEValue("CurrentModchart")
 
 	if Modchart and Modchart.NoteMiss then
 		Modchart.NoteMiss(Framework, Note, Receptor, Note.Side==Framework.UI.CurrentSide);
-	end
+	end]]
+
+	if Note.Side==Framework.UI.CurrentSide then
+		callLuaState("NoteMiss", Note, Receptor);
+	else
+		callLuaState("OpponentNoteMiss", Note, Receptor);
+	end;
+
+    if KateEngine.Settings.MissHighlight then
+        if LocalPlayer.Character:FindFirstChild("MissHighlight") then
+            LocalPlayer.Character:FindFirstChild("MissHighlight"):Destroy();
+        end;
+
+        local Highlight = Instance.new("Highlight");
+        Highlight.FillTransparency = 0.6;
+        Highlight.FillColor = Color3.new(0.556863, 0.000000, 0.925490);
+        Highlight.OutlineTransparency = 1;
+        Highlight.Name = 'MissHighlight';
+
+        Highlight.Parent = LocalPlayer.Character;
+
+        task.delay(0.5, function()
+            if Highlight.Parent then
+                Highlight:Destroy();
+            end;
+        end);
+    end;
+end);
+
+NotePassed:Connect(function(Note)
+	-- @param: { table NoteClass }
+	-- Literally no clue what it does lol
+	-- Is it just another Miss? Oh well
+	callLuaState("NotePassed", Note);
 end);
 
 NoteCreated:Connect(function(Note)
-	-- @param: { table NoteClass }
+	--[[
+	@param: { table NoteClass }
 	local Modchart = Framework:GetKEValue("CurrentModchart")
 
 	if Modchart and Modchart.NoteCreated then
 		Modchart.NoteCreated(Framework, Note);
 	end
+	]]
+
+	callLuaState("NoteCreated", Note);
 end);
 
 local curPos = nil
@@ -2764,46 +2875,7 @@ local function CreateModchartDebug(songmodchart)
 		end
 
 		if songmodchart.SetBPM then
-			debugtext = debugtext.."\nBPM Set: "..songmodchart.SetBPM;
-		end
-
-		do
-			debugtext ..= "\nListened Events: ";
-
-			local events = {};
-			if songmodchart.OnStep then
-				table.insert(events, "OnStep");
-			end
-			if songmodchart.OnBeat then
-				table.insert(events, "OnBeat");
-			end
-			if songmodchart.OnSection then
-				table.insert(events, "OnSection");
-			end
-			if songmodchart.Clock then
-				table.insert(events, "Event Clock");
-			end
-			if songmodchart.NoteHit then
-				table.insert(events, "NoteHit");
-			end
-			if songmodchart.NoteMiss then
-				table.insert(events, "NoteMiss");
-			end;
-			if songmodchart.SongStart then
-				table.insert(events, "SongStart");
-			end;
-			if songmodchart.SongEnd then
-				table.insert(events, "SongEnd");
-			end;
-			if songmodchart.NoteCreated then
-				table.insert(events, "NoteCreated");
-			end;
-
-			if #events == 0 then
-				debugtext = debugtext.."None";
-			else
-				debugtext = debugtext..table.concat(events, ", ");
-			end
+			debugtext = debugtext.."\nManual BPM: "..songmodchart.SetBPM;
 		end
 
 		if songmodchart.ShitpostChart then
@@ -2865,9 +2937,11 @@ SoundEvent:Connect(function(Active)
 			connectedevent = nil;
 		end;
 
-		if Framework:GetKEValue("CurrentModchart") and Framework:GetKEValue("CurrentModchart").SongEnd then
+		--[[if Framework:GetKEValue("CurrentModchart") and Framework:GetKEValue("CurrentModchart").SongEnd then
 			Framework:GetKEValue("CurrentModchart").SongEnd(Framework);
 		end;
+		--]]
+		callLuaState("SongEnd");
 
 		ModchartSystem.SetLyrics(""); -- Clear out the lyrics (how did i miss that)
 		Framework:SetKEValue("CurrentModchart", nil);
@@ -2895,11 +2969,18 @@ SoundEvent:Connect(function(Active)
 
 			table.remove(KateEngine.CameraBinds, ae);
 		end;
+
+		callLuaState('cleanUp');
+
+		Bloxstrap.SetRichPresence({
+			details = "Funky Friday - In the lobby",
+			timeStart = math.floor(LoadStartTime),
+		});
 	end
 	id = id + 1;
 	local assigned = id;
-	local realstart = os.clock();
-	songstart = os.clock();
+	local realstart = tick();
+	songstart = os.time();
 	if Active == true then
 		ModchartSystem.SaveArrowsStyle();
 		local defaultbumping = true;
@@ -2911,6 +2992,7 @@ SoundEvent:Connect(function(Active)
 		IconCheck(Framework.UI.CurrentSide);
 
 		local songid = Framework.SongPlayer.CurrentlyPlaying and Framework.SongPlayer.CurrentlyPlaying.SoundId:gsub("rbxassetid://","");
+		CurrentSongId = songid; -- for CallLuaState
 		KateEngine.Song.Instance = Framework.SongPlayer.CurrentlyPlaying;
 		-- Should come out as just the ID number of the song
 		-- Like this; rbxassetid://12345 => 12345
@@ -2935,7 +3017,7 @@ SoundEvent:Connect(function(Active)
 					Modcharts[songid].SongStart(Framework);
 				end
 
-				Framework:SetKEValue("CurrentModchart", Modcharts[songid]);
+				--Framework:SetKEValue("CurrentModchart", Modcharts[songid]);
 				songmodchart = Modcharts[songid];
 				songmodcharttext = CreateModchartDebug(Modcharts[songid]);
 			end
@@ -2996,8 +3078,8 @@ SoundEvent:Connect(function(Active)
 						KateEngine.Song.Section = 1;
 					end;
 
-					laststepcheck = os.clock();
-					lastclockcheck = os.clock();
+					laststepcheck = tick();
+					lastclockcheck = tick();
 
 					-- This is here because PsychEngine's EventClock is based on milliseconds, rather than 20th of seconds. Made for more accurate modcharts.
 					if songmodchart and songmodchart.TimeStamps then
@@ -3029,14 +3111,16 @@ SoundEvent:Connect(function(Active)
 					if (lastclockcheck + 0.05) > (realstart + (EventClock/20)) then
 						EventClock = EventClock + 1;
 						KateEngine.Song.Clock = EventClock;
-						if songmodchart and songmodchart.Clock then
-							songmodchart.Clock(Framework, EventClock);
-						end
+						--if songmodchart and songmodchart.Clock then
+						--	songmodchart.Clock(Framework, EventClock);
+						--end
+						callLuaState("Clock", EventClock);
 
 						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Clock") and songmodchart.Lyrics[EventClock] then
 							ModchartSystem.SetLyrics(songmodchart.Lyrics[EventClock]);
 						end
 
+						--todo; rewrite and remake modcharts using this later
 						if songmodchart and songmodchart.Events then
 							if songmodchart.Events[EventClock] then
 								task.spawn(function()
@@ -3056,15 +3140,16 @@ SoundEvent:Connect(function(Active)
 						end
 					end;
 
-					if (laststepcheck + KateEngine.Song.SPS) > (songstart + (KateEngine.Song.SPS * CurrentStep)) then
+					if (laststepcheck + KateEngine.Song.SPS) > (realstart + (KateEngine.Song.SPS * CurrentStep)) then
 						CurrentStep = CurrentStep + 1;
 						TotalSteps = TotalSteps + 1;
-						if songmodchart and songmodchart.OnStep then
-							KateEngine.Song.Step = TotalSteps-1;
-							task.spawn(function()
-								songmodchart.OnStep(Framework, TotalSteps-1);
-							end);
-						end
+						--if songmodchart and songmodchart.OnStep then
+						--	KateEngine.Song.Step = TotalSteps-1;
+						--	task.spawn(function()
+						--		songmodchart.OnStep(Framework, TotalSteps-1);
+						--	end);
+						--end
+						callLuaState("OnStep", TotalSteps-1);
 
 						if songmodchart and songmodchart.Lyrics and (songmodchart.Lyrics["Method"] and songmodchart.Lyrics["Method"] == "Step") and songmodchart.Lyrics[TotalSteps-1] then
 							ModchartSystem.SetLyrics(songmodchart.Lyrics[TotalSteps-1]);
@@ -3083,11 +3168,12 @@ SoundEvent:Connect(function(Active)
 						else
 							BopIcons(KateEngine.Song.BPM, (60 / KateEngine.Song.BPM));
 						end;
-						if songmodchart and songmodchart.OnBeat then
-							task.spawn(function()
-								songmodchart.OnBeat(Framework, CurrentBeat);
-							end);
-						end
+						--if songmodchart and songmodchart.OnBeat then
+						--	task.spawn(function()
+						--		songmodchart.OnBeat(Framework, CurrentBeat);
+						--	end);
+						--end
+						callLuaState("OnBeat", CurrentBeat);
 					else
 						debugtext = "BPM: "..KateEngine.Song.BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(TotalSteps-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
 						BPMSheet.Text = debugtext..songmodcharttext;
@@ -3101,11 +3187,12 @@ SoundEvent:Connect(function(Active)
 						if defaultbumping then
 							ModchartSystem.CameraZoom();
 						end
-						if songmodchart and songmodchart.OnSection then
-							task.spawn(function()
-								songmodchart.OnSection(Framework, CurrentSection-1);
-							end);
-						end;
+						--if songmodchart and songmodchart.OnSection then
+						--	task.spawn(function()
+						--		songmodchart.OnSection(Framework, CurrentSection-1);
+						--	end);
+						--end;
+						callLuaState("OnSection", CurrentSection-1);
 					end;
 
 					debugtext = "BPM: "..KateEngine.Song.BPM.."\nEvent Clock: "..EventClock.."\nStep: "..(TotalSteps-1).."\nBeat: "..(CurrentBeat-1).."\nSection: "..(CurrentSection-1).."\nSongID: "..songid;
@@ -3173,5 +3260,10 @@ loadtext.Text = "Loaded - Have fun!";
 task.delay(1, function()
 	funkything:Destroy();
 end);
+
+Bloxstrap.SetRichPresence({
+	details = "Funky Friday - In the lobby",
+	timeStart = math.floor(LoadStartTime),
+});
 
 return Framework;
